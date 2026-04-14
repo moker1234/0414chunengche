@@ -1,0 +1,168 @@
+{
+  "can": {
+    "links": [
+      {
+        "can_index": 0,
+        "name": "can0_pcu",
+        "role": "periodic_tx_rx",
+        "enable": true,
+
+        "protocol": {
+          "type": "emu_pcu_v1",
+          "ids": {
+            "emu_ctrl":   "0x1801A0E0",
+            "emu_status": "0x1802A0E0",
+            "pcu_status": "0x1801EFA0"
+          }
+        },
+
+        "tx": {
+          "enable": true,
+          "interval_ms": 200,
+          "send_ctrl": true,
+          "send_status": true,
+
+          "ctrl_enable_default": "0x01",
+          "plug_default": "0x00",
+          "estop_default": "0x00",
+          "batt1_estop_default": "0x00",
+          "batt2_estop_default": "0x00"
+        },
+
+        "rx": {
+          "enable": true,
+          "timeout_ms": 1000,
+          "require_heartbeat_increment": false
+        }
+      },
+      {
+        "can_index": 1,
+        "name": "can1_pcu",
+        "role": "periodic_tx_rx",
+        "enable": true,
+
+        "protocol": {
+          "type": "emu_pcu_v1",
+          "ids": {
+            "emu_ctrl":   "0x1801A0E0",
+            "emu_status": "0x1802A0E0",
+            "pcu_status": "0x1801EFA0"
+          }
+        },
+
+        "tx": {
+          "enable": true,
+          "interval_ms": 200,
+          "send_ctrl": true,
+          "send_status": true,
+
+          "ctrl_enable_default": "0x01",
+          "plug_default": "0x00",
+          "estop_default": "0x00",
+          "batt1_estop_default": "0x00",
+          "batt2_estop_default": "0x00"
+        },
+
+        "rx": {
+          "enable": true,
+          "timeout_ms": 1000,
+          "require_heartbeat_increment": false
+        }
+      },
+      {
+        "can_index": 2,
+        "name": "can2_bms",
+        "role": "rx_only",
+        "enable": true,
+
+        "protocol": {
+          "type": "bms_table_v1",
+          "ids": {}
+        },
+
+        "tx": { "enable": false },
+        "rx": { "enable": true, "timeout_ms": 1000 }
+      }
+    ]
+  },
+
+  "rs485": {
+    "links": [
+      {
+        "link_index": 0,
+        "name": "rs485_1",
+        "role": "master_poll",
+        "device": { "type": "gas", "slave_id": 1, "crc_order": "hilo" },
+        "poll": {
+          "interval_ms": 100,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 5000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+
+      },
+      {
+        "link_index": 1,
+        "name": "rs485_2",
+        "role": "master_poll",
+        "device": { "type": "smoke", "slave_id": 2, "crc_order": "hilo" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 5000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      },
+      {
+        "link_index": 2,
+        "name": "rs485_3",
+        "role": "master_poll",
+        "device": { "type": "air_conditioner", "slave_id": 1, "crc_order": "lohi" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 4000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      },
+      {
+        "link_index": 3,
+        "name": "rs485_4",
+        "role": "slave_hmi",
+        "device": { "type": "hmi", "slave_id": 1, "crc_order": "lohi" },
+        "poll": {
+          "enable": false
+        }
+      }
+    ]
+  },
+
+  "rs232": {
+    "links": [
+      {
+        "link_index": 0,
+        "name": "rs232_1",
+        "role": "master_poll",
+        "device": { "type": "ups_ascii" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 4000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      }
+    ]
+  }
+}

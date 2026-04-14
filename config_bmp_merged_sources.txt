@@ -1,0 +1,3720 @@
+
+================================================================================
+FILE: display_map.jsonl
+================================================================================
+
+{"type":"bool_read","base":"0x3000","items":[{"path":"","name":"放电插座1-1连接状态"},{"path":"","name":"放电插座1-2连接状态"},{"path":"","name":"放电插座1-3连接状态"},{"path":"","name":"放电插座1-4连接状态"},{"path":"","name":"放电插座2-1连接状态"},{"path":"","name":"放电插座2-2连接状态"},{"path":"","name":"放电插座2-3连接状态"},{"path":"","name":"放电插座2-4连接状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"感温感烟传感器通信状态"},{"path":"","name":"可燃气体传感器通信状态"},{"path":"","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1上高压指令"},{"path":"","name":"动力电池1充电指令"},{"path":"","name":"动力电池1请求下高压"},{"path":"","name":"动力电池1主正继电器状态"},{"path":"","name":"动力电池1主负继电器状态"},{"path":"","name":"动力电池1主回路预充或预检继电器状态"},{"path":"","name":"动力电池1直流充正继电器1状态"},{"path":"","name":"动力电池1直流充负继电器1状态"},{"path":"","name":"动力电池1直流充正继电器2状态"},{"path":"","name":"动力电池1直流充负继电器2状态"},{"path":"","name":"动力电池1加热正继电器状态"},{"path":"","name":"动力电池1加热负继电器状态"},{"path":"","name":"动力电池1加热状态"},{"path":"","name":"动力电池1冷却状态"},{"path":"","name":"动力电池1绝缘检测状态"},{"path":"","name":"动力电池1灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池2上高压指令"},{"path":"","name":"动力电池2充电指令"},{"path":"","name":"动力电池2请求下高压"},{"path":"","name":"动力电池2主正继电器状态"},{"path":"","name":"动力电池2主负继电器状态"},{"path":"","name":"动力电池2主回路预充或预检继电器状态"},{"path":"","name":"动力电池2直流充正继电器1状态"},{"path":"","name":"动力电池2直流充负继电器1状态"},{"path":"","name":"动力电池2直流充正继电器2状态"},{"path":"","name":"动力电池2直流充负继电器2状态"},{"path":"","name":"动力电池2加热正继电器状态"},{"path":"","name":"动力电池2加热负继电器状态"},{"path":"","name":"动力电池2加热状态"},{"path":"","name":"动力电池2冷却状态"},{"path":"","name":"动力电池2绝缘检测状态"},{"path":"","name":"动力电池2灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池3上高压指令"},{"path":"","name":"动力电池3充电指令"},{"path":"","name":"动力电池3请求下高压"},{"path":"","name":"动力电池3主正继电器状态"},{"path":"","name":"动力电池3主负继电器状态"},{"path":"","name":"动力电池3主回路预充或预检继电器状态"},{"path":"","name":"动力电池3直流充正继电器1状态"},{"path":"","name":"动力电池3直流充负继电器1状态"},{"path":"","name":"动力电池3直流充正继电器2状态"},{"path":"","name":"动力电池3直流充负继电器2状态"},{"path":"","name":"动力电池3加热正继电器状态"},{"path":"","name":"动力电池3加热负继电器状态"},{"path":"","name":"动力电池3加热状态"},{"path":"","name":"动力电池3冷却状态"},{"path":"","name":"动力电池3绝缘检测状态"},{"path":"","name":"动力电池3灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池4上高压指令"},{"path":"","name":"动力电池4充电指令"},{"path":"","name":"动力电池4请求下高压"},{"path":"","name":"动力电池4主正继电器状态"},{"path":"","name":"动力电池4主负继电器状态"},{"path":"","name":"动力电池4主回路预充或预检继电器状态"},{"path":"","name":"动力电池4直流充正继电器1状态"},{"path":"","name":"动力电池4直流充负继电器1状态"},{"path":"","name":"动力电池4直流充正继电器2状态"},{"path":"","name":"动力电池4直流充负继电器2状态"},{"path":"","name":"动力电池4加热正继电器状态"},{"path":"","name":"动力电池4加热负继电器状态"},{"path":"","name":"动力电池4加热状态"},{"path":"","name":"动力电池4冷却状态"},{"path":"","name":"动力电池4绝缘检测状态"},{"path":"","name":"动力电池4灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"密码设置成功"},{"path":"","name":"HMI1通信状态"},{"path":"","name":"UPS通信状态"},{"path":"","name":"PCU1通信状态"},{"path":"","name":"PCU2通信状态"},{"path":"","name":"BMS1通信状态"},{"path":"","name":"BMS2通信状态"},{"path":"","name":"BMS3通信状态"},{"path":"","name":"BMS4通信状态"},{"path":"","name":"Remote通信状态"},{"path":"","name":"感温感烟传感器通信状态"},{"path":"","name":"可燃气体传感器通信状态"},{"path":"","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI蜂鸣器激活"},{"path":"","name":"现存故障页面第1行故障确认状态"},{"path":"","name":"现存故障页面第2行故障确认状态"},{"path":"","name":"现存故障页面第3行故障确认状态"},{"path":"","name":"现存故障页面第4行故障确认状态"},{"path":"","name":"现存故障页面第5行故障确认状态"},{"path":"","name":"现存故障页面第6行故障确认状态"},{"path":"","name":"现存故障页面第7行故障确认状态"},{"path":"","name":"现存故障页面第8行故障确认状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"bool_rw","base":"0x1000","items":[{"path":"","name":"首页故障确认"},{"path":"","name":"上电"},{"path":"","name":"下电"},{"path":"","name":"故障复位"},{"path":"","name":"全部确认"},{"path":"","name":"历史故障界面显示"},{"path":"","name":"现存故障下一页"},{"path":"","name":"现存故障上一页"},{"path":"","name":"历史故障下一页"},{"path":"","name":"历史故障上一页"},{"path":"","name":"维护密码确认"},{"path":"","name":"箱号设置指令"},{"path":"","name":""},{"path":"","name":"UPS关机"},{"path":"","name":"空调温度湿度设置"},{"path":"","name":"密码设置指令"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_read","base":"0x4000","items":[{"path":"","name":"年"},{"path":"","name":"月"},{"path":"","name":"日"},{"path":"","name":"时"},{"path":"","name":"分"},{"path":"","name":"秒"},{"path":"","name":"运行工况bms"},{"path":"","name":"动力电池1系统状态"},{"path":"","name":"动力电池1电压"},{"path":"","name":"动力电池2电压"},{"path":"","name":"动力电池3电压"},{"path":"","name":"动力电池3SOC"},{"path":"","name":"动力电池4系统状态"},{"path":"","name":"动力电池4电压"},{"path":"","name":"动力电池4SOC"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"items.AirConditioner.data.run_state.fields.run.overall","name":"整机状态"},{"path":"items.AirConditioner.data.run_state.fields.run.inner_fan","name":"内风机"},{"path":"items.AirConditioner.data.run_state.fields.run.outer_fan","name":"外风机"},{"path":"items.AirConditioner.data.run_state.fields.run.compressor","name":"压缩机"},{"path":"items.AirConditioner.data.run_state.fields.run.heater","name":"电加热"},{"path":"items.AirConditioner.data.run_state.fields.run.em_fan","name":"应急风机"},{"path":"items.AirConditioner.data.sensor_state.fields.temp.coil_c","name":"盘管温度"},{"path":"items.AirConditioner.data.sensor_state.fields.temp.outdoor_c","name":"室外温度"},{"path":"items.AirConditioner.data.sensor_state.fields.temp.condense_c","name":"冷凝温度"},{"path":"items.AirConditioner.data.sensor_state.fields.temp.indoor_c","name":"室内温度"},{"path":"items.AirConditioner.data.sensor_state.fields.humidity_percent","name":"湿度"},{"path":"items.AirConditioner.data.sensor_state.fields.temp.exhaust_c","name":"排气温度"},{"path":"items.AirConditioner.data.sensor_state.fields.current_a","name":"电流"},{"path":"items.AirConditioner.data.sensor_state.fields.ac_voltage_v","name":"交流电压"},{"path":"items.AirConditioner.data.sensor_state.fields.dc_voltage_v","name":"直流电压"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"items.SmokeSensor.data.num.alarm","name":"报警状态"},{"path":"items.SmokeSensor.data.num.fault","name":"故障状态参数"},{"path":"items.SmokeSensor.data.num.warn_level","name":"报警级别"},{"path":"items.SmokeSensor.data.num.smoke_percent","name":"烟雾浓度"},{"path":"items.SmokeSensor.data.num.temp","name":"温度值"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"items.BMS.health.state","name":"探测器状态"},{"path":"","name":"可燃气体浓度"},{"path":"items.GasDetector.gas_channels.0.value","name":"一氧化碳浓度"},{"path":"items.GasDetector.gas_channels.1.value","name":"氧气浓度"},{"path":"items.GasDetector.gas_channels.3.value","name":"温度"},{"path":"items.GasDetector.gas_channels.4.value","name":"湿度"},{"path":"items.GasDetector.gas_channels.5.value","name":"二氧化碳"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"items.UPS.data.Q6.value.system.mode","name":"系统模式"},{"path":"items.UPS.data.Q6.value.battery.remain.sec","name":"电池备用时间"},{"path":"items.UPS.data.Q6.value.battery.capacity","name":"电池容量百分比"},{"path":"items.UPS.data.Q6.status.fault.bits","name":"UPS故障代码"},{"path":"items.UPS.data.Q6.status.warning.bits","name":"UPS警告代码"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1当前高压状态"},{"path":"","name":"动力电池1直流充电枪连接状态"},{"path":"","name":"动力电池1充电状态"},{"path":"","name":"动力电池1电池包SOC"},{"path":"","name":"动力电池1电池包SOH"},{"path":"","name":"动力电池1电池包总电流"},{"path":"","name":"动力电池1电池包内侧电压"},{"path":"","name":"动力电池1故障码"},{"path":"","name":"动力电池1当前最高故障等级"},{"path":"","name":"动力电池1正极绝缘值"},{"path":"","name":"动力电池1负极绝缘值"},{"path":"","name":"动力电池1系统绝缘值"},{"path":"","name":"动力电池1电芯温度最大值"},{"path":"","name":"动力电池1电芯温度最小值"},{"path":"","name":"动力电池1电芯温度平均值"},{"path":"","name":"动力电池1最高温度位置"},{"path":"","name":"动力电池1最低温度位置"},{"path":"","name":"动力电池1电芯电压最大值"},{"path":"","name":"动力电池1电芯电压最小值"},{"path":"","name":"动力电池1电芯电压平均值"},{"path":"","name":"动力电池1最高电压位置"},{"path":"","name":"动力电池1最低电压位置"},{"path":"","name":"动力电池1累计充电电量"},{"path":"","name":"动力电池1累计放电电量"},{"path":"","name":"动力电池1单次充电电量"},{"path":"","name":"动力电池1允许放电电流"},{"path":"","name":"动力电池1允许充电电流"},{"path":"","name":"动力电池2当前高压状态"},{"path":"","name":"动力电池2直流充电枪连接状态"},{"path":"","name":"动力电池2充电状态"},{"path":"","name":"动力电池2电池包SOC"},{"path":"","name":"动力电池2电池包SOH"},{"path":"","name":"动力电池2电池包总电流"},{"path":"","name":"动力电池2电池包内侧电压"},{"path":"","name":"动力电池2故障码"},{"path":"","name":"动力电池2当前最高故障等级"},{"path":"","name":"动力电池2正极绝缘值"},{"path":"","name":"动力电池2负极绝缘值"},{"path":"","name":"动力电池2系统绝缘值"},{"path":"","name":"动力电池2电芯温度最大值"},{"path":"","name":"动力电池2电芯温度最小值"},{"path":"","name":"动力电池2电芯温度平均值"},{"path":"","name":"动力电池2最高温度位置"},{"path":"","name":"动力电池2最低温度位置"},{"path":"","name":"动力电池2电芯电压最大值"},{"path":"","name":"动力电池2电芯电压最小值"},{"path":"","name":"动力电池2电芯电压平均值"},{"path":"","name":"动力电池2最高电压位置"},{"path":"","name":"动力电池2最低电压位置"},{"path":"","name":"动力电池2累计充电电量"},{"path":"","name":"动力电池2累计放电电量"},{"path":"","name":"动力电池2单次充电电量"},{"path":"","name":"动力电池2允许放电电流"},{"path":"","name":"动力电池2允许充电电流"},{"path":"","name":"动力电池3当前高压状态"},{"path":"","name":"动力电池3直流充电枪连接状态"},{"path":"","name":"动力电池3充电状态"},{"path":"","name":"动力电池3电池包SOC"},{"path":"","name":"动力电池3电池包SOH"},{"path":"","name":"动力电池3电池包总电流"},{"path":"","name":"动力电池3电池包内侧电压"},{"path":"","name":"动力电池3故障码"},{"path":"","name":"动力电池3当前最高故障等级"},{"path":"","name":"动力电池3正极绝缘值"},{"path":"","name":"动力电池3负极绝缘值"},{"path":"","name":"动力电池3系统绝缘值"},{"path":"","name":"动力电池3电芯温度最大值"},{"path":"","name":"动力电池3电芯温度最小值"},{"path":"","name":"动力电池3电芯温度平均值"},{"path":"","name":"动力电池3最高温度位置"},{"path":"","name":"动力电池3最低温度位置"},{"path":"","name":"动力电池3电芯电压最大值"},{"path":"","name":"动力电池3电芯电压最小值"},{"path":"","name":"动力电池3电芯电压平均值"},{"path":"","name":"动力电池3最高电压位置"},{"path":"","name":"动力电池3最低电压位置"},{"path":"","name":"动力电池3累计充电电量"},{"path":"","name":"动力电池3累计放电电量"},{"path":"","name":"动力电池3单次充电电量"},{"path":"","name":"动力电池3允许放电电流"},{"path":"","name":"动力电池3允许充电电流"},{"path":"","name":"动力电池4当前高压状态"},{"path":"","name":"动力电池4直流充电枪连接状态"},{"path":"","name":"动力电池4充电状态"},{"path":"","name":"动力电池4电池包SOC"},{"path":"","name":"动力电池4电池包SOH"},{"path":"","name":"动力电池4电池包总电流"},{"path":"","name":"动力电池4电池包内侧电压"},{"path":"","name":"动力电池4故障码"},{"path":"","name":"动力电池4当前最高故障等级"},{"path":"","name":"动力电池4正极绝缘值"},{"path":"","name":"动力电池4负极绝缘值"},{"path":"","name":"动力电池4系统绝缘值"},{"path":"","name":"动力电池4电芯温度最大值"},{"path":"","name":"动力电池4电芯温度最小值"},{"path":"","name":"动力电池4电芯温度平均值"},{"path":"","name":"动力电池4最高温度位置"},{"path":"","name":"动力电池4最低温度位置"},{"path":"","name":"动力电池4电芯电压最大值"},{"path":"","name":"动力电池4电芯电压最小值"},{"path":"","name":"动力电池4电芯电压平均值"},{"path":"","name":"动力电池4最高电压位置"},{"path":"","name":"动力电池4最低电压位置"},{"path":"","name":"动力电池4累计充电电量"},{"path":"","name":"动力电池4累计放电电量"},{"path":"","name":"动力电池4单次充电电量"},{"path":"","name":"动力电池4允许放电电流"},{"path":"","name":"动力电池4允许充电电流"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1热管理系统工作状态"},{"path":"","name":"动力电池1热管理系统高压继电器状态"},{"path":"","name":"动力电池1热管理系统出水温度"},{"path":"","name":"动力电池1热管理系统回水温度"},{"path":"","name":"动力电池1热管理系统需求功率"},{"path":"","name":"动力电池1热管理系统故障码"},{"path":"","name":"动力电池1热管理系统故障等级"},{"path":"","name":"动力电池1灭火系统电池箱号"},{"path":"","name":"动力电池1灭火系统预警级别"},{"path":"","name":"动力电池1灭火系统故障码"},{"path":"","name":"动力电池1灭火系统故障等级"},{"path":"","name":"动力电池2热管理系统工作状态"},{"path":"","name":"动力电池2热管理系统高压继电器状态"},{"path":"","name":"动力电池2热管理系统出水温度"},{"path":"","name":"动力电池2热管理系统回水温度"},{"path":"","name":"动力电池2热管理系统需求功率"},{"path":"","name":"动力电池2热管理系统故障码"},{"path":"","name":"动力电池2热管理系统故障等级"},{"path":"","name":"动力电池2灭火系统电池箱号"},{"path":"","name":"动力电池2灭火系统预警级别"},{"path":"","name":"动力电池2灭火系统故障码"},{"path":"","name":"动力电池2灭火系统故障等级"},{"path":"","name":"动力电池3热管理系统工作状态"},{"path":"","name":"动力电池3热管理系统高压继电器状态"},{"path":"","name":"动力电池3热管理系统出水温度"},{"path":"","name":"动力电池3热管理系统回水温度"},{"path":"","name":"动力电池3热管理系统需求功率"},{"path":"","name":"动力电池3热管理系统故障码"},{"path":"","name":"动力电池3热管理系统故障等级"},{"path":"","name":"动力电池3灭火系统电池箱号"},{"path":"","name":"动力电池3灭火系统预警级别"},{"path":"","name":"动力电池3灭火系统故障码"},{"path":"","name":"动力电池3灭火系统故障等级"},{"path":"","name":"动力电池4热管理系统工作状态"},{"path":"","name":"动力电池4热管理系统高压继电器状态"},{"path":"","name":"动力电池4热管理系统出水温度"},{"path":"","name":"动力电池4热管理系统回水温度"},{"path":"","name":"动力电池4热管理系统需求功率"},{"path":"","name":"动力电池4热管理系统故障码"},{"path":"","name":"动力电池4热管理系统故障等级"},{"path":"","name":"动力电池4灭火系统电池箱号"},{"path":"","name":"动力电池4灭火系统预警级别"},{"path":"","name":"动力电池4灭火系统故障码"},{"path":"","name":"动力电池4灭火系统故障等级"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"当前存储的密码"},{"path":"","name":"当前设置温度"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI1版本X"},{"path":"","name":"HMI1版本Y"},{"path":"","name":"BMS1版本X"},{"path":"","name":"BMS1版本Y"},{"path":"","name":"BMS2版本X"},{"path":"","name":"BMS2版本Y"},{"path":"","name":"BMS3版本X"},{"path":"","name":"BMS3版本Y"},{"path":"","name":"BMS4版本X"},{"path":"","name":"BMS4版本Y"},{"path":"","name":"EMU版本X"},{"path":"","name":"EMU版本Y"},{"path":"","name":"PCU1版本X"},{"path":"","name":"PCU1版本Y"},{"path":"","name":"PCU2版本X"},{"path":"","name":"PCU2版本Y"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"现存故障页面总数"},{"path":"","name":"现存故障页码"},{"path":"","name":"现存故障页面第1行故障序号"},{"path":"","name":"现存故障页面第2行故障序号"},{"path":"","name":"现存故障页面第3行故障序号"},{"path":"","name":"现存故障页面第4行故障序号"},{"path":"","name":"现存故障页面第5行故障序号"},{"path":"","name":"现存故障页面第6行故障序号"},{"path":"","name":"现存故障页面第7行故障序号"},{"path":"","name":"现存故障页面第8行故障序号"},{"path":"","name":"现存故障页面第1行故障代码"},{"path":"","name":"现存故障页面第2行故障代码"},{"path":"","name":"现存故障页面第3行故障代码"},{"path":"","name":"现存故障页面第4行故障代码"},{"path":"","name":"现存故障页面第5行故障代码"},{"path":"","name":"现存故障页面第6行故障代码"},{"path":"","name":"现存故障页面第7行故障代码"},{"path":"","name":"现存故障页面第8行故障代码"},{"path":"","name":"现存故障页面第1行故障触发时间"},{"path":"","name":"现存故障页面第2行故障触发时间"},{"path":"","name":"现存故障页面第3行故障触发时间"},{"path":"","name":"现存故障页面第4行故障触发时间"},{"path":"","name":"现存故障页面第5行故障触发时间"},{"path":"","name":"现存故障页面第6行故障触发时间"},{"path":"","name":"现存故障页面第7行故障触发时间"},{"path":"","name":"现存故障页面第8行故障触发时间"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"历史故障页面总数"},{"path":"","name":"历史故障页码"},{"path":"","name":"历史故障页面第1行故障序号"},{"path":"","name":"历史故障页面第2行故障序号"},{"path":"","name":"历史故障页面第3行故障序号"},{"path":"","name":"历史故障页面第4行故障序号"},{"path":"","name":"历史故障页面第5行故障序号"},{"path":"","name":"历史故障页面第6行故障序号"},{"path":"","name":"历史故障页面第7行故障序号"},{"path":"","name":"历史故障页面第8行故障序号"},{"path":"","name":"历史故障页面第9行故障序号"},{"path":"","name":"历史故障页面第10行故障序号"},{"path":"","name":"历史故障页面第11行故障序号"},{"path":"","name":"历史故障页面第12行故障序号"},{"path":"","name":"历史故障页面第1行故障代码"},{"path":"","name":"历史故障页面第2行故障代码"},{"path":"","name":"历史故障页面第3行故障代码"},{"path":"","name":"历史故障页面第4行故障代码"},{"path":"","name":"历史故障页面第5行故障代码"},{"path":"","name":"历史故障页面第6行故障代码"},{"path":"","name":"历史故障页面第7行故障代码"},{"path":"","name":"历史故障页面第8行故障代码"},{"path":"","name":"历史故障页面第9行故障代码"},{"path":"","name":"历史故障页面第10行故障代码"},{"path":"","name":"历史故障页面第11行故障代码"},{"path":"","name":"历史故障页面第12行故障代码"},{"path":"","name":"历史故障页面第1行故障触发时间"},{"path":"","name":"历史故障页面第2行故障触发时间"},{"path":"","name":"历史故障页面第3行故障触发时间"},{"path":"","name":"历史故障页面第4行故障触发时间"},{"path":"","name":"历史故障页面第5行故障触发时间"},{"path":"","name":"历史故障页面第6行故障触发时间"},{"path":"","name":"历史故障页面第7行故障触发时间"},{"path":"","name":"历史故障页面第8行故障触发时间"},{"path":"","name":"历史故障页面第9行故障触发时间"},{"path":"","name":"历史故障页面第10行故障触发时间"},{"path":"","name":"历史故障页面第11行故障触发时间"},{"path":"","name":"历史故障页面第12行故障触发时间"},{"path":"","name":"历史故障页面第1行故障消失时间"},{"path":"","name":"历史故障页面第2行故障消失时间"},{"path":"","name":"历史故障页面第3行故障消失时间"},{"path":"","name":"历史故障页面第4行故障消失时间"},{"path":"","name":"历史故障页面第5行故障消失时间"},{"path":"","name":"历史故障页面第6行故障消失时间"},{"path":"","name":"历史故障页面第7行故障消失时间"},{"path":"","name":"历史故障页面第8行故障消失时间"},{"path":"","name":"历史故障页面第9行故障消失时间"},{"path":"","name":"历史故障页面第10行故障消失时间"},{"path":"","name":"历史故障页面第11行故障消失时间"},{"path":"","name":"历史故障页面第12行故障消失时间"},{"path":"","name":"历史故障页面第1行故障状态"},{"path":"","name":"历史故障页面第2行故障状态"},{"path":"","name":"历史故障页面第3行故障状态"},{"path":"","name":"历史故障页面第4行故障状态"},{"path":"","name":"历史故障页面第5行故障状态"},{"path":"","name":"历史故障页面第6行故障状态"},{"path":"","name":"历史故障页面第7行故障状态"},{"path":"","name":"历史故障页面第8行故障状态"},{"path":"","name":"历史故障页面第9行故障状态"},{"path":"","name":"历史故障页面第10行故障状态"},{"path":"","name":"历史故障页面第11行故障状态"},{"path":"","name":"历史故障页面第12行故障状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_rw","base":"0x2000","items":[{"path":"","name":"维护密码"},{"path":"","name":"设置箱号"},{"path":"","name":"UPS关机时间"},{"path":"","name":"设置空调温度"},{"path":"","name":"设置空调湿度"},{"path":"","name":"输入原密码"},{"path":"","name":"设置密码1"},{"path":"","name":"设置密码2"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+================================================================================
+FILE: fault_map.jsonl
+================================================================================
+
+
+================================================================================
+FILE: io_map.json
+================================================================================
+
+{
+  "can": [
+    { "name": "can0", "ifname": "can0", "bitrate": 125000, "enable": true },
+    { "name": "can1", "ifname": "can1", "bitrate": 125000, "enable": true },
+    { "name": "can2", "ifname": "can2", "bitrate": 500000, "enable": true }
+  ],
+  "serial": {
+    "rs485": [
+      { "name": "rs485_1", "device": "/dev/ttyRS485-1", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_2", "device": "/dev/ttyRS485-2", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_3", "device": "/dev/ttyRS485-3", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_4", "device": "/dev/ttyRS485-4", "baudrate": 115200, "enable": true }
+    ],
+
+    "rs232": [
+      { "name": "rs232_1", "device": "/dev/ttyRS232-1", "baudrate": 2400, "enable": true }
+    ]
+  }
+}
+
+================================================================================
+FILE: normal_map_logic0408.jsonl
+================================================================================
+
+{"type":"bool_read","base":"0x3000","items":[{"path":"","name":"放电插座1-1连接状态"},{"path":"","name":"放电插座1-2连接状态"},{"path":"","name":"放电插座1-3连接状态"},{"path":"","name":"放电插座1-4连接状态"},{"path":"","name":"放电插座2-1连接状态"},{"path":"","name":"放电插座2-2连接状态"},{"path":"","name":"放电插座2-3连接状态"},{"path":"","name":"放电插座2-4连接状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.smoke_online","name":"感温感烟传感器通信状态"},{"path":"system.logic_view.gas_online","name":"可燃气体传感器通信状态"},{"path":"system.logic_view.aircon_online","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1上高压指令"},{"path":"","name":"动力电池1充电指令"},{"path":"system.logic_view.bms.bms_1_st2_rq_hv_power_off","name":"动力电池1请求下高压"},{"path":"system.logic_view.bms.bms_1_st1_main_pos_relay_st","name":"动力电池1主正继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_main_neg_relay_st","name":"动力电池1主负继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_prechrg_relay_st","name":"动力电池1主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_pos1_relay_st","name":"动力电池1直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_neg1_relay_st","name":"动力电池1直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_pos2_relay_st","name":"动力电池1直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_neg2_relay_st","name":"动力电池1直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_1_st1_heat_pos_relay_st","name":"动力电池1加热正继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_heat_neg_relay_st","name":"动力电池1加热负继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_heating_status","name":"动力电池1加热状态"},{"path":"system.logic_view.bms.bms_1_st1_cooling_status","name":"动力电池1冷却状态"},{"path":"system.logic_view.bms.bms_1_st3_ins_detector_on","name":"动力电池1绝缘检测状态"},{"path":"","name":"动力电池1灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池2上高压指令"},{"path":"","name":"动力电池2充电指令"},{"path":"system.logic_view.bms.bms_2_st2_rq_hv_power_off","name":"动力电池2请求下高压"},{"path":"system.logic_view.bms.bms_2_st1_main_pos_relay_st","name":"动力电池2主正继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_main_neg_relay_st","name":"动力电池2主负继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_prechrg_relay_st","name":"动力电池2主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_pos1_relay_st","name":"动力电池2直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_neg1_relay_st","name":"动力电池2直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_pos2_relay_st","name":"动力电池2直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_neg2_relay_st","name":"动力电池2直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_2_st1_heat_pos_relay_st","name":"动力电池2加热正继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_heat_neg_relay_st","name":"动力电池2加热负继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_heating_status","name":"动力电池2加热状态"},{"path":"system.logic_view.bms.bms_2_st1_cooling_status","name":"动力电池2冷却状态"},{"path":"system.logic_view.bms.bms_2_st3_ins_detector_on","name":"动力电池2绝缘检测状态"},{"path":"","name":"动力电池2灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池3上高压指令"},{"path":"","name":"动力电池3充电指令"},{"path":"system.logic_view.bms.bms_3_st2_rq_hv_power_off","name":"动力电池3请求下高压"},{"path":"system.logic_view.bms.bms_3_st1_main_pos_relay_st","name":"动力电池3主正继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_main_neg_relay_st","name":"动力电池3主负继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_prechrg_relay_st","name":"动力电池3主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_pos1_relay_st","name":"动力电池3直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_neg1_relay_st","name":"动力电池3直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_pos2_relay_st","name":"动力电池3直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_neg2_relay_st","name":"动力电池3直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_3_st1_heat_pos_relay_st","name":"动力电池3加热正继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_heat_neg_relay_st","name":"动力电池3加热负继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_heating_status","name":"动力电池3加热状态"},{"path":"system.logic_view.bms.bms_3_st1_cooling_status","name":"动力电池3冷却状态"},{"path":"system.logic_view.bms.bms_3_st3_ins_detector_on","name":"动力电池3绝缘检测状态"},{"path":"","name":"动力电池3灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池4上高压指令"},{"path":"","name":"动力电池4充电指令"},{"path":"system.logic_view.bms.bms_4_st2_rq_hv_power_off","name":"动力电池4请求下高压"},{"path":"system.logic_view.bms.bms_4_st1_main_pos_relay_st","name":"动力电池4主正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_main_neg_relay_st","name":"动力电池4主负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_prechrg_relay_st","name":"动力电池4主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos1_relay_st","name":"动力电池4直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg1_relay_st","name":"动力电池4直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos2_relay_st","name":"动力电池4直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg2_relay_st","name":"动力电池4直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_pos_relay_st","name":"动力电池4加热正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_neg_relay_st","name":"动力电池4加热负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heating_status","name":"动力电池4加热状态"},{"path":"system.logic_view.bms.bms_4_st1_cooling_status","name":"动力电池4冷却状态"},{"path":"system.logic_view.bms.bms_4_st3_ins_detector_on","name":"动力电池4绝缘检测状态"},{"path":"","name":"动力电池4灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"密码设置成功"},{"path":"system.logic_view.hmi_online","name":"HMI1通信状态"},{"path":"system.logic_view.ups_online","name":"UPS通信状态"},{"path":"system.logic_view.pcu1_online","name":"PCU1通信状态"},{"path":"system.logic_view.pcu2_online","name":"PCU2通信状态"},{"path":"system.logic_view.bms1_online","name":"BMS1通信状态"},{"path":"system.logic_view.bms2_online","name":"BMS2通信状态"},{"path":"system.logic_view.bms3_online","name":"BMS3通信状态"},{"path":"system.logic_view.bms4_online","name":"BMS4通信状态"},{"path":"system.logic_view.remote_online","name":"Remote通信状态"},{"path":"system.logic_view.smoke_online","name":"感温感烟传感器通信状态"},{"path":"system.logic_view.gas_online","name":"可燃气体传感器通信状态"},{"path":"system.logic_view.aircon_online","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI蜂鸣器激活"},{"path":"","name":"现存故障页面第1行故障确认状态"},{"path":"","name":"现存故障页面第2行故障确认状态"},{"path":"","name":"现存故障页面第3行故障确认状态"},{"path":"","name":"现存故障页面第4行故障确认状态"},{"path":"","name":"现存故障页面第5行故障确认状态"},{"path":"","name":"现存故障页面第6行故障确认状态"},{"path":"","name":"现存故障页面第7行故障确认状态"},{"path":"","name":"现存故障页面第8行故障确认状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"bool_rw","base":"0x1000","items":[{"path":"","name":"首页故障确认"},{"path":"","name":"上电"},{"path":"","name":"下电"},{"path":"","name":"故障复位"},{"path":"","name":"全部确认"},{"path":"","name":"历史故障界面显示"},{"path":"","name":"现存故障下一页"},{"path":"","name":"现存故障上一页"},{"path":"","name":"历史故障下一页"},{"path":"","name":"历史故障上一页"},{"path":"","name":"维护密码确认"},{"path":"","name":"箱号设置指令"},{"path":"","name":""},{"path":"","name":"UPS关机"},{"path":"","name":"空调温度湿度设置"},{"path":"","name":"密码设置指令"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_read","base":"0x4000","items":[{"path":"","name":"运行工况bms"},{"path":"","name":"动力电池1系统状态"},{"path":"","name":"动力电池1电压"},{"path":"","name":"动力电池1SOC"},{"path":"","name":"动力电池2系统状态"},{"path":"","name":"动力电池2电压"},{"path":"","name":"动力电池2SOC"},{"path":"","name":"动力电池3系统状态"},{"path":"","name":"动力电池3电压"},{"path":"","name":"动力电池3SOC"},{"path":"","name":"动力电池4系统状态"},{"path":"","name":"动力电池4电压"},{"path":"","name":"动力电池4SOC"},{"path":"","name":"卫星定位强度"},{"path":"","name":"5G信号强度"},{"path":"","name":"总放电电量"},{"path":"","name":"总充电电量"},{"path":"","name":"预留"},{"path":"system.logic_view.timestamp_hi","name":"时间戳hi"},{"path":"system.logic_view.timestamp_lo","name":""},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.ac_overall_state","name":"整机状态"},{"path":"system.logic_view.ac_inner_fan","name":"内风机"},{"path":"system.logic_view.ac_outer_fan","name":"外风机"},{"path":"system.logic_view.ac_compressor","name":"压缩机"},{"path":"system.logic_view.ac_heater","name":"电加热"},{"path":"system.logic_view.ac_em_fan","name":"应急风机"},{"path":"system.logic_view.ac_coil_temp","name":"盘管温度"},{"path":"system.logic_view.ac_outdoor_temp","name":"室外温度"},{"path":"system.logic_view.ac_condense_temp","name":"冷凝温度"},{"path":"system.logic_view.ac_indoor_temp","name":"室内温度"},{"path":"system.logic_view.ac_humidity","name":"湿度"},{"path":"system.logic_view.ac_exhaust_temp","name":"排气温度"},{"path":"system.logic_view.ac_current","name":"电流"},{"path":"system.logic_view.ac_ac_voltage","name":"交流电压"},{"path":"system.logic_view.ac_dc_voltage","name":"直流电压"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.smoke_alarm","name":"报警状态"},{"path":"system.logic_view.smoke_fault","name":"故障状态参数"},{"path":"system.logic_view.smoke_warn_level","name":"报警级别"},{"path":"system.logic_view.smoke_percent","name":"烟雾浓度"},{"path":"system.logic_view.smoke_temperature","name":"温度值"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.gas_detector_state","name":"探测器状态"},{"path":"system.logic_view.gas_combustible","name":"可燃气体浓度"},{"path":"system.logic_view.gas_co","name":"一氧化碳浓度"},{"path":"system.logic_view.gas_o2","name":"氧气浓度"},{"path":"system.logic_view.gas_temperature","name":"温度"},{"path":"system.logic_view.gas_humidity","name":"湿度"},{"path":"system.logic_view.gas_co2","name":"二氧化碳"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.ups_system_mode","name":"系统模式"},{"path":"system.logic_view.ups_battery_remain_sec_hi","name":"电池备用时间"},{"path":"system.logic_view.ups_battery_remain_sec_lo","name":""},{"path":"system.logic_view.ups_battery_capacity","name":"电池容量百分比"},{"path":"system.logic_view.ups_fault_bits","name":"UPS故障代码"},{"path":"system.logic_view.ups_warning_bits","name":"UPS警告代码"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.bms.bms_1.st1_bms_hv_status","name":"动力电池1当前高压状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_connect_st","name":"动力电池1直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_1.st1_chrg_status","name":"动力电池1充电状态"},{"path":"system.logic_view.bms.bms_1.st2_soc","name":"动力电池1电池包SOC"},{"path":"system.logic_view.bms.bms_1.st2_soh","name":"动力电池1电池包SOH"},{"path":"system.logic_view.bms.bms_1.st2_pack_i","name":"动力电池1电池包总电流"},{"path":"system.logic_view.bms.bms_1.st2_pack_v","name":"动力电池1电池包内侧电压"},{"path":"system.logic_view.bms.bms_1.st2_fault_code","name":"动力电池1故障码"},{"path":"system.logic_view.bms.bms_1.st2_fault_level","name":"动力电池1当前最高故障等级"},{"path":"system.logic_view.bms.bms_1.st3_ins_pos_res","name":"动力电池1正极绝缘值"},{"path":"system.logic_view.bms.bms_1.st3_ins_neg_res","name":"动力电池1负极绝缘值"},{"path":"system.logic_view.bms.bms_1.st3_ins_sys_res","name":"动力电池1系统绝缘值"},{"path":"system.logic_view.bms.bms_1.st4_temp_max","name":"动力电池1电芯温度最大值"},{"path":"system.logic_view.bms.bms_1.st4_temp_min","name":"动力电池1电芯温度最小值"},{"path":"system.logic_view.bms.bms_1.st4_temp_avg","name":"动力电池1电芯温度平均值"},{"path":"system.logic_view.bms.bms_1_st4_max_temp_pos","name":"动力电池1最高温度位置"},{"path":"system.logic_view.bms.bms_1_st4_min_temp_pos","name":"动力电池1最低温度位置"},{"path":"system.logic_view.bms.bms_1.st5_max_ucell","name":"动力电池1电芯电压最大值"},{"path":"system.logic_view.bms.bms_1.st5_min_ucell","name":"动力电池1电芯电压最小值"},{"path":"system.logic_view.bms.bms_1.st5_avg_ucell","name":"动力电池1电芯电压平均值"},{"path":"system.logic_view.bms.bms_1.st6_max_ucell_position","name":"动力电池1最高电压位置"},{"path":"system.logic_view.bms.bms_1.st6_min_ucell_position","name":"动力电池1最低电压位置"},{"path":"system.logic_view.bms.bms_1.EE_tot_chg_energy","name":"动力电池1累计充电电量"},{"path":"system.logic_view.bms.bms_1.EE_tot_dischg_energy","name":"动力电池1累计放电电量"},{"path":"system.logic_view.bms.bms_1.EE_single_chg_energy","name":"动力电池1单次充电电量"},{"path":"system.logic_view.bms.bms_1.CL_pulse_discharge_limit_a","name":"动力电池1允许放电电流"},{"path":"system.logic_view.bms.bms_1.CL_pulse_charge_limit_a","name":"动力电池1允许充电电流"},{"path":"system.logic_view.bms.bms_2.st1_bms_hv_status","name":"动力电池2当前高压状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_connect_st","name":"动力电池2直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_2.st1_chrg_status","name":"动力电池2充电状态"},{"path":"system.logic_view.bms.bms_2.st2_soc","name":"动力电池2电池包SOC"},{"path":"system.logic_view.bms.bms_2.st2_soh","name":"动力电池2电池包SOH"},{"path":"system.logic_view.bms.bms_2.st2_pack_i","name":"动力电池2电池包总电流"},{"path":"system.logic_view.bms.bms_2.st2_pack_v","name":"动力电池2电池包内侧电压"},{"path":"system.logic_view.bms.bms_2.st2_fault_code","name":"动力电池2故障码"},{"path":"system.logic_view.bms.bms_2.st2_fault_level","name":"动力电池2当前最高故障等级"},{"path":"system.logic_view.bms.bms_2.st3_ins_pos_res","name":"动力电池2正极绝缘值"},{"path":"system.logic_view.bms.bms_2.st3_ins_neg_res","name":"动力电池2负极绝缘值"},{"path":"system.logic_view.bms.bms_2.st3_ins_sys_res","name":"动力电池2系统绝缘值"},{"path":"system.logic_view.bms.bms_2.st4_temp_max","name":"动力电池2电芯温度最大值"},{"path":"system.logic_view.bms.bms_2.st4_temp_min","name":"动力电池2电芯温度最小值"},{"path":"system.logic_view.bms.bms_2.st4_temp_avg","name":"动力电池2电芯温度平均值"},{"path":"system.logic_view.bms.bms_2_st4_max_temp_pos","name":"动力电池2最高温度位置"},{"path":"system.logic_view.bms.bms_2_st4_min_temp_pos","name":"动力电池2最低温度位置"},{"path":"system.logic_view.bms.bms_2.st5_max_ucell","name":"动力电池2电芯电压最大值"},{"path":"system.logic_view.bms.bms_2.st5_min_ucell","name":"动力电池2电芯电压最小值"},{"path":"system.logic_view.bms.bms_2.st5_avg_ucell","name":"动力电池2电芯电压平均值"},{"path":"system.logic_view.bms.bms_2.st6_max_ucell_position","name":"动力电池2最高电压位置"},{"path":"system.logic_view.bms.bms_2.st6_min_ucell_position","name":"动力电池2最低电压位置"},{"path":"system.logic_view.bms.bms_2.EE_tot_chg_energy","name":"动力电池2累计充电电量"},{"path":"system.logic_view.bms.bms_2.EE_tot_dischg_energy","name":"动力电池2累计放电电量"},{"path":"system.logic_view.bms.bms_2.EE_single_chg_energy","name":"动力电池2单次充电电量"},{"path":"system.logic_view.bms.bms_2.CL_pulse_discharge_limit_a","name":"动力电池2允许放电电流"},{"path":"system.logic_view.bms.bms_2.CL_pulse_charge_limit_a","name":"动力电池2允许充电电流"},{"path":"system.logic_view.bms.bms_3.st1_bms_hv_status","name":"动力电池3当前高压状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_connect_st","name":"动力电池3直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_3.st1_chrg_status","name":"动力电池3充电状态"},{"path":"system.logic_view.bms.bms_3.st2_soc","name":"动力电池3电池包SOC"},{"path":"system.logic_view.bms.bms_3.st2_soh","name":"动力电池3电池包SOH"},{"path":"system.logic_view.bms.bms_3.st2_pack_i","name":"动力电池3电池包总电流"},{"path":"system.logic_view.bms.bms_3.st2_pack_v","name":"动力电池3电池包内侧电压"},{"path":"system.logic_view.bms.bms_3.st2_fault_code","name":"动力电池3故障码"},{"path":"system.logic_view.bms.bms_3.st2_fault_level","name":"动力电池3当前最高故障等级"},{"path":"system.logic_view.bms.bms_3.st3_ins_pos_res","name":"动力电池3正极绝缘值"},{"path":"system.logic_view.bms.bms_3.st3_ins_neg_res","name":"动力电池3负极绝缘值"},{"path":"system.logic_view.bms.bms_3.st3_ins_sys_res","name":"动力电池3系统绝缘值"},{"path":"system.logic_view.bms.bms_3.st4_temp_max","name":"动力电池3电芯温度最大值"},{"path":"system.logic_view.bms.bms_3.st4_temp_min","name":"动力电池3电芯温度最小值"},{"path":"system.logic_view.bms.bms_3.st4_temp_avg","name":"动力电池3电芯温度平均值"},{"path":"system.logic_view.bms.bms_3_st4_max_temp_pos","name":"动力电池3最高温度位置"},{"path":"system.logic_view.bms.bms_3_st4_min_temp_pos","name":"动力电池3最低温度位置"},{"path":"system.logic_view.bms.bms_3.st5_max_ucell","name":"动力电池3电芯电压最大值"},{"path":"system.logic_view.bms.bms_3.st5_min_ucell","name":"动力电池3电芯电压最小值"},{"path":"system.logic_view.bms.bms_3.st5_avg_ucell","name":"动力电池3电芯电压平均值"},{"path":"system.logic_view.bms.bms_3.st6_max_ucell_position","name":"动力电池3最高电压位置"},{"path":"system.logic_view.bms.bms_3.st6_min_ucell_position","name":"动力电池3最低电压位置"},{"path":"system.logic_view.bms.bms_3.EE_tot_chg_energy","name":"动力电池3累计充电电量"},{"path":"system.logic_view.bms.bms_3.EE_tot_dischg_energy","name":"动力电池3累计放电电量"},{"path":"system.logic_view.bms.bms_3.EE_single_chg_energy","name":"动力电池3单次充电电量"},{"path":"system.logic_view.bms.bms_3.CL_pulse_discharge_limit_a","name":"动力电池3允许放电电流"},{"path":"system.logic_view.bms.bms_3.CL_pulse_charge_limit_a","name":"动力电池3允许充电电流"},{"path":"system.logic_view.bms.bms_4.st1_bms_hv_status","name":"动力电池4当前高压状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_connect_st","name":"动力电池4直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_4.st1_chrg_status","name":"动力电池4充电状态"},{"path":"system.logic_view.bms.bms_4.st2_soc","name":"动力电池4电池包SOC"},{"path":"system.logic_view.bms.bms_4.st2_soh","name":"动力电池4电池包SOH"},{"path":"system.logic_view.bms.bms_4.st2_pack_i","name":"动力电池4电池包总电流"},{"path":"system.logic_view.bms.bms_4.st2_pack_v","name":"动力电池4电池包内侧电压"},{"path":"system.logic_view.bms.bms_4.st2_fault_code","name":"动力电池4故障码"},{"path":"system.logic_view.bms.bms_4.st2_fault_level","name":"动力电池4当前最高故障等级"},{"path":"system.logic_view.bms.bms_4.st3_ins_pos_res","name":"动力电池4正极绝缘值"},{"path":"system.logic_view.bms.bms_4.st3_ins_neg_res","name":"动力电池4负极绝缘值"},{"path":"system.logic_view.bms.bms_4.st3_ins_sys_res","name":"动力电池4系统绝缘值"},{"path":"system.logic_view.bms.bms_4.st4_temp_max","name":"动力电池4电芯温度最大值"},{"path":"system.logic_view.bms.bms_4.st4_temp_min","name":"动力电池4电芯温度最小值"},{"path":"system.logic_view.bms.bms_4.st4_temp_avg","name":"动力电池4电芯温度平均值"},{"path":"system.logic_view.bms.bms_4_st4_max_temp_pos","name":"动力电池4最高温度位置"},{"path":"system.logic_view.bms.bms_4_st4_min_temp_pos","name":"动力电池4最低温度位置"},{"path":"system.logic_view.bms.bms_4.st5_max_ucell","name":"动力电池4电芯电压最大值"},{"path":"system.logic_view.bms.bms_4.st5_min_ucell","name":"动力电池4电芯电压最小值"},{"path":"system.logic_view.bms.bms_4.st5_avg_ucell","name":"动力电池4电芯电压平均值"},{"path":"system.logic_view.bms.bms_4.st6_max_ucell_position","name":"动力电池4最高电压位置"},{"path":"system.logic_view.bms.bms_4.st6_min_ucell_position","name":"动力电池4最低电压位置"},{"path":"system.logic_view.bms.bms_4.EE_tot_chg_energy","name":"动力电池4累计充电电量"},{"path":"system.logic_view.bms.bms_4.EE_tot_dischg_energy","name":"动力电池4累计放电电量"},{"path":"system.logic_view.bms.bms_4.EE_single_chg_energy","name":"动力电池4单次充电电量"},{"path":"system.logic_view.bms.bms_4.CL_pulse_discharge_limit_a","name":"动力电池4允许放电电流"},{"path":"system.logic_view.bms.bms_4.CL_pulse_charge_limit_a","name":"动力电池4允许充电电流"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1热管理系统工作状态"},{"path":"","name":"动力电池1热管理系统高压继电器状态"},{"path":"","name":"动力电池1热管理系统出水温度"},{"path":"","name":"动力电池1热管理系统回水温度"},{"path":"","name":"动力电池1热管理系统需求功率"},{"path":"","name":"动力电池1热管理系统故障码"},{"path":"","name":"动力电池1热管理系统故障等级"},{"path":"","name":"动力电池1灭火系统电池箱号"},{"path":"","name":"动力电池1灭火系统预警级别"},{"path":"","name":"动力电池1灭火系统故障码"},{"path":"","name":"动力电池1灭火系统故障等级"},{"path":"","name":"动力电池2热管理系统工作状态"},{"path":"","name":"动力电池2热管理系统高压继电器状态"},{"path":"","name":"动力电池2热管理系统出水温度"},{"path":"","name":"动力电池2热管理系统回水温度"},{"path":"","name":"动力电池2热管理系统需求功率"},{"path":"","name":"动力电池2热管理系统故障码"},{"path":"","name":"动力电池2热管理系统故障等级"},{"path":"","name":"动力电池2灭火系统电池箱号"},{"path":"","name":"动力电池2灭火系统预警级别"},{"path":"","name":"动力电池2灭火系统故障码"},{"path":"","name":"动力电池2灭火系统故障等级"},{"path":"","name":"动力电池3热管理系统工作状态"},{"path":"","name":"动力电池3热管理系统高压继电器状态"},{"path":"","name":"动力电池3热管理系统出水温度"},{"path":"","name":"动力电池3热管理系统回水温度"},{"path":"","name":"动力电池3热管理系统需求功率"},{"path":"","name":"动力电池3热管理系统故障码"},{"path":"","name":"动力电池3热管理系统故障等级"},{"path":"","name":"动力电池3灭火系统电池箱号"},{"path":"","name":"动力电池3灭火系统预警级别"},{"path":"","name":"动力电池3灭火系统故障码"},{"path":"","name":"动力电池3灭火系统故障等级"},{"path":"","name":"动力电池4热管理系统工作状态"},{"path":"","name":"动力电池4热管理系统高压继电器状态"},{"path":"","name":"动力电池4热管理系统出水温度"},{"path":"","name":"动力电池4热管理系统回水温度"},{"path":"","name":"动力电池4热管理系统需求功率"},{"path":"","name":"动力电池4热管理系统故障码"},{"path":"","name":"动力电池4热管理系统故障等级"},{"path":"","name":"动力电池4灭火系统电池箱号"},{"path":"","name":"动力电池4灭火系统预警级别"},{"path":"","name":"动力电池4灭火系统故障码"},{"path":"","name":"动力电池4灭火系统故障等级"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"当前存储的密码"},{"path":"","name":"预留"},{"path":"","name":"当前设置温度"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI1版本X"},{"path":"","name":"HMI1版本Y"},{"path":"","name":"BMS1版本X"},{"path":"","name":"BMS1版本Y"},{"path":"","name":"BMS2版本X"},{"path":"","name":"BMS2版本Y"},{"path":"","name":"BMS3版本X"},{"path":"","name":"BMS3版本Y"},{"path":"","name":"BMS4版本X"},{"path":"","name":"BMS4版本Y"},{"path":"","name":"EMU版本X"},{"path":"","name":"EMU版本Y"},{"path":"","name":"PCU1版本X"},{"path":"","name":"PCU1版本Y"},{"path":"","name":"PCU2版本X"},{"path":"","name":"PCU2版本Y"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"现存故障页面总数"},{"path":"","name":"现存故障页码"},{"path":"","name":"现存故障页面第1行故障序号"},{"path":"","name":"现存故障页面第2行故障序号"},{"path":"","name":"现存故障页面第3行故障序号"},{"path":"","name":"现存故障页面第4行故障序号"},{"path":"","name":"现存故障页面第5行故障序号"},{"path":"","name":"现存故障页面第6行故障序号"},{"path":"","name":"现存故障页面第7行故障序号"},{"path":"","name":"现存故障页面第8行故障序号"},{"path":"","name":"现存故障页面第1行故障代码"},{"path":"","name":"现存故障页面第2行故障代码"},{"path":"","name":"现存故障页面第3行故障代码"},{"path":"","name":"现存故障页面第4行故障代码"},{"path":"","name":"现存故障页面第5行故障代码"},{"path":"","name":"现存故障页面第6行故障代码"},{"path":"","name":"现存故障页面第7行故障代码"},{"path":"","name":"现存故障页面第8行故障代码"},{"path":"","name":"现存故障页面第1行故障触发时间"},{"path":"","name":"现存故障页面第2行故障触发时间"},{"path":"","name":"现存故障页面第3行故障触发时间"},{"path":"","name":"现存故障页面第4行故障触发时间"},{"path":"","name":"现存故障页面第5行故障触发时间"},{"path":"","name":"现存故障页面第6行故障触发时间"},{"path":"","name":"现存故障页面第7行故障触发时间"},{"path":"","name":"现存故障页面第8行故障触发时间"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"历史故障页面总数"},{"path":"","name":"历史故障页码"},{"path":"","name":"历史故障页面第1行故障序号"},{"path":"","name":"历史故障页面第2行故障序号"},{"path":"","name":"历史故障页面第3行故障序号"},{"path":"","name":"历史故障页面第4行故障序号"},{"path":"","name":"历史故障页面第5行故障序号"},{"path":"","name":"历史故障页面第6行故障序号"},{"path":"","name":"历史故障页面第7行故障序号"},{"path":"","name":"历史故障页面第8行故障序号"},{"path":"","name":"历史故障页面第9行故障序号"},{"path":"","name":"历史故障页面第10行故障序号"},{"path":"","name":"历史故障页面第11行故障序号"},{"path":"","name":"历史故障页面第12行故障序号"},{"path":"","name":"历史故障页面第1行故障代码"},{"path":"","name":"历史故障页面第2行故障代码"},{"path":"","name":"历史故障页面第3行故障代码"},{"path":"","name":"历史故障页面第4行故障代码"},{"path":"","name":"历史故障页面第5行故障代码"},{"path":"","name":"历史故障页面第6行故障代码"},{"path":"","name":"历史故障页面第7行故障代码"},{"path":"","name":"历史故障页面第8行故障代码"},{"path":"","name":"历史故障页面第9行故障代码"},{"path":"","name":"历史故障页面第10行故障代码"},{"path":"","name":"历史故障页面第11行故障代码"},{"path":"","name":"历史故障页面第12行故障代码"},{"path":"","name":"历史故障页面第1行故障触发时间"},{"path":"","name":"历史故障页面第2行故障触发时间"},{"path":"","name":"历史故障页面第3行故障触发时间"},{"path":"","name":"历史故障页面第4行故障触发时间"},{"path":"","name":"历史故障页面第5行故障触发时间"},{"path":"","name":"历史故障页面第6行故障触发时间"},{"path":"","name":"历史故障页面第7行故障触发时间"},{"path":"","name":"历史故障页面第8行故障触发时间"},{"path":"","name":"历史故障页面第9行故障触发时间"},{"path":"","name":"历史故障页面第10行故障触发时间"},{"path":"","name":"历史故障页面第11行故障触发时间"},{"path":"","name":"历史故障页面第12行故障触发时间"},{"path":"","name":"历史故障页面第1行故障消失时间"},{"path":"","name":"历史故障页面第2行故障消失时间"},{"path":"","name":"历史故障页面第3行故障消失时间"},{"path":"","name":"历史故障页面第4行故障消失时间"},{"path":"","name":"历史故障页面第5行故障消失时间"},{"path":"","name":"历史故障页面第6行故障消失时间"},{"path":"","name":"历史故障页面第7行故障消失时间"},{"path":"","name":"历史故障页面第8行故障消失时间"},{"path":"","name":"历史故障页面第9行故障消失时间"},{"path":"","name":"历史故障页面第10行故障消失时间"},{"path":"","name":"历史故障页面第11行故障消失时间"},{"path":"","name":"历史故障页面第12行故障消失时间"},{"path":"","name":"历史故障页面第1行故障状态"},{"path":"","name":"历史故障页面第2行故障状态"},{"path":"","name":"历史故障页面第3行故障状态"},{"path":"","name":"历史故障页面第4行故障状态"},{"path":"","name":"历史故障页面第5行故障状态"},{"path":"","name":"历史故障页面第6行故障状态"},{"path":"","name":"历史故障页面第7行故障状态"},{"path":"","name":"历史故障页面第8行故障状态"},{"path":"","name":"历史故障页面第9行故障状态"},{"path":"","name":"历史故障页面第10行故障状态"},{"path":"","name":"历史故障页面第11行故障状态"},{"path":"","name":"历史故障页面第12行故障状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_rw","base":"0x2000","items":[{"path":"","name":"维护密码"},{"path":"","name":""},{"path":"","name":"设置箱号"},{"path":"","name":"UPS关机时间"},{"path":"","name":"设置空调温度"},{"path":"","name":"设置空调湿度"},{"path":"","name":"输入原密码"},{"path":"","name":""},{"path":"","name":"设置密码1"},{"path":"","name":""},{"path":"","name":"设置密码2"},{"path":"","name":""},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+================================================================================
+FILE: normal_map_logic_bef_time.jsonl
+================================================================================
+
+{"type":"bool_read","base":"0x3000","items":[{"path":"","name":"放电插座1-1连接状态"},{"path":"","name":"放电插座1-2连接状态"},{"path":"","name":"放电插座1-3连接状态"},{"path":"","name":"放电插座1-4连接状态"},{"path":"","name":"放电插座2-1连接状态"},{"path":"","name":"放电插座2-2连接状态"},{"path":"","name":"放电插座2-3连接状态"},{"path":"","name":"放电插座2-4连接状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.smoke_online","name":"感温感烟传感器通信状态"},{"path":"system.logic_view.gas_online","name":"可燃气体传感器通信状态"},{"path":"system.logic_view.aircon_online","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1上高压指令"},{"path":"","name":"动力电池1充电指令"},{"path":"system.logic_view.bms.bms_1_st2_rq_hv_power_off","name":"动力电池1请求下高压"},{"path":"system.logic_view.bms.bms_1_st1_main_pos_relay_st","name":"动力电池1主正继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_main_neg_relay_st","name":"动力电池1主负继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_prechrg_relay_st","name":"动力电池1主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_pos1_relay_st","name":"动力电池1直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_neg1_relay_st","name":"动力电池1直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_pos2_relay_st","name":"动力电池1直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_neg2_relay_st","name":"动力电池1直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_1_st1_heat_pos_relay_st","name":"动力电池1加热正继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_heat_neg_relay_st","name":"动力电池1加热负继电器状态"},{"path":"system.logic_view.bms.bms_1_st1_heating_status","name":"动力电池1加热状态"},{"path":"system.logic_view.bms.bms_1_st1_cooling_status","name":"动力电池1冷却状态"},{"path":"system.logic_view.bms.bms_1_st3_ins_detector_on","name":"动力电池1绝缘检测状态"},{"path":"","name":"动力电池1灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池2上高压指令"},{"path":"","name":"动力电池2充电指令"},{"path":"system.logic_view.bms.bms_2_st2_rq_hv_power_off","name":"动力电池2请求下高压"},{"path":"system.logic_view.bms.bms_2_st1_main_pos_relay_st","name":"动力电池2主正继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_main_neg_relay_st","name":"动力电池2主负继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_prechrg_relay_st","name":"动力电池2主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_pos1_relay_st","name":"动力电池2直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_neg1_relay_st","name":"动力电池2直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_pos2_relay_st","name":"动力电池2直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_neg2_relay_st","name":"动力电池2直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_2_st1_heat_pos_relay_st","name":"动力电池2加热正继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_heat_neg_relay_st","name":"动力电池2加热负继电器状态"},{"path":"system.logic_view.bms.bms_2_st1_heating_status","name":"动力电池2加热状态"},{"path":"system.logic_view.bms.bms_2_st1_cooling_status","name":"动力电池2冷却状态"},{"path":"system.logic_view.bms.bms_2_st3_ins_detector_on","name":"动力电池2绝缘检测状态"},{"path":"","name":"动力电池2灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池3上高压指令"},{"path":"","name":"动力电池3充电指令"},{"path":"system.logic_view.bms.bms_3_st2_rq_hv_power_off","name":"动力电池3请求下高压"},{"path":"system.logic_view.bms.bms_3_st1_main_pos_relay_st","name":"动力电池3主正继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_main_neg_relay_st","name":"动力电池3主负继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_prechrg_relay_st","name":"动力电池3主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_pos1_relay_st","name":"动力电池3直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_neg1_relay_st","name":"动力电池3直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_pos2_relay_st","name":"动力电池3直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_neg2_relay_st","name":"动力电池3直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_3_st1_heat_pos_relay_st","name":"动力电池3加热正继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_heat_neg_relay_st","name":"动力电池3加热负继电器状态"},{"path":"system.logic_view.bms.bms_3_st1_heating_status","name":"动力电池3加热状态"},{"path":"system.logic_view.bms.bms_3_st1_cooling_status","name":"动力电池3冷却状态"},{"path":"system.logic_view.bms.bms_3_st3_ins_detector_on","name":"动力电池3绝缘检测状态"},{"path":"","name":"动力电池3灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池4上高压指令"},{"path":"","name":"动力电池4充电指令"},{"path":"system.logic_view.bms.bms_4_st2_rq_hv_power_off","name":"动力电池4请求下高压"},{"path":"system.logic_view.bms.bms_4_st1_main_pos_relay_st","name":"动力电池4主正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_main_neg_relay_st","name":"动力电池4主负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_prechrg_relay_st","name":"动力电池4主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos1_relay_st","name":"动力电池4直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg1_relay_st","name":"动力电池4直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos2_relay_st","name":"动力电池4直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg2_relay_st","name":"动力电池4直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_pos_relay_st","name":"动力电池4加热正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_neg_relay_st","name":"动力电池4加热负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heating_status","name":"动力电池4加热状态"},{"path":"system.logic_view.bms.bms_4_st1_cooling_status","name":"动力电池4冷却状态"},{"path":"system.logic_view.bms.bms_4_st3_ins_detector_on","name":"动力电池4绝缘检测状态"},{"path":"","name":"动力电池4灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"密码设置成功"},{"path":"system.logic_view.hmi_online","name":"HMI1通信状态"},{"path":"system.logic_view.ups_online","name":"UPS通信状态"},{"path":"system.logic_view.pcu1_online","name":"PCU1通信状态"},{"path":"system.logic_view.pcu2_online","name":"PCU2通信状态"},{"path":"system.logic_view.bms1_online","name":"BMS1通信状态"},{"path":"system.logic_view.bms2_online","name":"BMS2通信状态"},{"path":"system.logic_view.bms3_online","name":"BMS3通信状态"},{"path":"system.logic_view.bms4_online","name":"BMS4通信状态"},{"path":"system.logic_view.remote_online","name":"Remote通信状态"},{"path":"system.logic_view.smoke_online","name":"感温感烟传感器通信状态"},{"path":"system.logic_view.gas_online","name":"可燃气体传感器通信状态"},{"path":"system.logic_view.aircon_online","name":"空调通信状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI蜂鸣器激活"},{"path":"","name":"现存故障页面第1行故障确认状态"},{"path":"","name":"现存故障页面第2行故障确认状态"},{"path":"","name":"现存故障页面第3行故障确认状态"},{"path":"","name":"现存故障页面第4行故障确认状态"},{"path":"","name":"现存故障页面第5行故障确认状态"},{"path":"","name":"现存故障页面第6行故障确认状态"},{"path":"","name":"现存故障页面第7行故障确认状态"},{"path":"","name":"现存故障页面第8行故障确认状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"bool_rw","base":"0x1000","items":[{"path":"","name":"首页故障确认"},{"path":"","name":"上电"},{"path":"","name":"下电"},{"path":"","name":"故障复位"},{"path":"","name":"全部确认"},{"path":"","name":"历史故障界面显示"},{"path":"","name":"现存故障下一页"},{"path":"","name":"现存故障上一页"},{"path":"","name":"历史故障下一页"},{"path":"","name":"历史故障上一页"},{"path":"","name":"维护密码确认"},{"path":"","name":"箱号设置指令"},{"path":"","name":""},{"path":"","name":"UPS关机"},{"path":"","name":"空调温度湿度设置"},{"path":"","name":"密码设置指令"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_read","base":"0x4000","items":[{"path":"","name":"年"},{"path":"","name":"月"},{"path":"","name":"日"},{"path":"","name":"时"},{"path":"","name":"分"},{"path":"","name":"秒"},{"path":"","name":"运行工况bms"},{"path":"","name":"动力电池1系统状态"},{"path":"","name":"动力电池1电压"},{"path":"","name":"动力电池2电压"},{"path":"","name":"动力电池3电压"},{"path":"","name":"动力电池3SOC"},{"path":"","name":"动力电池4系统状态"},{"path":"","name":"动力电池4电压"},{"path":"","name":"动力电池4SOC"},{"path":"","name":"预留"},{"path":"system.logic_view.timestamp_hi","name":"时间戳hi"},{"path":"system.logic_view.timestamp_lo","name":""},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.ac_overall_state","name":"整机状态"},{"path":"system.logic_view.ac_inner_fan","name":"内风机"},{"path":"system.logic_view.ac_outer_fan","name":"外风机"},{"path":"system.logic_view.ac_compressor","name":"压缩机"},{"path":"system.logic_view.ac_heater","name":"电加热"},{"path":"system.logic_view.ac_em_fan","name":"应急风机"},{"path":"system.logic_view.ac_coil_temp","name":"盘管温度"},{"path":"system.logic_view.ac_outdoor_temp","name":"室外温度"},{"path":"system.logic_view.ac_condense_temp","name":"冷凝温度"},{"path":"system.logic_view.ac_indoor_temp","name":"室内温度"},{"path":"system.logic_view.ac_humidity","name":"湿度"},{"path":"system.logic_view.ac_exhaust_temp","name":"排气温度"},{"path":"system.logic_view.ac_current","name":"电流"},{"path":"system.logic_view.ac_ac_voltage","name":"交流电压"},{"path":"system.logic_view.ac_dc_voltage","name":"直流电压"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.smoke_alarm","name":"报警状态"},{"path":"system.logic_view.smoke_fault","name":"故障状态参数"},{"path":"system.logic_view.smoke_warn_level","name":"报警级别"},{"path":"system.logic_view.smoke_percent","name":"烟雾浓度"},{"path":"system.logic_view.smoke_temperature","name":"温度值"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.gas_detector_state","name":"探测器状态"},{"path":"system.logic_view.gas_combustible","name":"可燃气体浓度"},{"path":"system.logic_view.gas_co","name":"一氧化碳浓度"},{"path":"system.logic_view.gas_o2","name":"氧气浓度"},{"path":"system.logic_view.gas_temperature","name":"温度"},{"path":"system.logic_view.gas_humidity","name":"湿度"},{"path":"system.logic_view.gas_co2","name":"二氧化碳"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.ups_system_mode","name":"系统模式"},{"path":"system.logic_view.ups_battery_remain_sec_hi","name":"电池备用时间"},{"path":"system.logic_view.ups_battery_remain_sec_lo","name":""},{"path":"system.logic_view.ups_battery_capacity","name":"电池容量百分比"},{"path":"system.logic_view.ups_fault_bits","name":"UPS故障代码"},{"path":"system.logic_view.ups_warning_bits","name":"UPS警告代码"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"system.logic_view.bms.bms_1.st1_bms_hv_status","name":"动力电池1当前高压状态"},{"path":"system.logic_view.bms.bms_1.st1_dc_chrg_connect_st","name":"动力电池1直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_1.st1_chrg_status","name":"动力电池1充电状态"},{"path":"system.logic_view.bms.bms_1.st2_soc","name":"动力电池1电池包SOC"},{"path":"system.logic_view.bms.bms_1.st2_soh","name":"动力电池1电池包SOH"},{"path":"system.logic_view.bms.bms_1.st2_pack_i","name":"动力电池1电池包总电流"},{"path":"system.logic_view.bms.bms_1.st2_pack_v","name":"动力电池1电池包内侧电压"},{"path":"system.logic_view.bms.bms_1.st2_fault_code","name":"动力电池1故障码"},{"path":"system.logic_view.bms.bms_1.st2_fault_level","name":"动力电池1当前最高故障等级"},{"path":"system.logic_view.bms.bms_1.st3_ins_pos_res","name":"动力电池1正极绝缘值"},{"path":"system.logic_view.bms.bms_1.st3_ins_neg_res","name":"动力电池1负极绝缘值"},{"path":"system.logic_view.bms.bms_1.st3_ins_sys_res","name":"动力电池1系统绝缘值"},{"path":"system.logic_view.bms.bms_1.st4_temp_max","name":"动力电池1电芯温度最大值"},{"path":"system.logic_view.bms.bms_1.st4_temp_min","name":"动力电池1电芯温度最小值"},{"path":"system.logic_view.bms.bms_1.st4_temp_avg","name":"动力电池1电芯温度平均值"},{"path":"system.logic_view.bms.bms_1_st4_max_temp_pos","name":"动力电池1最高温度位置"},{"path":"system.logic_view.bms.bms_1_st4_min_temp_pos","name":"动力电池1最低温度位置"},{"path":"system.logic_view.bms.bms_1.st5_max_ucell","name":"动力电池1电芯电压最大值"},{"path":"system.logic_view.bms.bms_1.st5_min_ucell","name":"动力电池1电芯电压最小值"},{"path":"system.logic_view.bms.bms_1.st5_avg_ucell","name":"动力电池1电芯电压平均值"},{"path":"system.logic_view.bms.bms_1.st6_max_ucell_position","name":"动力电池1最高电压位置"},{"path":"system.logic_view.bms.bms_1.st6_min_ucell_position","name":"动力电池1最低电压位置"},{"path":"system.logic_view.bms.bms_1.EE_tot_chg_energy","name":"动力电池1累计充电电量"},{"path":"system.logic_view.bms.bms_1.EE_tot_dischg_energy","name":"动力电池1累计放电电量"},{"path":"system.logic_view.bms.bms_1.EE_single_chg_energy","name":"动力电池1单次充电电量"},{"path":"system.logic_view.bms.bms_1.CL_pulse_discharge_limit_a","name":"动力电池1允许放电电流"},{"path":"system.logic_view.bms.bms_1.CL_pulse_charge_limit_a","name":"动力电池1允许充电电流"},{"path":"system.logic_view.bms.bms_2.st1_bms_hv_status","name":"动力电池2当前高压状态"},{"path":"system.logic_view.bms.bms_2.st1_dc_chrg_connect_st","name":"动力电池2直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_2.st1_chrg_status","name":"动力电池2充电状态"},{"path":"system.logic_view.bms.bms_2.st2_soc","name":"动力电池2电池包SOC"},{"path":"system.logic_view.bms.bms_2.st2_soh","name":"动力电池2电池包SOH"},{"path":"system.logic_view.bms.bms_2.st2_pack_i","name":"动力电池2电池包总电流"},{"path":"system.logic_view.bms.bms_2.st2_pack_v","name":"动力电池2电池包内侧电压"},{"path":"system.logic_view.bms.bms_2.st2_fault_code","name":"动力电池2故障码"},{"path":"system.logic_view.bms.bms_2.st2_fault_level","name":"动力电池2当前最高故障等级"},{"path":"system.logic_view.bms.bms_2.st3_ins_pos_res","name":"动力电池2正极绝缘值"},{"path":"system.logic_view.bms.bms_2.st3_ins_neg_res","name":"动力电池2负极绝缘值"},{"path":"system.logic_view.bms.bms_2.st3_ins_sys_res","name":"动力电池2系统绝缘值"},{"path":"system.logic_view.bms.bms_2.st4_temp_max","name":"动力电池2电芯温度最大值"},{"path":"system.logic_view.bms.bms_2.st4_temp_min","name":"动力电池2电芯温度最小值"},{"path":"system.logic_view.bms.bms_2.st4_temp_avg","name":"动力电池2电芯温度平均值"},{"path":"system.logic_view.bms.bms_2_st4_max_temp_pos","name":"动力电池2最高温度位置"},{"path":"system.logic_view.bms.bms_2_st4_min_temp_pos","name":"动力电池2最低温度位置"},{"path":"system.logic_view.bms.bms_2.st5_max_ucell","name":"动力电池2电芯电压最大值"},{"path":"system.logic_view.bms.bms_2.st5_min_ucell","name":"动力电池2电芯电压最小值"},{"path":"system.logic_view.bms.bms_2.st5_avg_ucell","name":"动力电池2电芯电压平均值"},{"path":"system.logic_view.bms.bms_2.st6_max_ucell_position","name":"动力电池2最高电压位置"},{"path":"system.logic_view.bms.bms_2.st6_min_ucell_position","name":"动力电池2最低电压位置"},{"path":"system.logic_view.bms.bms_2.EE_tot_chg_energy","name":"动力电池2累计充电电量"},{"path":"system.logic_view.bms.bms_2.EE_tot_dischg_energy","name":"动力电池2累计放电电量"},{"path":"system.logic_view.bms.bms_2.EE_single_chg_energy","name":"动力电池2单次充电电量"},{"path":"system.logic_view.bms.bms_2.CL_pulse_discharge_limit_a","name":"动力电池2允许放电电流"},{"path":"system.logic_view.bms.bms_2.CL_pulse_charge_limit_a","name":"动力电池2允许充电电流"},{"path":"system.logic_view.bms.bms_3.st1_bms_hv_status","name":"动力电池3当前高压状态"},{"path":"system.logic_view.bms.bms_3.st1_dc_chrg_connect_st","name":"动力电池3直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_3.st1_chrg_status","name":"动力电池3充电状态"},{"path":"system.logic_view.bms.bms_3.st2_soc","name":"动力电池3电池包SOC"},{"path":"system.logic_view.bms.bms_3.st2_soh","name":"动力电池3电池包SOH"},{"path":"system.logic_view.bms.bms_3.st2_pack_i","name":"动力电池3电池包总电流"},{"path":"system.logic_view.bms.bms_3.st2_pack_v","name":"动力电池3电池包内侧电压"},{"path":"system.logic_view.bms.bms_3.st2_fault_code","name":"动力电池3故障码"},{"path":"system.logic_view.bms.bms_3.st2_fault_level","name":"动力电池3当前最高故障等级"},{"path":"system.logic_view.bms.bms_3.st3_ins_pos_res","name":"动力电池3正极绝缘值"},{"path":"system.logic_view.bms.bms_3.st3_ins_neg_res","name":"动力电池3负极绝缘值"},{"path":"system.logic_view.bms.bms_3.st3_ins_sys_res","name":"动力电池3系统绝缘值"},{"path":"system.logic_view.bms.bms_3.st4_temp_max","name":"动力电池3电芯温度最大值"},{"path":"system.logic_view.bms.bms_3.st4_temp_min","name":"动力电池3电芯温度最小值"},{"path":"system.logic_view.bms.bms_3.st4_temp_avg","name":"动力电池3电芯温度平均值"},{"path":"system.logic_view.bms.bms_3_st4_max_temp_pos","name":"动力电池3最高温度位置"},{"path":"system.logic_view.bms.bms_3_st4_min_temp_pos","name":"动力电池3最低温度位置"},{"path":"system.logic_view.bms.bms_3.st5_max_ucell","name":"动力电池3电芯电压最大值"},{"path":"system.logic_view.bms.bms_3.st5_min_ucell","name":"动力电池3电芯电压最小值"},{"path":"system.logic_view.bms.bms_3.st5_avg_ucell","name":"动力电池3电芯电压平均值"},{"path":"system.logic_view.bms.bms_3.st6_max_ucell_position","name":"动力电池3最高电压位置"},{"path":"system.logic_view.bms.bms_3.st6_min_ucell_position","name":"动力电池3最低电压位置"},{"path":"system.logic_view.bms.bms_3.EE_tot_chg_energy","name":"动力电池3累计充电电量"},{"path":"system.logic_view.bms.bms_3.EE_tot_dischg_energy","name":"动力电池3累计放电电量"},{"path":"system.logic_view.bms.bms_3.EE_single_chg_energy","name":"动力电池3单次充电电量"},{"path":"system.logic_view.bms.bms_3.CL_pulse_discharge_limit_a","name":"动力电池3允许放电电流"},{"path":"system.logic_view.bms.bms_3.CL_pulse_charge_limit_a","name":"动力电池3允许充电电流"},{"path":"system.logic_view.bms.bms_4.st1_bms_hv_status","name":"动力电池4当前高压状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_connect_st","name":"动力电池4直流充电枪连接状态"},{"path":"system.logic_view.bms.bms_4.st1_chrg_status","name":"动力电池4充电状态"},{"path":"system.logic_view.bms.bms_4.st2_soc","name":"动力电池4电池包SOC"},{"path":"system.logic_view.bms.bms_4.st2_soh","name":"动力电池4电池包SOH"},{"path":"system.logic_view.bms.bms_4.st2_pack_i","name":"动力电池4电池包总电流"},{"path":"system.logic_view.bms.bms_4.st2_pack_v","name":"动力电池4电池包内侧电压"},{"path":"system.logic_view.bms.bms_4.st2_fault_code","name":"动力电池4故障码"},{"path":"system.logic_view.bms.bms_4.st2_fault_level","name":"动力电池4当前最高故障等级"},{"path":"system.logic_view.bms.bms_4.st3_ins_pos_res","name":"动力电池4正极绝缘值"},{"path":"system.logic_view.bms.bms_4.st3_ins_neg_res","name":"动力电池4负极绝缘值"},{"path":"system.logic_view.bms.bms_4.st3_ins_sys_res","name":"动力电池4系统绝缘值"},{"path":"system.logic_view.bms.bms_4.st4_temp_max","name":"动力电池4电芯温度最大值"},{"path":"system.logic_view.bms.bms_4.st4_temp_min","name":"动力电池4电芯温度最小值"},{"path":"system.logic_view.bms.bms_4.st4_temp_avg","name":"动力电池4电芯温度平均值"},{"path":"system.logic_view.bms.bms_4_st4_max_temp_pos","name":"动力电池4最高温度位置"},{"path":"system.logic_view.bms.bms_4_st4_min_temp_pos","name":"动力电池4最低温度位置"},{"path":"system.logic_view.bms.bms_4.st5_max_ucell","name":"动力电池4电芯电压最大值"},{"path":"system.logic_view.bms.bms_4.st5_min_ucell","name":"动力电池4电芯电压最小值"},{"path":"system.logic_view.bms.bms_4.st5_avg_ucell","name":"动力电池4电芯电压平均值"},{"path":"system.logic_view.bms.bms_4.st6_max_ucell_position","name":"动力电池4最高电压位置"},{"path":"system.logic_view.bms.bms_4.st6_min_ucell_position","name":"动力电池4最低电压位置"},{"path":"system.logic_view.bms.bms_4.EE_tot_chg_energy","name":"动力电池4累计充电电量"},{"path":"system.logic_view.bms.bms_4.EE_tot_dischg_energy","name":"动力电池4累计放电电量"},{"path":"system.logic_view.bms.bms_4.EE_single_chg_energy","name":"动力电池4单次充电电量"},{"path":"system.logic_view.bms.bms_4.CL_pulse_discharge_limit_a","name":"动力电池4允许放电电流"},{"path":"system.logic_view.bms.bms_4.CL_pulse_charge_limit_a","name":"动力电池4允许充电电流"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"动力电池1热管理系统工作状态"},{"path":"","name":"动力电池1热管理系统高压继电器状态"},{"path":"","name":"动力电池1热管理系统出水温度"},{"path":"","name":"动力电池1热管理系统回水温度"},{"path":"","name":"动力电池1热管理系统需求功率"},{"path":"","name":"动力电池1热管理系统故障码"},{"path":"","name":"动力电池1热管理系统故障等级"},{"path":"","name":"动力电池1灭火系统电池箱号"},{"path":"","name":"动力电池1灭火系统预警级别"},{"path":"","name":"动力电池1灭火系统故障码"},{"path":"","name":"动力电池1灭火系统故障等级"},{"path":"","name":"动力电池2热管理系统工作状态"},{"path":"","name":"动力电池2热管理系统高压继电器状态"},{"path":"","name":"动力电池2热管理系统出水温度"},{"path":"","name":"动力电池2热管理系统回水温度"},{"path":"","name":"动力电池2热管理系统需求功率"},{"path":"","name":"动力电池2热管理系统故障码"},{"path":"","name":"动力电池2热管理系统故障等级"},{"path":"","name":"动力电池2灭火系统电池箱号"},{"path":"","name":"动力电池2灭火系统预警级别"},{"path":"","name":"动力电池2灭火系统故障码"},{"path":"","name":"动力电池2灭火系统故障等级"},{"path":"","name":"动力电池3热管理系统工作状态"},{"path":"","name":"动力电池3热管理系统高压继电器状态"},{"path":"","name":"动力电池3热管理系统出水温度"},{"path":"","name":"动力电池3热管理系统回水温度"},{"path":"","name":"动力电池3热管理系统需求功率"},{"path":"","name":"动力电池3热管理系统故障码"},{"path":"","name":"动力电池3热管理系统故障等级"},{"path":"","name":"动力电池3灭火系统电池箱号"},{"path":"","name":"动力电池3灭火系统预警级别"},{"path":"","name":"动力电池3灭火系统故障码"},{"path":"","name":"动力电池3灭火系统故障等级"},{"path":"","name":"动力电池4热管理系统工作状态"},{"path":"","name":"动力电池4热管理系统高压继电器状态"},{"path":"","name":"动力电池4热管理系统出水温度"},{"path":"","name":"动力电池4热管理系统回水温度"},{"path":"","name":"动力电池4热管理系统需求功率"},{"path":"","name":"动力电池4热管理系统故障码"},{"path":"","name":"动力电池4热管理系统故障等级"},{"path":"","name":"动力电池4灭火系统电池箱号"},{"path":"","name":"动力电池4灭火系统预警级别"},{"path":"","name":"动力电池4灭火系统故障码"},{"path":"","name":"动力电池4灭火系统故障等级"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"当前存储的密码"},{"path":"","name":"预留"},{"path":"","name":"当前设置温度"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"HMI1版本X"},{"path":"","name":"HMI1版本Y"},{"path":"","name":"BMS1版本X"},{"path":"","name":"BMS1版本Y"},{"path":"","name":"BMS2版本X"},{"path":"","name":"BMS2版本Y"},{"path":"","name":"BMS3版本X"},{"path":"","name":"BMS3版本Y"},{"path":"","name":"BMS4版本X"},{"path":"","name":"BMS4版本Y"},{"path":"","name":"EMU版本X"},{"path":"","name":"EMU版本Y"},{"path":"","name":"PCU1版本X"},{"path":"","name":"PCU1版本Y"},{"path":"","name":"PCU2版本X"},{"path":"","name":"PCU2版本Y"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"现存故障页面总数"},{"path":"","name":"现存故障页码"},{"path":"","name":"现存故障页面第1行故障序号"},{"path":"","name":"现存故障页面第2行故障序号"},{"path":"","name":"现存故障页面第3行故障序号"},{"path":"","name":"现存故障页面第4行故障序号"},{"path":"","name":"现存故障页面第5行故障序号"},{"path":"","name":"现存故障页面第6行故障序号"},{"path":"","name":"现存故障页面第7行故障序号"},{"path":"","name":"现存故障页面第8行故障序号"},{"path":"","name":"现存故障页面第1行故障代码"},{"path":"","name":"现存故障页面第2行故障代码"},{"path":"","name":"现存故障页面第3行故障代码"},{"path":"","name":"现存故障页面第4行故障代码"},{"path":"","name":"现存故障页面第5行故障代码"},{"path":"","name":"现存故障页面第6行故障代码"},{"path":"","name":"现存故障页面第7行故障代码"},{"path":"","name":"现存故障页面第8行故障代码"},{"path":"","name":"现存故障页面第1行故障触发时间"},{"path":"","name":"现存故障页面第2行故障触发时间"},{"path":"","name":"现存故障页面第3行故障触发时间"},{"path":"","name":"现存故障页面第4行故障触发时间"},{"path":"","name":"现存故障页面第5行故障触发时间"},{"path":"","name":"现存故障页面第6行故障触发时间"},{"path":"","name":"现存故障页面第7行故障触发时间"},{"path":"","name":"现存故障页面第8行故障触发时间"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"历史故障页面总数"},{"path":"","name":"历史故障页码"},{"path":"","name":"历史故障页面第1行故障序号"},{"path":"","name":"历史故障页面第2行故障序号"},{"path":"","name":"历史故障页面第3行故障序号"},{"path":"","name":"历史故障页面第4行故障序号"},{"path":"","name":"历史故障页面第5行故障序号"},{"path":"","name":"历史故障页面第6行故障序号"},{"path":"","name":"历史故障页面第7行故障序号"},{"path":"","name":"历史故障页面第8行故障序号"},{"path":"","name":"历史故障页面第9行故障序号"},{"path":"","name":"历史故障页面第10行故障序号"},{"path":"","name":"历史故障页面第11行故障序号"},{"path":"","name":"历史故障页面第12行故障序号"},{"path":"","name":"历史故障页面第1行故障代码"},{"path":"","name":"历史故障页面第2行故障代码"},{"path":"","name":"历史故障页面第3行故障代码"},{"path":"","name":"历史故障页面第4行故障代码"},{"path":"","name":"历史故障页面第5行故障代码"},{"path":"","name":"历史故障页面第6行故障代码"},{"path":"","name":"历史故障页面第7行故障代码"},{"path":"","name":"历史故障页面第8行故障代码"},{"path":"","name":"历史故障页面第9行故障代码"},{"path":"","name":"历史故障页面第10行故障代码"},{"path":"","name":"历史故障页面第11行故障代码"},{"path":"","name":"历史故障页面第12行故障代码"},{"path":"","name":"历史故障页面第1行故障触发时间"},{"path":"","name":"历史故障页面第2行故障触发时间"},{"path":"","name":"历史故障页面第3行故障触发时间"},{"path":"","name":"历史故障页面第4行故障触发时间"},{"path":"","name":"历史故障页面第5行故障触发时间"},{"path":"","name":"历史故障页面第6行故障触发时间"},{"path":"","name":"历史故障页面第7行故障触发时间"},{"path":"","name":"历史故障页面第8行故障触发时间"},{"path":"","name":"历史故障页面第9行故障触发时间"},{"path":"","name":"历史故障页面第10行故障触发时间"},{"path":"","name":"历史故障页面第11行故障触发时间"},{"path":"","name":"历史故障页面第12行故障触发时间"},{"path":"","name":"历史故障页面第1行故障消失时间"},{"path":"","name":"历史故障页面第2行故障消失时间"},{"path":"","name":"历史故障页面第3行故障消失时间"},{"path":"","name":"历史故障页面第4行故障消失时间"},{"path":"","name":"历史故障页面第5行故障消失时间"},{"path":"","name":"历史故障页面第6行故障消失时间"},{"path":"","name":"历史故障页面第7行故障消失时间"},{"path":"","name":"历史故障页面第8行故障消失时间"},{"path":"","name":"历史故障页面第9行故障消失时间"},{"path":"","name":"历史故障页面第10行故障消失时间"},{"path":"","name":"历史故障页面第11行故障消失时间"},{"path":"","name":"历史故障页面第12行故障消失时间"},{"path":"","name":"历史故障页面第1行故障状态"},{"path":"","name":"历史故障页面第2行故障状态"},{"path":"","name":"历史故障页面第3行故障状态"},{"path":"","name":"历史故障页面第4行故障状态"},{"path":"","name":"历史故障页面第5行故障状态"},{"path":"","name":"历史故障页面第6行故障状态"},{"path":"","name":"历史故障页面第7行故障状态"},{"path":"","name":"历史故障页面第8行故障状态"},{"path":"","name":"历史故障页面第9行故障状态"},{"path":"","name":"历史故障页面第10行故障状态"},{"path":"","name":"历史故障页面第11行故障状态"},{"path":"","name":"历史故障页面第12行故障状态"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+{"type":"int_rw","base":"0x2000","items":[{"path":"","name":"维护密码"},{"path":"","name":""},{"path":"","name":"设置箱号"},{"path":"","name":"UPS关机时间"},{"path":"","name":"设置空调温度"},{"path":"","name":"设置空调湿度"},{"path":"","name":"输入原密码"},{"path":"","name":""},{"path":"","name":"设置密码1"},{"path":"","name":""},{"path":"","name":"设置密码2"},{"path":"","name":""},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"},{"path":"","name":"预留"}]}
+================================================================================
+FILE: protocol\bms_j1939.json
+================================================================================
+
+{
+  "meta": {
+    "source": "config/protocol/msg.xlsx",
+    "sheet": "Messages",
+    "generated_at": "2026-02-13T07:03:46.004135Z"
+  },
+  "messages": [
+    {
+      "name": "V2B_CMD",
+      "id": 402846703,
+      "id_hex": "0x1802F3EF",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 100,
+      "sender": "VCU",
+      "receiver": "BMU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "V2B_CMD_LifeSignal",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "VCU生命信号\nLife signal of VCU",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "V2B_CMD_HV_OnOff",
+          "startbit_lsb": 8,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车发给BMS的主回路上下高压指令\nHigh voltage power on/off command from VCU to BMS",
+          "val_table": {
+            "0": "Reserved",
+            "1": "PowerOn",
+            "2": "PowerOff",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux1OnOff",
+          "startbit_lsb": 10,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车发给BMS的附件1回路上下高压指令（无该附件回路则发\n0x00）\nCommand of high voltage to auxiliary_1 contactor(filled\nin 0 if BMS have no auxiliary_1 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "PowerOn",
+            "2": "PowerOff",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux2OnOff",
+          "startbit_lsb": 12,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车发给BMS的附件2回路上下高压指令（无该附件回路则发\n0x00）\nCommand of high voltage to auxiliary_2 contactor(filled\nin 0 if BMS have no auxiliary_2 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "PowerOn",
+            "2": "PowerOff",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux3OnOff",
+          "startbit_lsb": 14,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车发给BMS的附件3回路上下高压指令（无该附件回路则发\n0x00）\nCommand of high voltage to auxiliary_3 contactor\n(filled in 0 if BMS have no auxiliary_3 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "PowerOn",
+            "2": "PowerOff",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "V2B_CMD_VehicleSpeed",
+          "startbit_lsb": 16,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "km/h",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "车速\nVehicle Speed"
+        },
+        {
+          "name": "V2B_CMD_MainPosRelayST",
+          "startbit_lsb": 24,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端主正继电器触点状态\nStatus of vehicle main-positive contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_MainPosRelayFlt",
+          "startbit_lsb": 26,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端主正继电器故障状态\nFault of vehicle main-positive contactor",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_MainNegRelayST",
+          "startbit_lsb": 28,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端主负继电器触点状态（无该继电器则发0x00）\nStatus of vehicle main-negative contactor(filled in 0 if\nvehicle have no main negative contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_MainNegRelayFlt",
+          "startbit_lsb": 30,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端主负继电器故障状态（无该继电器则发0x00）\nFault of vehicle main-negative contactor(filled in 0 if\nvehicle have no main negative contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_ChrgPosRelayST",
+          "startbit_lsb": 32,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端充正继电器触点状态（无该继电器则发0x00）\nStatus of vehicle charge positive contactor(filled in 0 if\nvehicle have no charge positive contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_ChrgPosRelayFlt",
+          "startbit_lsb": 34,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端充正继电器故障状态（无该继电器则发0x00）\nFault of vehicle charge positive contactor(filled in 0 if\nvehicle have no charge positive contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_HeatPosRelayST",
+          "startbit_lsb": 36,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端加热正继电器触点状态（无该继电器则发0x00）\nStatus of vehicle heat positive contactor(filled in 0 if\nvehicle have no heat positive contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_HeatPosRelayFlt",
+          "startbit_lsb": 38,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端加热正继电器故障状态（无该继电器则发0x00）\nFault of vehicle heat positive contactor(filled in 0 if\nvehicle have no heat positive contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_HeatNegRelayST",
+          "startbit_lsb": 40,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端加热负继电器触点状态（无该继电器则发0x00）\nStatus of vehicle heat negative contactor(filled in 0 if\nvehicle have no heat negative contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_HeatNegRelayFlt",
+          "startbit_lsb": 42,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端加热负继电器故障状态（无该继电器则发0x00）\nFault of vehicle heat negative contactor(filled in 0 if\nvehicle have no heat negative contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux1RelayST",
+          "startbit_lsb": 44,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件1接触器触点状态（无该继电器则发0x00）\nStatus of vehicle auxiliary_1 contactor(filled in 0 if vehicle\nhave no auxiliary_1 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux1RelayFlt",
+          "startbit_lsb": 46,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件1接触器故障状态（无该继电器则发0x00）\nFault of vehicle auxiliary_1 contactor(filled in 0 if vehicle\nhave no auxiliary_1 contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux2RelayST",
+          "startbit_lsb": 48,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件2接触器触点状态（无该继电器则发0x00）\nStatus of vehicle auxiliary_2 contactor(filled in 0 if vehicle\nhave no auxiliary_2 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux2RelayFlt",
+          "startbit_lsb": 50,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件2接触器故障状态（无该继电器则发0x00）\nFault of vehicle auxiliary_2 contactor(filled in 0 if vehicle\nhave no auxiliary_2 contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux3RelayST",
+          "startbit_lsb": 52,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件3接触器触点状态（无该继电器则发0x00）\nStatus of vehicle auxiliary_3 contactor(filled in 0 if vehicle\nhave no auxiliary_3 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux3RelayFlt",
+          "startbit_lsb": 54,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件3接触器故障状态（无该继电器则发0x00）\nFault of vehicle auxiliary_3 contactor(filled in 0 if vehicle\nhave no auxiliary_3 contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux4RelayST",
+          "startbit_lsb": 56,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件4接触器触点状态（无该继电器则发0x00）\nStatus of vehicle auxiliary_4 contactor(filled in 0 if vehicle\nhave no auxiliary_4 contactor)",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Opened",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "V2B_CMD_Aux4RelayFlt",
+          "startbit_lsb": 58,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "整车端辅件4接触器故障状态（无该继电器则发0x00）\nFault of vehicle auxiliary_4 contactor(filled in 0 if vehicle\nhave no auxiliary_4 contactor)",
+          "val_table": {
+            "0": "Normal",
+            "1": "Weld",
+            "2": "Opened Fault"
+          }
+        },
+        {
+          "name": "V2B_CMD_Reserved1",
+          "startbit_lsb": 60,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "预留1(填充0)\nReserved-1(filled in 0)"
+        },
+        {
+          "name": "V2B_CMD_Reserved2",
+          "startbit_lsb": 62,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "预留2(填充0)\nReserved-2(filled in 0)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_Fult1_32960",
+      "id": 411168755,
+      "id_hex": "0x1881EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "Reserved",
+          "startbit_lsb": 0,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "预留(填充0)\nReserved(filled in 0)"
+        },
+        {
+          "name": "B2V_Fult1_DelTemp",
+          "startbit_lsb": 2,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "电芯温差异常报警\nExcessive temperature differentials alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_OverTemp",
+          "startbit_lsb": 4,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "电芯温度过高报警\nExcess temperature alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_PackOverHVolt",
+          "startbit_lsb": 6,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "PACK过压报警\nPack overhigh voltage alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_PackLowHVolt",
+          "startbit_lsb": 8,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "PACK欠压报警\nLow pack voltage too  alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_LowSOC",
+          "startbit_lsb": 10,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "SOC过低报警\nSOC too low alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_OverUcell",
+          "startbit_lsb": 12,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "单体电压过高报警\nCell overhigh voltage alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_LowUcell",
+          "startbit_lsb": 14,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "单体电压欠压报警\nCell voltage too low alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_LowInsRes",
+          "startbit_lsb": 16,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "绝缘报警\nInsulation resistance too low alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_UcellUniformity",
+          "startbit_lsb": 18,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "电池一致性差报警\nCell high consistency alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_OverChg",
+          "startbit_lsb": 20,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "车载储能装置过充报警\nEnergy system overcharged alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_OverSOC",
+          "startbit_lsb": 22,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "SOC过高报警\nSOC too high alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_SOCChangeFast",
+          "startbit_lsb": 24,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "SOC跳变报警\nSOC Jump alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_BatSysNotMatch",
+          "startbit_lsb": 25,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "可充电储能系统不匹配报警\nBMS not matched alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_HVILFault",
+          "startbit_lsb": 26,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "高压互锁报警\nHVIL alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult1_FaultNum_32960",
+          "startbit_lsb": 27,
+          "length": 5,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 31.0,
+          "receiver": "VCU",
+          "comment": "GBT32960.3中规定的故障数目(当前时刻发生的)\nSum alarm specified in GBT32960.3(Current)"
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 32,
+          "length": 32,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 4000000000.0,
+          "receiver": "VCU",
+          "comment": "预留(填充0)\nReserved(filled in 0)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_Fult2",
+      "id": 411234291,
+      "id_hex": "0x1882EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_Fult2_FaultNum",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "BMS当前发生的故障总数目（包括GB32960中规定的故障数\n目）\nSum fault of BMS(Include GBT32960 fault)"
+        },
+        {
+          "name": "B2V_Fult2_CellOverDischrg",
+          "startbit_lsb": 8,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电芯过放故障\nCell overdischarged alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_CellLowTemp",
+          "startbit_lsb": 9,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电芯低温报警\nCell low temperature alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PackFireWarning",
+          "startbit_lsb": 10,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电池包火灾报警\nFire alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_OverDischrgCurr",
+          "startbit_lsb": 11,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "放电电流超限报警\nPack overdischarged alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_OverChrgCurrInTheDrive",
+          "startbit_lsb": 13,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "回充电流超限报警\nPack overcharged alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_CurrSensorErr",
+          "startbit_lsb": 15,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电流传感器故障\nCurrent sensor fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PowerSupplyErr",
+          "startbit_lsb": 16,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS低压供电电压异常报警\nBMS low-voltage power abnormal alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_TMSErr",
+          "startbit_lsb": 17,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "热管理机组故障\nTMS fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_HeatungFilmErr",
+          "startbit_lsb": 18,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "加热膜加热回路故障\nThe heating file fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PackSelfProtect",
+          "startbit_lsb": 19,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电池包自保护故障\nPack self-protection alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_MainLoopPrechrgErr",
+          "startbit_lsb": 20,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "主回路预充或预检故障\nMain-loop precharge or precheck fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_AuxLoopPrechrgErr",
+          "startbit_lsb": 21,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "辅件回路预充或预检故障\nAux-loop precharge or precheck fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ChrgInsLowErr",
+          "startbit_lsb": 22,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "充电绝缘阻值低\nLow insulation value alarm when in charging",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ACANLost",
+          "startbit_lsb": 23,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "ACAN通讯故障\nACAN lost alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_InnerCommunicationErr",
+          "startbit_lsb": 24,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS内部通信故障\nBMS inside communication fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCDCErr",
+          "startbit_lsb": 25,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS-DC-DC故障\nDCDC fault of BMS",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_BranchBreakErr",
+          "startbit_lsb": 26,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "支路断路故障报警\nBranch break fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_HeatRelayOpenErr",
+          "startbit_lsb": 27,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "加热膜或TMS接触器故障无法闭合报警\nHeat or TMS contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_HeatRelayWeldErr",
+          "startbit_lsb": 28,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "加热膜或TMS接触器故障无法断开报警\nHeat or TMS contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_MainPosRelayOpenErr",
+          "startbit_lsb": 29,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "主正接触器无法闭合故障报警\nMain-Positive contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_MainPosRelayWeldErr",
+          "startbit_lsb": 30,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "主正接触器无法断开故障报警\nMain-Positive contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_MainNegRelayOpenErr",
+          "startbit_lsb": 31,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "主负接触器无法闭合故障报警\nMain-Negative contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_MainNegRelayWeldErr",
+          "startbit_lsb": 32,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "主负接触器无法断开故障报警\nMain-Negative contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgPos1RelayOpenErr",
+          "startbit_lsb": 33,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电A正接触器无法闭合故障报警\nDC-Charge A positive contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgPos1RelayWeldErr",
+          "startbit_lsb": 34,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电A正接触器无法断开故障报警\nDC-Charge A positive contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgNeg1RelayOpenErr",
+          "startbit_lsb": 35,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电A负接触器无法闭合故障报警\nDC-Charge A negative contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgNeg1RelayWeldErr",
+          "startbit_lsb": 36,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电A负接触器无法断开故障报警\nDC-Charge A negative contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgPos2RelayOpenErr",
+          "startbit_lsb": 37,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电B正接触器无法闭合故障报警\nDC-Charge B positive contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgPos2RelayWeldErr",
+          "startbit_lsb": 38,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电B正接触器无法断开故障报警\nDC-Charge B positive contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgNeg2RelayOpenErr",
+          "startbit_lsb": 39,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电B负接触器无法闭合故障报警\nDC-Charge B negative contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_DCChrgNeg2RelayWeldErr",
+          "startbit_lsb": 40,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "直流充电B负接触器无法断开故障报警\nDC-Charge B negative contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ACChrgPosRelayOpenErr",
+          "startbit_lsb": 41,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "交流充电正接触器无法闭合故障报警\nAC-Charge positive contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ACChrgPosRelayWeldErr",
+          "startbit_lsb": 42,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "交流充电正接触器无法断开故障报警\nAC-Charge positive contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ACChrgNegRelayOpenErr",
+          "startbit_lsb": 43,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "交流充电负接触器无法闭合故障报警\nAC-Charge negative contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ACChrgNegRelayWeldErr",
+          "startbit_lsb": 44,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "交流充电负接触器无法断开故障报警\nAC-Charge negative contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PantoChrgPosRelayOpenErr",
+          "startbit_lsb": 45,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "集电弓正接触器无法闭合故障报警\nPantograph Charge positive contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PantoChrgPosRelayWeldErr",
+          "startbit_lsb": 46,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "集电弓正接触器无法断开故障报警\nPantograph Charge positive contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PantoChrgNegRelayOpenErr",
+          "startbit_lsb": 47,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "集电弓负接触器无法闭合故障报警\nPantograph Charge negative contactor open-circuit fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_PantoChrgNegRelayWeldErr",
+          "startbit_lsb": 48,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "集电弓负接触器无法断开故障报警\nPantograph Charge negative contactor welded fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ChrgConnectErr",
+          "startbit_lsb": 49,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "插枪连接信号异常\nCharge gun connection abnormal alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_OverDischrgCurrWhenInChrg",
+          "startbit_lsb": 50,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "充电时放电电流过大\nCurrent overdischarged when in charging",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_OverChrgCurrInTheChrg",
+          "startbit_lsb": 51,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "充电电流超限报警\nCharge current overload alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ChrgNTCErr",
+          "startbit_lsb": 52,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "充电插座NTC故障\nDC charge socket fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ChrgNTCTempOver",
+          "startbit_lsb": 53,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "充电插座过温报警\nOver-temperature alarm of DC charge socket",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ELockErr",
+          "startbit_lsb": 55,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "电子锁故障\nE-lock fault",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_FireDetectorErr",
+          "startbit_lsb": 56,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "火警探测器故障\nFire detector",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ContiChrgCurrOverLoad",
+          "startbit_lsb": 57,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "持续回充过流故障\nContinued Charge current over load  alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_SOCDifferErr",
+          "startbit_lsb": 59,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "SOC差异过大\nExcessive SOC differentials alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_ContiDischrgCurrOverLoad",
+          "startbit_lsb": 60,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "持续放电过流故障\nContinued Discharge current over load  alarm",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_Fult2_Reserved1",
+          "startbit_lsb": 62,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "预留故障1（填充0）\nReserved-1(filled in 0)"
+        },
+        {
+          "name": "B2V_Fult2_Reserved2",
+          "startbit_lsb": 63,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "预留故障2（填充0）\nReserved-2(filled in 0)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST1",
+      "id": 411299827,
+      "id_hex": "0x1883EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 100,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST1_MainPosRelaySt",
+          "startbit_lsb": 0,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "主正继电器状态(如继电器状态由BMS检测)\nStatus of main-positive contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_MainNegRelaySt",
+          "startbit_lsb": 2,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "主负继电器状态(如继电器状态由BMS检测)\nStatus of main-negative contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_PrechrgRelaySt",
+          "startbit_lsb": 4,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "主回路预充或预检继电器状态(如继电器状态由BMS检测)\nStatus of main-loop precharge or precheck contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_DCChrgPos1RelaySt",
+          "startbit_lsb": 6,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "直流充正继电器1状态(如继电器状态由BMS检测)\nStatus of DC-charge positive-1 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_DCChrgNeg1RelaySt",
+          "startbit_lsb": 8,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "直流充负继电器1状态(如继电器状态由BMS检测)\nStatus of DC-charge negative-1 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_DCChrgPos2RelaySt",
+          "startbit_lsb": 10,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "直流充正继电器2状态(如继电器状态由BMS检测)\nStatus of DC-charge positive-2 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_DCChrgNeg2RelaySt",
+          "startbit_lsb": 12,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "直流充负继电器2状态(如继电器状态由BMS检测)\nStatus of DC-charge negative-2 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_HeatPosRelaySt",
+          "startbit_lsb": 14,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "加热正继电器状态(如继电器状态由BMS检测)\nStatus of heat positive contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_HeatNegRelaySt",
+          "startbit_lsb": 16,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "加热负继电器状态(如继电器状态由BMS检测)\nStatus of heat negative contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_PantoChrgPosRelaySt",
+          "startbit_lsb": 18,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "集电弓正继电器状态(如继电器状态由BMS检测)\nStatus of pantograph charge positive contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_PantoChrgNegRelaySt",
+          "startbit_lsb": 20,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "集电弓负继电器状态(如继电器状态由BMS检测)\nStatus of pantograph charge negative contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_ACChrgPosRelaySt",
+          "startbit_lsb": 22,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "交流正继电器状态(如继电器状态由BMS检测)\nStatus of AC-charge positive contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_ACChrgNegRelaySt",
+          "startbit_lsb": 24,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "交流负继电器状态(如继电器状态由BMS检测)\nStatus of AC-charge negative contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_Aux1RelaySt",
+          "startbit_lsb": 26,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "附件1继电器状态(如继电器状态由BMS检测)\nStatus of  auxiliary-1 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_Aux2RelaySt",
+          "startbit_lsb": 28,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "附件2继电器状态(如继电器状态由BMS检测)\nStatus of  auxiliary-2 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_Aux3RelaySt",
+          "startbit_lsb": 30,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "附件3继电器状态(如继电器状态由BMS检测)\nStatus of  auxiliary-3 contactor",
+          "val_table": {
+            "0": "Reserved",
+            "1": "Open",
+            "2": "Closed"
+          }
+        },
+        {
+          "name": "B2V_ST1_BMS_HVStatus",
+          "startbit_lsb": 32,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "BMS当前高压状态\nBMS high-voltage status",
+          "val_table": {
+            "0": "HV open",
+            "1": "Precharge or Precheck",
+            "3": "Fail to HV on"
+          }
+        },
+        {
+          "name": "B2V_ST1_BMS_BalanceStatus",
+          "startbit_lsb": 34,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS当前均衡状态\nBMS balance status",
+          "val_table": {
+            "0": "No Balancing",
+            "1": "Balancing"
+          }
+        },
+        {
+          "name": "B2V_ST1_DCChrgConnectSt",
+          "startbit_lsb": 35,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "直流充电枪连接状态\nDC-Charge gun connect status",
+          "val_table": {
+            "0": "Not connected",
+            "1": "single gun connect",
+            "2": "double gun connect",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST1_PantoChrgConnectSt",
+          "startbit_lsb": 37,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "集电弓充电枪连接状态\nPantograph Charge gun connect status",
+          "val_table": {
+            "0": "Not connected",
+            "1": "Connected"
+          }
+        },
+        {
+          "name": "B2V_ST1_ACChrgConnectSt",
+          "startbit_lsb": 38,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "交流充电枪连接状态\nAC-Charge gun connect status",
+          "val_table": {
+            "0": "Not connected",
+            "1": "Connected"
+          }
+        },
+        {
+          "name": "B2V_ST1_ChrgMode",
+          "startbit_lsb": 39,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "BMS当前充电模式\nBMS charge mode",
+          "val_table": {
+            "0": "Notcharging",
+            "1": "DC charging",
+            "3": "Other charging"
+          }
+        },
+        {
+          "name": "B2V_ST1_ChrgStatus",
+          "startbit_lsb": 41,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "充电状态\nBMS charge status",
+          "val_table": {
+            "0": "not charging",
+            "1": "Charging",
+            "3": "Charge error"
+          }
+        },
+        {
+          "name": "B2V_ST1_HeatingStatus",
+          "startbit_lsb": 43,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "当前加热状态\nBMS heat status",
+          "val_table": {
+            "0": "not heat",
+            "1": "heating"
+          }
+        },
+        {
+          "name": "B2V_ST1_CoolingStatus",
+          "startbit_lsb": 44,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "VCU",
+          "comment": "当前冷却状态\nBMS cooling status",
+          "val_table": {
+            "0": "not cooling",
+            "1": "cooling"
+          }
+        },
+        {
+          "name": "B2V_ST1_RechrgCycels",
+          "startbit_lsb": 46,
+          "length": 18,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "充电次数\nBMS charge cycles"
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST2",
+      "id": 411365363,
+      "id_hex": "0x1884EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 200,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST2_SOC",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 0.4,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "%",
+          "min": 0.0,
+          "max": 100.0,
+          "receiver": "VCU",
+          "comment": "电池包SOCSOC",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST2_SOH",
+          "startbit_lsb": 8,
+          "length": 8,
+          "factor": 0.4,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "%",
+          "min": 0.0,
+          "max": 100.0,
+          "receiver": "VCU",
+          "comment": "电池包SOH\nSOH",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST2_PackCurrent",
+          "startbit_lsb": 16,
+          "length": 16,
+          "factor": 0.1,
+          "offset": -1000.0,
+          "initial": 0.0,
+          "unit": "A",
+          "min": -1000.0,
+          "max": 1000.0,
+          "receiver": "VCU",
+          "comment": "电池包总电流，充电为负值，放电为正值\nPack current",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST2_PackInsideVolt",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "V",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "电池包内侧电压\nPack inside high-voltage",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST2_FaultCode",
+          "startbit_lsb": 48,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "故障码\nFault code",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST2_FaultLevel",
+          "startbit_lsb": 56,
+          "length": 3,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 7.0,
+          "receiver": "VCU",
+          "comment": "当前最高故障等级\nHighest fault level",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1-Light fault",
+            "3": "Level3-Most severe fault"
+          }
+        },
+        {
+          "name": "B2V_ST2_RqHVPoerOff",
+          "startbit_lsb": 59,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS下高压请求\nRequire high-voltage powero-ff",
+          "val_table": {
+            "0": "not require power off",
+            "1": "require power off"
+          }
+        },
+        {
+          "name": "B2V_ST2_Life",
+          "startbit_lsb": 60,
+          "length": 4,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 15.0,
+          "receiver": "VCU",
+          "comment": "BMS生命信号\nBMS life signal",
+          "val_table": {
+            "15": "Signal Invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST3",
+      "id": 411430899,
+      "id_hex": "0x1885EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST3_PosInsRes",
+          "startbit_lsb": 0,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kohm",
+          "min": 0.0,
+          "max": 60000.0,
+          "receiver": "VCU",
+          "comment": "BMS正极绝缘值\nBMS positive insulation value",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST3_NegInsRes",
+          "startbit_lsb": 16,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kohm",
+          "min": 0.0,
+          "max": 60000.0,
+          "receiver": "VCU",
+          "comment": "BMS负极绝缘值\nBMS negative insulation value",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST3_SysInsRes",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kohm",
+          "min": 0.0,
+          "max": 60000.0,
+          "receiver": "VCU",
+          "comment": "BMS系统绝缘值\nBMS system insulation value",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST3_InsDetectorSt",
+          "startbit_lsb": 48,
+          "length": 1,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 1.0,
+          "receiver": "VCU",
+          "comment": "BMS绝缘检测状态\nBMS insulation detection status",
+          "val_table": {
+            "0": "stop insulation detection"
+          }
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 49,
+          "length": 15,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 32767.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST4",
+      "id": 411496435,
+      "id_hex": "0x1886EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST4_Max_Temp",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "电芯温度最大值\nMaximum cell temperatuer in pack",
+          "val_table": {
+            "254": "Abnormal",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST4_Min_Temp",
+          "startbit_lsb": 8,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "电芯温度最小值\nMinimum cell temperatuer in pack",
+          "val_table": {
+            "254": "Abnormal",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST4_Avg_Temp",
+          "startbit_lsb": 16,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "电芯温度平均值\nAverage cell temperatuer in pack",
+          "val_table": {
+            "254": "Abnormal",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST4_MaxTemp_CSCNo",
+          "startbit_lsb": 24,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 1.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最高温度探针所在的CSC编号\nCSC serial number with  maximum cell temperture",
+          "val_table": {
+            "1": "CSC1",
+            "2": "CSC2",
+            "3": "CSC3",
+            "4": "CSC4",
+            "5": "CSC5",
+            "6": "CSC6",
+            "7": "CSC7",
+            "8": "CSC8",
+            "9": "CSC9",
+            "10": "CSC10",
+            "11": "CSC11",
+            "12": "CSC12",
+            "13": "CSC13",
+            "14": "CSC14",
+            "15": "CSC15",
+            "16": "CSC16",
+            "17": "CSC17",
+            "18": "CSC18",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST4_MaxTemp_Position",
+          "startbit_lsb": 32,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 1.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最高温度探针在系统中的位置\nSerial number of maximum cell temperture probe in pack"
+        },
+        {
+          "name": "B2V_ST4_MinTemp_CSCNo",
+          "startbit_lsb": 40,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 1.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最低温度探针所在的CSC编号\nCSC serial number with minimum cell temperture",
+          "val_table": {
+            "1": "CSC1",
+            "2": "CSC2",
+            "3": "CSC3",
+            "4": "CSC4",
+            "5": "CSC5",
+            "6": "CSC6",
+            "7": "CSC7",
+            "8": "CSC8",
+            "9": "CSC9",
+            "10": "CSC10",
+            "11": "CSC11",
+            "12": "CSC12",
+            "13": "CSC13",
+            "14": "CSC14",
+            "15": "CSC15",
+            "16": "CSC16",
+            "17": "CSC17",
+            "18": "CSC18",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST4_MinTemp_Position",
+          "startbit_lsb": 48,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 1.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最低温度探针在系统中的位置\nSerial number of minimum cell temperture probe in pack"
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 56,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 1.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST5",
+      "id": 411561971,
+      "id_hex": "0x1887EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST5_Max_Ucell",
+          "startbit_lsb": 0,
+          "length": 16,
+          "factor": 0.001,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "V",
+          "min": 0.0,
+          "max": 65.535,
+          "receiver": "VCU",
+          "comment": "电芯电压最大值\nMaximum voltage of cell",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST5_Min_Ucell",
+          "startbit_lsb": 16,
+          "length": 16,
+          "factor": 0.001,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "V",
+          "min": 0.0,
+          "max": 65.535,
+          "receiver": "VCU",
+          "comment": "电芯电压最小值\nMinimum voltage of cell",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST5_Avg_Ucell",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 0.001,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "V",
+          "min": 0.0,
+          "max": 65.535,
+          "receiver": "VCU",
+          "comment": "电芯电压平均值\nAverage voltage of cell",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 48,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)",
+          "val_table": {
+            "65535": "Signal Invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST6",
+      "id": 411627507,
+      "id_hex": "0x1888EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST6_MaxUcell_CSCNo",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最高电压电芯在的CSC编号\nCSC serial number with  maximum cell voltage",
+          "val_table": {
+            "1": "CSC1",
+            "2": "CSC2",
+            "3": "CSC3",
+            "4": "CSC4",
+            "5": "CSC5",
+            "6": "CSC6",
+            "7": "CSC7",
+            "8": "CSC8",
+            "9": "CSC9",
+            "10": "CSC10",
+            "11": "CSC11",
+            "12": "CSC12",
+            "13": "CSC13",
+            "14": "CSC14",
+            "15": "CSC15",
+            "16": "CSC16",
+            "17": "CSC17",
+            "18": "CSC18",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST6_MaxUcell_Position",
+          "startbit_lsb": 8,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "最高电压电芯在系统中的位置\nSerial number of maximum cell voltage in pack"
+        },
+        {
+          "name": "B2V_ST6_MinUcell_CSCNo",
+          "startbit_lsb": 24,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "最低电压电芯在的CSC编号\nCSC serial number with  minimum cell voltage",
+          "val_table": {
+            "1": "CSC1",
+            "2": "CSC2",
+            "3": "CSC3",
+            "4": "CSC4",
+            "5": "CSC5",
+            "6": "CSC6",
+            "7": "CSC7",
+            "8": "CSC8",
+            "9": "CSC9",
+            "10": "CSC10",
+            "11": "CSC11",
+            "12": "CSC12",
+            "13": "CSC13",
+            "14": "CSC14",
+            "15": "CSC15",
+            "16": "CSC16",
+            "17": "CSC17",
+            "18": "CSC18",
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST6_MinUcell_Position",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "最低电压电芯在系统中的位置\nSerial number of minimum cell voltage in  CSC"
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 48,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_ST7",
+      "id": 411693043,
+      "id_hex": "0x1889EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_ST7_Gun1DCPosTemp",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "直流充电A枪DC+温度传感器温度（无该温度传感器发默认发\n0xFF）\nDC-Charged A-gun positive temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_Gun1DCNegTemp",
+          "startbit_lsb": 8,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "直流充电A枪DC-温度传感器温度（无该温度传感器发默认发\n0xFF）\nDC-Charged A-gun negative temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_Gun2DCPosTemp",
+          "startbit_lsb": 16,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "直流充电B枪DC+温度传感器温度（无该温度传感器发默认发\n0xFF）\nDC-Charged B-gun positive temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_Gun2DCNegTemp",
+          "startbit_lsb": 24,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "直流充电B枪DC-温度传感器温度（无该温度传感器发默认发\n0xFF）\nDC-Charged B-gun negative temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_GunACPosTemp",
+          "startbit_lsb": 32,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "交流充电枪AC+温度传感器温度（若交流充电只有一个温度传\n感器，则默认为AC+）\nAC-Charged gun positive temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_GunACNegTemp",
+          "startbit_lsb": 40,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "VCU",
+          "comment": "交流充电枪AC-温度传感器温度（若交流充电只有一个温度传\n感器，则默认为AC+）\nAC-Charged gun negative temperature",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_Reserved1",
+          "startbit_lsb": 48,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        },
+        {
+          "name": "B2V_ST7_Reserved2",
+          "startbit_lsb": 56,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "VCU",
+          "comment": "预留（填充0）\nReserved(filled in 0)",
+          "val_table": {
+            "255": "Signal Invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2V_ElecEnergy",
+      "id": 415494131,
+      "id_hex": "0x18C3EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 1000,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_TotChgEnergy",
+          "startbit_lsb": 0,
+          "length": 24,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kwh",
+          "min": 0.0,
+          "max": 20000000.0,
+          "receiver": "VCU",
+          "comment": "累计充电电量\nAccumulated charged electric quantity"
+        },
+        {
+          "name": "B2V_TotDischgEnergy",
+          "startbit_lsb": 24,
+          "length": 24,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kwh",
+          "min": 0.0,
+          "max": 20000000.0,
+          "receiver": "VCU",
+          "comment": "累计放电电量\nAccumulated discharged electric quantity"
+        },
+        {
+          "name": "B2V_SingleChgEnergy",
+          "startbit_lsb": 48,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "kwh",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "VCU",
+          "comment": "单次充电电量(充电机在线时)\nSingle charged electric quantity (charger online)"
+        }
+      ]
+    },
+    {
+      "name": "B2V_CurrentLimit",
+      "id": 415559667,
+      "id_hex": "0x18C4EFF3",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 200,
+      "sender": "BMU",
+      "receiver": "VCU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2V_AvailInpulseDischrgCurr",
+          "startbit_lsb": 0,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "A",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "VCU",
+          "comment": "BMS允许的脉冲放电电流（瞬时电流）\nBattery allow maximum discharge current(Pulse）"
+        },
+        {
+          "name": "B2V_AvailInpulseChrgCurr",
+          "startbit_lsb": 16,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "A",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "VCU",
+          "comment": "BMS允许的脉冲回充电流（瞬时电流）\nBattery allow maximum feedback charge current(Pulse）"
+        },
+        {
+          "name": "B2V_AvailFollowChrgCurr",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "A",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "VCU",
+          "comment": "BMS允许的持续回充电流（燃料电池或PHEV才有）\nBattery allow maximum  sustained discharg current(PHEV\nor Fuel battery vehicle）"
+        },
+        {
+          "name": "B2V_AvailFollowDishrgCurr",
+          "startbit_lsb": 48,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "A",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "VCU",
+          "comment": "BMS允许的持续放电电流（V2V或者储能才有）\nBattery allow maximum  sustained discharg current(V2V\nor storage vehicle）"
+        }
+      ]
+    },
+    {
+      "name": "B2TM_Info",
+      "id": 419382772,
+      "id_hex": "0x18FF45F4",
+      "dlc": 8,
+      "byte_order": "Motorola",
+      "cycle_ms": 500,
+      "sender": "BMU",
+      "receiver": "TMS",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "B2T_RQ_SetMode_A",
+          "startbit_lsb": 0,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "TMS",
+          "comment": "BMS请求设定模式\nWorking mode command from BMS to TMS",
+          "val_table": {
+            "0": "Shutdown Mode",
+            "1": "Cooling Mode",
+            "3": "Self-Loop Mode"
+          }
+        },
+        {
+          "name": "B2T_RQ_HV_A",
+          "startbit_lsb": 2,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "TMS",
+          "comment": "高压请求\nHigh-voltage command from BMS to TMS",
+          "val_table": {
+            "0": "HV On Request",
+            "1": "HV Off Request",
+            "2": "Invalid",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "B2T_ChgST_A",
+          "startbit_lsb": 4,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "TMS",
+          "comment": "充电状态\nBMS charge status",
+          "val_table": {
+            "0": "Non-Charging mode",
+            "1": "Charging mode",
+            "2": "Invalid",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "B2T_BMS_HVRelayST_A",
+          "startbit_lsb": 6,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "TMS",
+          "comment": "BMS高压继电器状态\nBMS high-voltage contactor status",
+          "val_table": {
+            "0": "Open",
+            "1": "Closed",
+            "2": "Invalid",
+            "3": "Invalid"
+          }
+        },
+        {
+          "name": "B2T_BMS_HVVolt_A",
+          "startbit_lsb": 16,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "TMS",
+          "comment": "BMS当前电压\nPack voltage",
+          "val_table": {
+            "65535": "Invalid"
+          }
+        },
+        {
+          "name": "B2T_BMS_R1",
+          "startbit_lsb": 24,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "TMS",
+          "comment": "预留(填充0)\nReserved(filled in 0）"
+        },
+        {
+          "name": "B2T_SetTemp_A",
+          "startbit_lsb": 32,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "TMS",
+          "comment": "设定温度\nSetting temperature"
+        },
+        {
+          "name": "B2T_BMS_R2",
+          "startbit_lsb": 40,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "TMS",
+          "comment": "预留(填充0)\nReserved(filled in 0）"
+        },
+        {
+          "name": "B2TM_BMS_ALIV_A",
+          "startbit_lsb": 48,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "TMS",
+          "comment": "BMS生命帧(备选项)\nBMS life signal（Reserved）"
+        },
+        {
+          "name": "B2TM_CRC_A",
+          "startbit_lsb": 56,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "TMS",
+          "comment": "CRC校验值(备选项)\nCRC（Reserved）"
+        }
+      ]
+    },
+    {
+      "name": "TM2B_Info",
+      "id": 419414330,
+      "id_hex": "0x18FFC13A",
+      "dlc": 8,
+      "byte_order": "Motorola",
+      "cycle_ms": 500,
+      "sender": "TMS",
+      "receiver": "BMU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "T2B_WorkStatus_A",
+          "startbit_lsb": 0,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "TMS工作状态\nTMS work status",
+          "val_table": {
+            "0": "Shutdown Mode",
+            "1": "Cooling Mode",
+            "3": "Self-Loop Mode"
+          }
+        },
+        {
+          "name": "T2B_TMS_HVRelayST_A",
+          "startbit_lsb": 2,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "TMS的继电器状态\nTMS contactor status",
+          "val_table": {
+            "0": "Open",
+            "1": "Close"
+          }
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 4,
+          "length": 4,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 15.0,
+          "receiver": "BMU",
+          "comment": "预留(填充0)\nReserved(filled in 0）"
+        },
+        {
+          "name": "TM2B_OutletTemp_A",
+          "startbit_lsb": 8,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "BMU",
+          "comment": "TMS出水温度(机组到电池)\nTMS outlet water temperature（From TMS to pack）",
+          "val_table": {
+            "255": "Invalid"
+          }
+        },
+        {
+          "name": "TM2B_InletTemp_A",
+          "startbit_lsb": 16,
+          "length": 8,
+          "factor": 1.0,
+          "offset": -40.0,
+          "initial": 0.0,
+          "unit": "℃",
+          "min": -40.0,
+          "max": 215.0,
+          "receiver": "BMU",
+          "comment": "TMS进水温度(电池到机组)\nTMS flooding water temperature（From TMS to pack）",
+          "val_table": {
+            "255": "Invalid"
+          }
+        },
+        {
+          "name": "Reserved",
+          "startbit_lsb": 32,
+          "length": 16,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 65535.0,
+          "receiver": "BMU",
+          "comment": "预留(填充0)\nReserved(filled in 0）"
+        },
+        {
+          "name": "TM2B_RQPower_A",
+          "startbit_lsb": 48,
+          "length": 16,
+          "factor": 0.1,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "Kw",
+          "min": 0.0,
+          "max": 6553.5,
+          "receiver": "BMU",
+          "comment": "水冷机组需求功率\nTMS requirement power",
+          "val_table": {
+            "65535": "Invalid"
+          }
+        },
+        {
+          "name": "TM2B_FaultCode_A",
+          "startbit_lsb": 56,
+          "length": 6,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 63.0,
+          "receiver": "BMU",
+          "comment": "TMS故障代码(出现1种以上循环发送)\nTMS fault code",
+          "val_table": {
+            "0": "No fault",
+            "1": "Bus under voltage,Level 1 Fault",
+            "2": "Bus over voltage,Level 1 Fault",
+            "6": "Abnormal,Level 2 Fault",
+            "13": "PTC Fault, Level 1 Fault"
+          }
+        },
+        {
+          "name": "TM2B_FaultLevel_A",
+          "startbit_lsb": 62,
+          "length": 2,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 3.0,
+          "receiver": "BMU",
+          "comment": "TMS故障等级\nTMS fault level",
+          "val_table": {
+            "1": "Level 1 Fault",
+            "2": "Level 2 Fault"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fire2B_Info",
+      "id": 419428342,
+      "id_hex": "0x18FFF7F6",
+      "dlc": 8,
+      "byte_order": "Intel",
+      "cycle_ms": 1000,
+      "sender": "Fire",
+      "receiver": "BMU",
+      "tx": "Cyclic",
+      "comment": "",
+      "signals": [
+        {
+          "name": "Fire2B_BoxNo",
+          "startbit_lsb": 0,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "电池箱号（探测器编号，轮询发送）"
+        },
+        {
+          "name": "Fire2B_BomType",
+          "startbit_lsb": 8,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "探测器启动灭火弹类型",
+          "val_table": {
+            "0": "保留",
+            "1": "保留",
+            "3": "自动：火情4级，探测器自动检测启动",
+            "6": "探测器失控启动"
+          }
+        },
+        {
+          "name": "Fire2B_FaultLevel",
+          "startbit_lsb": 16,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "火情级别",
+          "val_table": {
+            "0": "Normal",
+            "1": "Level 1 Fault",
+            "2": "Level 2 Fault",
+            "3": "Level 3 Fault",
+            "4": "Level 4 Fault"
+          }
+        },
+        {
+          "name": "Fire2B_FaultCode",
+          "startbit_lsb": 24,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "故障码",
+          "val_table": {
+            "0": "正常",
+            "1": "灭火器已启动",
+            "2": "传感器故障",
+            "3": "硬件故障"
+          }
+        },
+        {
+          "name": "Fire2B_ValveCmd",
+          "startbit_lsb": 32,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "子阀打开或关闭命令",
+          "val_table": {
+            "1": "子阀打开",
+            "2": "子阀关闭",
+            "3": "子阀等待开启"
+          }
+        },
+        {
+          "name": "Fire2B_SysFaultCode",
+          "startbit_lsb": 40,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "灭火系统故障码"
+        },
+        {
+          "name": "Fire2B_Reserved2",
+          "startbit_lsb": 48,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "预留"
+        },
+        {
+          "name": "Fire2B_RollingCounter",
+          "startbit_lsb": 56,
+          "length": 8,
+          "factor": 1.0,
+          "offset": 0.0,
+          "initial": 0.0,
+          "unit": "",
+          "min": 0.0,
+          "max": 255.0,
+          "receiver": "BMU",
+          "comment": "报文RollingCounter（0~15）"
+        }
+      ]
+    }
+  ]
+}
+================================================================================
+FILE: system.json
+================================================================================
+
+{
+  "can": {
+    "links": [
+      {
+        "can_index": 0,
+        "name": "can0_pcu",
+        "role": "periodic_tx_rx",
+        "enable": true,
+
+        "protocol": {
+          "type": "emu_pcu_v1",
+          "ids": {
+            "emu_ctrl":   "0x1801A0E0",
+            "emu_status": "0x1802A0E0",
+            "pcu_status": "0x1801EFA0"
+          }
+        },
+
+        "tx": {
+          "enable": true,
+          "interval_ms": 200,
+          "send_ctrl": true,
+          "send_status": true,
+
+          "ctrl_enable_default": "0x01",
+          "plug_default": "0x00",
+          "estop_default": "0x00",
+          "batt1_estop_default": "0x00",
+          "batt2_estop_default": "0x00"
+        },
+
+        "rx": {
+          "enable": true,
+          "timeout_ms": 1000,
+          "require_heartbeat_increment": false
+        }
+      },
+      {
+        "can_index": 1,
+        "name": "can1_pcu",
+        "role": "periodic_tx_rx",
+        "enable": true,
+
+        "protocol": {
+          "type": "emu_pcu_v1",
+          "ids": {
+            "emu_ctrl":   "0x1801A0E0",
+            "emu_status": "0x1802A0E0",
+            "pcu_status": "0x1801EFA0"
+          }
+        },
+
+        "tx": {
+          "enable": true,
+          "interval_ms": 200,
+          "send_ctrl": true,
+          "send_status": true,
+
+          "ctrl_enable_default": "0x01",
+          "plug_default": "0x00",
+          "estop_default": "0x00",
+          "batt1_estop_default": "0x00",
+          "batt2_estop_default": "0x00"
+        },
+
+        "rx": {
+          "enable": true,
+          "timeout_ms": 1000,
+          "require_heartbeat_increment": false
+        }
+      },
+      {
+        "can_index": 2,
+        "name": "can2_bms",
+        "role": "rx_only",
+        "enable": true,
+
+        "protocol": {
+          "type": "bms_table_v1",
+          "ids": {}
+        },
+
+        "tx": { "enable": false },
+        "rx": { "enable": true, "timeout_ms": 1000 }
+      }
+    ]
+  },
+
+  "rs485": {
+    "links": [
+      {
+        "link_index": 0,
+        "name": "rs485_1",
+        "role": "master_poll",
+        "device": { "type": "gas", "slave_id": 1, "crc_order": "hilo" },
+        "poll": {
+          "interval_ms": 100,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 5000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+
+      },
+      {
+        "link_index": 1,
+        "name": "rs485_2",
+        "role": "master_poll",
+        "device": { "type": "smoke", "slave_id": 2, "crc_order": "hilo" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 5000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      },
+      {
+        "link_index": 2,
+        "name": "rs485_3",
+        "role": "master_poll",
+        "device": { "type": "air_conditioner", "slave_id": 1, "crc_order": "lohi" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 4000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      },
+      {
+        "link_index": 3,
+        "name": "rs485_4",
+        "role": "slave_hmi",
+        "device": { "type": "hmi", "slave_id": 1, "crc_order": "lohi" },
+        "poll": {
+          "enable": false
+        }
+      }
+    ]
+  },
+
+  "rs232": {
+    "links": [
+      {
+        "link_index": 0,
+        "name": "rs232_1",
+        "role": "master_poll",
+        "device": { "type": "ups_ascii" },
+        "poll": {
+          "interval_ms": 500,
+          "timeout_ms": 2000,
+          "disconnect_window_ms": 4000,
+          "backoff_ms": 1000,
+          "resend_after_ms": 300,
+          "max_retries": 2,
+          "enable": true
+        }
+      }
+    ]
+  }
+}
+
+================================================================================
+FILE: test.jsonl
+================================================================================
+
+{"path":"","name":"动力电池4上高压指令"},{"path":"","name":"动力电池4充电指令"},{"path":"system.logic_view.bms.bms_4_st2_rq_hv_power_off","name":"动力电池4请求下高压"},{"path":"system.logic_view.bms.bms_4_st1_main_pos_relay_st","name":"动力电池4主正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_main_neg_relay_st","name":"动力电池4主负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_prechrg_relay_st","name":"动力电池4主回路预充或预检继电器状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos1_relay_st","name":"动力电池4直流充正继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg1_relay_st","name":"动力电池4直流充负继电器1状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_pos2_relay_st","name":"动力电池4直流充正继电器2状态"},{"path":"system.logic_view.bms.bms_4.st1_dc_chrg_neg2_relay_st","name":"动力电池4直流充负继电器2状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_pos_relay_st","name":"动力电池4加热正继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heat_neg_relay_st","name":"动力电池4加热负继电器状态"},{"path":"system.logic_view.bms.bms_4_st1_heating_status","name":"动力电池4加热状态"},{"path":"system.logic_view.bms.bms_4_st1_cooling_status","name":"动力电池4冷却状态"},{"path":"system.logic_view.bms.bms_4_st3_ins_detector_on","name":"动力电池4绝缘检测状态"},{"path":"","name":"动力电池4灭火系统漏液"},{"path":"","name":"预留"},{"path":"","name":"预留"},

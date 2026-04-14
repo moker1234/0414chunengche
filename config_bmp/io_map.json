@@ -1,0 +1,19 @@
+{
+  "can": [
+    { "name": "can0", "ifname": "can0", "bitrate": 125000, "enable": true },
+    { "name": "can1", "ifname": "can1", "bitrate": 125000, "enable": true },
+    { "name": "can2", "ifname": "can2", "bitrate": 500000, "enable": true }
+  ],
+  "serial": {
+    "rs485": [
+      { "name": "rs485_1", "device": "/dev/ttyRS485-1", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_2", "device": "/dev/ttyRS485-2", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_3", "device": "/dev/ttyRS485-3", "baudrate": 9600,   "enable": true },
+      { "name": "rs485_4", "device": "/dev/ttyRS485-4", "baudrate": 115200, "enable": true }
+    ],
+
+    "rs232": [
+      { "name": "rs232_1", "device": "/dev/ttyRS232-1", "baudrate": 2400, "enable": true }
+    ]
+  }
+}
