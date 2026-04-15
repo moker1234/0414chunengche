@@ -205,72 +205,144 @@ namespace control
                 return defv;
             };
 
+            // ==== 基础读取 ====
             u.work_mode = read_i32({"work_mode", "mode", "system.mode"}, u.work_mode);
             u.battery_low = read_i32({"battery_low", "battery.low", "status.battery_low"}, u.battery_low);
             u.bypass_active = read_i32({"bypass_active", "bypass", "status.bypass"}, u.bypass_active);
             u.ups_fault_code = read_i32({"fault_code", "ups_fault_code"}, u.ups_fault_code);
 
+            // ==== 1. 提取 Q1/WA 基础状态字 ====
             const uint32_t status_bits = read_u32(
                 {"status_bits", "ups_status_bits", "q1_status_bits", "wa_status_bits"}, 0u);
-            u.mains_abnormal = ((status_bits >> 7) & 0x1u) != 0;
+
+            // 使用局部变量暂存 Q1 的市电异常状态 (Bit 7)，避免直接赋值给 u.mains_abnormal 被后面的覆盖
+            bool q1_mains_abnormal_flag = ((status_bits >> 7) & 0x1u) != 0;
+
+            // 提取其他 Q1 状态
             u.battery_low_state = ((status_bits >> 6) & 0x1u) != 0;
             u.bypass_mode = ((status_bits >> 5) & 0x1u) != 0;
             u.ups_fault_state = ((status_bits >> 4) & 0x1u) != 0;
             u.backup_mode = ((status_bits >> 3) & 0x1u) != 0;
             u.self_test_active = ((status_bits >> 2) & 0x1u) != 0;
 
+            // ==== 2. 提取 Q6 警告字 ====
             u.warning_bits = read_u32({"warning_bits", "ups_warning_bits"}, u.warning_bits);
 
+            // ==== 3. 展开 32 位 Warning 状态 ====
             u.internal_warning = ((u.warning_bits >> 0) & 0x1u) != 0;
             u.epo_active = ((u.warning_bits >> 1) & 0x1u) != 0;
             u.module_unlock = ((u.warning_bits >> 2) & 0x1u) != 0;
-            u.line_loss = ((u.warning_bits >> 3) & 0x1u) != 0;
-            u.ipn_loss = ((u.warning_bits >> 4) & 0x1u) != 0;
-            u.line_phase_err = ((u.warning_bits >> 5) & 0x1u) != 0;
-            u.site_fail = ((u.warning_bits >> 6) & 0x1u) != 0;
-            u.bypass_loss = ((u.warning_bits >> 7) & 0x1u) != 0;
-            u.bypass_phase_err = ((u.warning_bits >> 8) & 0x1u) != 0;
-            u.bat_open = ((u.warning_bits >> 9) & 0x1u) != 0;
-            u.bat_low_warning = ((u.warning_bits >> 10) & 0x1u) != 0;
-            u.over_chg_warning = ((u.warning_bits >> 11) & 0x1u) != 0;
-            u.bat_reverse = ((u.warning_bits >> 12) & 0x1u) != 0;
+
+            // 修复：市电异常合并 (Q1的Bit7 || Q6的Bit3)
+            u.mains_abnormal = q1_mains_abnormal_flag || (((u.warning_bits >> 3) & 0x1u) != 0);
+            u.neutral_lost = ((u.warning_bits >> 4) & 0x1u) != 0;
+            u.mains_phase_error = ((u.warning_bits >> 5) & 0x1u) != 0;
+            u.ln_reverse = ((u.warning_bits >> 6) & 0x1u) != 0;
+            u.bypass_abnormal = ((u.warning_bits >> 7) & 0x1u) != 0;
+            u.bypass_phase_error = ((u.warning_bits >> 8) & 0x1u) != 0;
+            u.battery_not_connected = ((u.warning_bits >> 9) & 0x1u) != 0;
+            u.battery_low_warning = ((u.warning_bits >> 10) & 0x1u) != 0;
+            u.battery_overcharge = ((u.warning_bits >> 11) & 0x1u) != 0;
+            u.battery_reverse = ((u.warning_bits >> 12) & 0x1u) != 0;
             u.overload_warning = ((u.warning_bits >> 13) & 0x1u) != 0;
-            u.overload_fail = ((u.warning_bits >> 14) & 0x1u) != 0;
-            u.fan_lock_warning = ((u.warning_bits >> 15) & 0x1u) != 0;
-            u.maintain_on = ((u.warning_bits >> 16) & 0x1u) != 0;
-            u.chg_fail = ((u.warning_bits >> 17) & 0x1u) != 0;
-            u.error_location = ((u.warning_bits >> 18) & 0x1u) != 0;
-            u.turn_on_abnormal = ((u.warning_bits >> 19) & 0x1u) != 0;
-            u.redundant_loss = ((u.warning_bits >> 20) & 0x1u) != 0;
-            u.module_hotswap_active = ((u.warning_bits >> 21) & 0x1u) != 0;
-            u.battery_inform = ((u.warning_bits >> 22) & 0x1u) != 0;
-            u.inspection_inform = ((u.warning_bits >> 23) & 0x1u) != 0;
-            u.guarantee_inform = ((u.warning_bits >> 24) & 0x1u) != 0;
+            u.overload_alarm = ((u.warning_bits >> 14) & 0x1u) != 0;
+            u.fan_fault = ((u.warning_bits >> 15) & 0x1u) != 0;
+            u.bypass_cover_open = ((u.warning_bits >> 16) & 0x1u) != 0;
+            u.charger_fault = ((u.warning_bits >> 17) & 0x1u) != 0;
+            u.position_error = ((u.warning_bits >> 18) & 0x1u) != 0;
+            u.boot_condition_not_met = ((u.warning_bits >> 19) & 0x1u) != 0;
+            u.redundancy_lost = ((u.warning_bits >> 20) & 0x1u) != 0;
+            u.module_loose = ((u.warning_bits >> 21) & 0x1u) != 0;
+            u.battery_maint_due = ((u.warning_bits >> 22) & 0x1u) != 0;
+            u.inspection_maint_due = ((u.warning_bits >> 23) & 0x1u) != 0;
+            u.warranty_maint_due = ((u.warning_bits >> 24) & 0x1u) != 0;
             u.temp_low_warning = ((u.warning_bits >> 25) & 0x1u) != 0;
             u.temp_high_warning = ((u.warning_bits >> 26) & 0x1u) != 0;
-            u.bat_overtemp = ((u.warning_bits >> 27) & 0x1u) != 0;
-            u.fan_maint_inform = ((u.warning_bits >> 28) & 0x1u) != 0;
-            u.bus_cap_maint_inform = ((u.warning_bits >> 29) & 0x1u) != 0;
-            u.sys_over_capacity_warning = ((u.warning_bits >> 30) & 0x1u) != 0;
-            u.high_external_warning = ((u.warning_bits >> 31) & 0x1u) != 0;
+            u.battery_overtemp = ((u.warning_bits >> 27) & 0x1u) != 0;
+            u.fan_maint_due = ((u.warning_bits >> 28) & 0x1u) != 0;
+            u.bus_cap_maint_due = ((u.warning_bits >> 29) & 0x1u) != 0;
+            u.system_overload = ((u.warning_bits >> 30) & 0x1u) != 0;
+            u.reserved_warning = ((u.warning_bits >> 31) & 0x1u) != 0;
 
-            u.bus_soft_timeout = (u.ups_fault_code == 1);
-            u.bus_over = (u.ups_fault_code == 2);
-            u.bus_under = (u.ups_fault_code == 3);
-            u.bus_unbalance = (u.ups_fault_code == 4);
-            u.bus_short = (u.ups_fault_code == 5);
-            u.inv_soft_timeout = (u.ups_fault_code == 6);
-            u.inv_volt_high = (u.ups_fault_code == 7);
-            u.inv_volt_low = (u.ups_fault_code == 8);
-            u.op_volt_short = (u.ups_fault_code == 9);
-            u.over_load_fault = (u.ups_fault_code == 22);
-            u.over_temperature = (u.ups_fault_code == 23);
-            u.comm_line_loss = (u.ups_fault_code == 32);
-            u.power_fault = (u.ups_fault_code == 36);
-            u.ups_all_fault = (u.ups_fault_code == 40);
-            u.battery_abnormal = (u.ups_fault_code == 57);
-            u.battery_over_charge_fault = (u.ups_fault_code == 59);
-            u.epo_fault = (u.ups_fault_code == 60);
+            // ==== 4. 提取 60 个 Fault Code 状态 ====
+
+            // 使用 -999 作为特殊的默认值，以此判断字典中是否真的包含了故障码数据
+            // 如果是 Q1 或 WA 报文，fc1 将等于 -999
+            int fc1 = read_i32( {"ups_fault_code_1"}, -999);
+
+            // 核心修复：只有当报文中确实存在故障数据时（如 Q6），才去刷新状态
+            // 否则（Q1/WA），直接跳过，保持上一周期的故障状态不变！
+            if (fc1 != -999) {
+                int fc2 = read_i32( {"ups_fault_code_2"}, 0);
+                int fc3 = read_i32( {"ups_fault_code_3"}, 0);
+                int fc4 = read_i32( {"ups_fault_code_4"}, 0);
+
+                auto has_fault = [&](int code) {
+                    return (fc1 == code) || (fc2 == code) || (fc3 == code) || (fc4 == code);
+                };
+
+                u.bus_overvoltage_fault = has_fault(1);
+                u.bus_undervoltage_fault = has_fault(2);
+                u.bus_imbalance_fault = has_fault(3);
+                u.bus_short_circuit = has_fault(4);
+                u.inv_softstart_timeout = has_fault(5);
+                u.inv_overvoltage_fault = has_fault(6);
+                u.inv_undervoltage_fault = has_fault(7);
+                u.output_short_circuit = has_fault(8);
+                u.r_inv_short_circuit = has_fault(9);
+                u.s_inv_short_circuit = has_fault(10);
+                u.t_inv_short_circuit = has_fault(11);
+                u.rs_short_circuit = has_fault(12);
+                u.st_short_circuit = has_fault(13);
+                u.tr_short_circuit = has_fault(14);
+                u.reverse_power_fault = has_fault(15);
+                u.r_reverse_power_fault = has_fault(16);
+                u.s_reverse_power_fault = has_fault(17);
+                u.t_reverse_power_fault = has_fault(18);
+                u.total_reverse_power_fault = has_fault(19);
+                u.current_imbalance_fault = has_fault(20);
+                u.overload_fault = has_fault(21);
+                u.overtemp_fault = has_fault(22);
+                u.inv_relay_fail_close = has_fault(23);
+                u.inv_relay_stuck = has_fault(24);
+                u.mains_scr_fault = has_fault(25);
+                u.battery_scr_fault = has_fault(26);
+                u.bypass_scr_fault = has_fault(27);
+                u.rectifier_fault = has_fault(28);
+                u.input_overcurrent_fault = has_fault(29);
+                u.wiring_error = has_fault(30);
+                u.comm_cable_disconnected = has_fault(31);
+                u.host_cable_fault = has_fault(32);
+                u.can_comm_fault = has_fault(33);
+                u.sync_signal_fault = has_fault(34);
+                u.power_supply_fault = has_fault(35);
+                u.all_fan_fault = has_fault(36);
+                u.dsp_error = has_fault(37);
+                u.charger_softstart_timeout = has_fault(38);
+                u.all_module_fault = has_fault(39);
+                u.mains_ntc_open_fault = has_fault(40);
+                u.mains_fuse_open_fault = has_fault(41);
+                u.output_imbalance_fault = has_fault(42);
+                u.input_mismatch_fault = has_fault(43);
+                u.eeprom_data_lost = has_fault(44);
+                u.mains_support_failed = has_fault(45);
+                u.power_failed = has_fault(46);
+                u.system_overload_fault = has_fault(47);
+                u.ads7869_error = has_fault(48);
+                u.bypass_mode_no_op = has_fault(49);
+                u.op_breaker_off_parallel = has_fault(50);
+                u.r_bus_fuse_fault = has_fault(51);
+                u.s_bus_fuse_fault = has_fault(52);
+                u.t_bus_fuse_fault = has_fault(53);
+                u.ntc_fault = has_fault(54);
+                u.parallel_cable_fault = has_fault(55);
+                u.battery_fault = has_fault(56);
+                u.frequent_overcurrent_fault = has_fault(57);
+                u.battery_overcharge_fault = has_fault(58);
+                u.battery_overcharge_persist = has_fault(59);
+                u.epo_critical_fault = has_fault(60);
+            }
+            // --------------------------------------------------
 
             u.alarm_any =
                 u.battery_low_state ||
@@ -392,53 +464,44 @@ namespace control
             a.indoor_temp_c = read_num({"temp.indoor_c", "indoor_temp_c"}, a.indoor_temp_c);
             a.humidity_percent = read_num({"humidity_percent", "humidity"}, a.humidity_percent);
 
-            a.high_temp_alarm = read_i32({"alarm.high_temp", "alarm.hightemp", "high_temp_alarm"}, 0) != 0;
-            a.low_temp_alarm = read_i32({"alarm.low_temp", "low_temp_alarm"}, 0) != 0;
-            a.high_humidity_alarm = read_i32({"alarm.low_hum","alarm.high_humidity", "high_humidity_alarm"}, 0) != 0;
-            a.low_humidity_alarm = read_i32({"alarm.low_hum", "alarm.low_humidity", "low_humidity_alarm"}, 0) != 0;
-            a.coil_freeze_protect = read_i32({"alarm.coil_freeze", "coil_freeze_protect"}, 0) != 0;
-            a.exhaust_high_temp_alarm = read_i32({"alarm.exhaust_high_temp", "exhaust_high_temp_alarm"}, 0) != 0;
+            a.high_temp_alarm = read_i32({"alarm.high_temp"}, 0) != 0;
+            a.low_temp_alarm = read_i32({"alarm.low_temp"}, 0) != 0;
+            a.high_humidity_alarm = read_i32({"alarm.high_hum"}, 0) != 0;
+            a.low_humidity_alarm = read_i32({"alarm.low_hum"}, 0) != 0;
+            a.coil_freeze_protect = read_i32({"alarm.coil_freeze"}, 0) != 0;
+            a.exhaust_high_temp_alarm = read_i32({"alarm.exhaust_high_temp"}, 0) != 0;
 
-            a.coil_temp_sensor_fault = read_i32({"alarm.coil_temp_sensor_fault", "coil_temp_sensor_fault"}, 0) != 0;
-            a.outdoor_temp_sensor_fault = read_i32({
-                                                       "alarm.outdoor_temp_sensor_fault", "outdoor_temp_sensor_fault"
-                                                   }, 0) != 0;
-            a.condenser_temp_sensor_fault = read_i32({
-                                                         "alarm.condenser_temp_sensor_fault",
-                                                         "condenser_temp_sensor_fault"
-                                                     }, 0) != 0;
-            a.indoor_temp_sensor_fault = read_i32({
-                                                      "alarm.indoor_temp_sensor_fault", "indoor_temp_sensor_fault"
-                                                  }, 0) != 0;
-            a.exhaust_temp_sensor_fault = read_i32({
-                                                       "alarm.exhaust_temp_sensor_fault", "exhaust_temp_sensor_fault"
-                                                   }, 0) != 0;
-            a.humidity_sensor_fault = read_i32({"alarm.humidity_sensor_fault", "humidity_sensor_fault"}, 0) != 0;
+            a.coil_temp_sensor_fault = read_i32({"alarm.coil_sensor_fault"}, 0) != 0;
+            a.outdoor_temp_sensor_fault = read_i32({   "alarm.outdoor_sensor_fault" }, 0) != 0;
+            a.condenser_temp_sensor_fault = read_i32({ "alarm.condense_sensor_fault"  }, 0) != 0;
+            a.indoor_temp_sensor_fault = read_i32({ "alarm.indoor_sensor_fault"  }, 0) != 0;
+            a.exhaust_temp_sensor_fault = read_i32({ "alarm.exhaust_sensor_fault" }, 0) != 0;
+            a.humidity_sensor_fault = read_i32({"alarm.hum_sensor_fault"}, 0) != 0;
 
-            a.internal_fan_fault = read_i32({"alarm.internal_fan_fault", "internal_fan_fault"}, 0) != 0;
-            a.external_fan_fault = read_i32({"alarm.external_fan_fault", "external_fan_fault"}, 0) != 0;
-            a.compressor_fault = read_i32({"alarm.compressor_fault", "compressor_fault"}, 0) != 0;
-            a.heater_fault = read_i32({"alarm.heater_fault", "heater_fault"}, 0) != 0;
-            a.emergency_fan_fault = read_i32({"alarm.emergency_fan_fault", "emergency_fan_fault"}, 0) != 0;
+            a.internal_fan_fault = read_i32({"alarm.inner_fan_fault"}, 0) != 0;
+            a.external_fan_fault = read_i32({"alarm.outer_fan_fault"}, 0) != 0;
+            a.compressor_fault = read_i32({"alarm.compressor_fault"}, 0) != 0;
+            a.heater_fault = read_i32({"alarm.heater_fault"}, 0) != 0;
+            a.emergency_fan_fault = read_i32({"alarm.emergency_fan_fault"}, 0) != 0;
 
-            a.high_pressure_alarm = read_i32({"alarm.high_pressure", "high_pressure_alarm"}, 0) != 0;
-            a.low_pressure_alarm = read_i32({"alarm.low_pressure", "low_pressure_alarm"}, 0) != 0;
-            a.water_alarm = read_i32({"alarm.water", "water_alarm"}, 0) != 0;
-            a.smoke_alarm = read_i32({"alarm.smoke", "smoke_alarm"}, 0) != 0;
-            a.gating_alarm = read_i32({"alarm.gating", "gating_alarm", "door_alarm"}, 0) != 0;
+            a.high_pressure_alarm = read_i32({"alarm.high_pressure"}, 0) != 0;
+            a.low_pressure_alarm = read_i32({"alarm.low_pressure"}, 0) != 0;
+            a.water_alarm = read_i32({"alarm.water",}, 0) != 0;
+            a.smoke_alarm = read_i32({"alarm.smoke"}, 0) != 0;
+            a.gating_alarm = read_i32({"alarm.door"}, 0) != 0;
 
-            a.high_pressure_lock = read_i32({"alarm.high_pressure_lock", "high_pressure_lock"}, 0) != 0;
-            a.low_pressure_lock = read_i32({"alarm.low_pressure_lock", "low_pressure_lock"}, 0) != 0;
-            a.exhaust_lock = read_i32({"alarm.exhaust_lock", "exhaust_lock"}, 0) != 0;
+            a.high_pressure_lock = read_i32({"alarm.high_pressure_lock"}, 0) != 0;
+            a.low_pressure_lock = read_i32({"alarm.low_pressure_lock"}, 0) != 0;
+            a.exhaust_lock = read_i32({"alarm.exhaust_lock"}, 0) != 0;
 
-            a.ac_over_voltage_alarm = read_i32({"alarm.ac_over_voltage", "ac_over_voltage_alarm"}, 0) != 0;
-            a.ac_under_voltage_alarm = read_i32({"alarm.ac_under_voltage", "ac_under_voltage_alarm"}, 0) != 0;
-            a.ac_power_loss = read_i32({"alarm.ac_power_loss", "ac_power_loss"}, 0) != 0;
-            a.lose_phase_alarm = read_i32({"alarm.lose_phase", "lose_phase_alarm"}, 0) != 0;
-            a.freq_fault = read_i32({"alarm.freq_fault", "freq_fault"}, 0) != 0;
-            a.anti_phase_alarm = read_i32({"alarm.anti_phase", "anti_phase_alarm"}, 0) != 0;
-            a.dc_over_voltage_alarm = read_i32({"alarm.dc_over_voltage", "dc_over_voltage_alarm"}, 0) != 0;
-            a.dc_under_voltage_alarm = read_i32({"alarm.dc_under_voltage", "dc_under_voltage_alarm"}, 0) != 0;
+            a.ac_over_voltage_alarm = read_i32({"alarm.ac_over_v"}, 0) != 0;
+            a.ac_under_voltage_alarm = read_i32({"alarm.ac_under_v"}, 0) != 0;
+            a.ac_power_loss = read_i32({"alarm.ac_power_loss"}, 0) != 0;
+            a.lose_phase_alarm = read_i32({"alarm.phase_loss"}, 0) != 0;
+            a.freq_fault = read_i32({"alarm.freq_abnormal"}, 0) != 0;
+            a.anti_phase_alarm = read_i32({"alarm.reverse_phase"}, 0) != 0;
+            a.dc_over_voltage_alarm = read_i32({"alarm.dc_over_v"}, 0) != 0;
+            a.dc_under_voltage_alarm = read_i32({"alarm.dc_under_v"}, 0) != 0;
 
             a.alarm_any =
                 a.high_temp_alarm ||

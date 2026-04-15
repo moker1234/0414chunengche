@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="69d895b8-f0fa-484e-80a1-1d2e6bd73e6e" name="上传编译文件">
+        <fileTransfer accessType="SFTP" host="192.168.137.100" port="22" sshConfigId="77103976-aee0-48ee-98eb-37f63d214925" sshConfig="root@192.168.137.100:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="9e63c504-96c5-467f-bc9e-fdf7127367d8" name="上传配置json">
+        <fileTransfer accessType="SFTP" host="192.168.137.100" port="22" sshConfigId="77103976-aee0-48ee-98eb-37f63d214925" sshConfig="root@192.168.137.100:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

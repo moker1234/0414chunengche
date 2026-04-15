@@ -618,80 +618,126 @@ namespace control
         return false;
     }
 
-    bool FaultRuntimeMapper::evalUpsSignal_(const UpsFaultState& x,
-                                            const std::string& signal)
+// ------------------ 替换以下内容 ------------------
+    bool FaultRuntimeMapper::evalUpsSignal_(const UpsFaultState& x, const std::string& signal)
     {
         const std::string s = normalizeToken_(signal);
 
+        // 基础离在线与聚合状态
         if (s == "offline" || s == "runtime_offline" || s == "ups_offline") return !x.online;
         if (s == "online" || s == "runtime_online" || s == "ups_online") return x.online;
-
         if (s == "alarm_any") return x.alarm_any;
         if (s == "fault_any") return x.fault_any;
         if (s == "battery_low") return x.battery_low != 0;
         if (s == "bypass_active" || s == "bypass") return x.bypass_active != 0;
         if (s == "fault_code_nonzero") return x.ups_fault_code != 0;
 
-        if (s == "mains_abnormal") return x.mains_abnormal;
+        // 基础运行状态位
         if (s == "battery_low_state") return x.battery_low_state;
         if (s == "bypass_mode") return x.bypass_mode;
         if (s == "ups_fault_state") return x.ups_fault_state;
         if (s == "backup_mode") return x.backup_mode;
         if (s == "self_test_active") return x.self_test_active;
 
+        // --- 32 个 Warning Bits ---
         if (s == "internal_warning") return x.internal_warning;
         if (s == "epo_active") return x.epo_active;
         if (s == "module_unlock") return x.module_unlock;
-        if (s == "line_loss") return x.line_loss;
-        if (s == "ipn_loss") return x.ipn_loss;
-        if (s == "line_phase_err") return x.line_phase_err;
-        if (s == "site_fail") return x.site_fail;
-        if (s == "bypass_loss") return x.bypass_loss;
-        if (s == "bypass_phase_err") return x.bypass_phase_err;
-        if (s == "bat_open") return x.bat_open;
-        if (s == "bat_low_warning") return x.bat_low_warning;
-        if (s == "over_chg_warning") return x.over_chg_warning;
-        if (s == "bat_reverse") return x.bat_reverse;
+        if (s == "mains_abnormal") return x.mains_abnormal;
+        if (s == "neutral_lost") return x.neutral_lost;
+        if (s == "mains_phase_error") return x.mains_phase_error;
+        if (s == "ln_reverse") return x.ln_reverse;
+        if (s == "bypass_abnormal") return x.bypass_abnormal;
+        if (s == "bypass_phase_error") return x.bypass_phase_error;
+        if (s == "battery_not_connected") return x.battery_not_connected;
+        if (s == "battery_low_warning") return x.battery_low_warning;
+        if (s == "battery_overcharge") return x.battery_overcharge;
+        if (s == "battery_reverse") return x.battery_reverse;
         if (s == "overload_warning") return x.overload_warning;
-        if (s == "overload_fail") return x.overload_fail;
-        if (s == "fan_lock_warning") return x.fan_lock_warning;
-        if (s == "maintain_on") return x.maintain_on;
-        if (s == "chg_fail") return x.chg_fail;
-        if (s == "error_location") return x.error_location;
-        if (s == "turn_on_abnormal") return x.turn_on_abnormal;
-        if (s == "redundant_loss") return x.redundant_loss;
-        if (s == "module_hotswap_active") return x.module_hotswap_active;
-        if (s == "battery_inform") return x.battery_inform;
-        if (s == "inspection_inform") return x.inspection_inform;
-        if (s == "guarantee_inform") return x.guarantee_inform;
+        if (s == "overload_alarm") return x.overload_alarm;
+        if (s == "fan_fault") return x.fan_fault;
+        if (s == "bypass_cover_open") return x.bypass_cover_open;
+        if (s == "charger_fault") return x.charger_fault;
+        if (s == "position_error") return x.position_error;
+        if (s == "boot_condition_not_met") return x.boot_condition_not_met;
+        if (s == "redundancy_lost") return x.redundancy_lost;
+        if (s == "module_loose") return x.module_loose;
+        if (s == "battery_maint_due") return x.battery_maint_due;
+        if (s == "inspection_maint_due") return x.inspection_maint_due;
+        if (s == "warranty_maint_due") return x.warranty_maint_due;
         if (s == "temp_low_warning") return x.temp_low_warning;
         if (s == "temp_high_warning") return x.temp_high_warning;
-        if (s == "bat_overtemp") return x.bat_overtemp;
-        if (s == "fan_maint_inform") return x.fan_maint_inform;
-        if (s == "bus_cap_maint_inform") return x.bus_cap_maint_inform;
-        if (s == "sys_over_capacity_warning") return x.sys_over_capacity_warning;
-        if (s == "high_external_warning") return x.high_external_warning;
+        if (s == "battery_overtemp") return x.battery_overtemp;
+        if (s == "fan_maint_due") return x.fan_maint_due;
+        if (s == "bus_cap_maint_due") return x.bus_cap_maint_due;
+        if (s == "system_overload") return x.system_overload;
+        if (s == "reserved_warning") return x.reserved_warning;
 
-        if (s == "bus_soft_timeout") return x.bus_soft_timeout;
-        if (s == "bus_over") return x.bus_over;
-        if (s == "bus_under") return x.bus_under;
-        if (s == "bus_unbalance") return x.bus_unbalance;
-        if (s == "bus_short") return x.bus_short;
-        if (s == "inv_soft_timeout") return x.inv_soft_timeout;
-        if (s == "inv_volt_high") return x.inv_volt_high;
-        if (s == "inv_volt_low") return x.inv_volt_low;
-        if (s == "op_volt_short") return x.op_volt_short;
-        if (s == "over_load_fault") return x.over_load_fault;
-        if (s == "over_temperature") return x.over_temperature;
-        if (s == "comm_line_loss") return x.comm_line_loss;
-        if (s == "power_fault") return x.power_fault;
-        if (s == "ups_all_fault") return x.ups_all_fault;
-        if (s == "battery_abnormal") return x.battery_abnormal;
-        if (s == "battery_over_charge_fault") return x.battery_over_charge_fault;
-        if (s == "epo_fault") return x.epo_fault;
+        // --- 60 个 Fault Codes ---
+        if (s == "bus_overvoltage_fault") return x.bus_overvoltage_fault;
+        if (s == "bus_undervoltage_fault") return x.bus_undervoltage_fault;
+        if (s == "bus_imbalance_fault") return x.bus_imbalance_fault;
+        if (s == "bus_short_circuit") return x.bus_short_circuit;
+        if (s == "inv_softstart_timeout") return x.inv_softstart_timeout;
+        if (s == "inv_overvoltage_fault") return x.inv_overvoltage_fault;
+        if (s == "inv_undervoltage_fault") return x.inv_undervoltage_fault;
+        if (s == "output_short_circuit") return x.output_short_circuit;
+        if (s == "r_inv_short_circuit") return x.r_inv_short_circuit;
+        if (s == "s_inv_short_circuit") return x.s_inv_short_circuit;
+        if (s == "t_inv_short_circuit") return x.t_inv_short_circuit;
+        if (s == "rs_short_circuit") return x.rs_short_circuit;
+        if (s == "st_short_circuit") return x.st_short_circuit;
+        if (s == "tr_short_circuit") return x.tr_short_circuit;
+        if (s == "reverse_power_fault") return x.reverse_power_fault;
+        if (s == "r_reverse_power_fault") return x.r_reverse_power_fault;
+        if (s == "s_reverse_power_fault") return x.s_reverse_power_fault;
+        if (s == "t_reverse_power_fault") return x.t_reverse_power_fault;
+        if (s == "total_reverse_power_fault") return x.total_reverse_power_fault;
+        if (s == "current_imbalance_fault") return x.current_imbalance_fault;
+        if (s == "overload_fault") return x.overload_fault;
+        if (s == "overtemp_fault") return x.overtemp_fault;
+        if (s == "inv_relay_fail_close") return x.inv_relay_fail_close;
+        if (s == "inv_relay_stuck") return x.inv_relay_stuck;
+        if (s == "mains_scr_fault") return x.mains_scr_fault;
+        if (s == "battery_scr_fault") return x.battery_scr_fault;
+        if (s == "bypass_scr_fault") return x.bypass_scr_fault;
+        if (s == "rectifier_fault") return x.rectifier_fault;
+        if (s == "input_overcurrent_fault") return x.input_overcurrent_fault;
+        if (s == "wiring_error") return x.wiring_error;
+        if (s == "comm_cable_disconnected") return x.comm_cable_disconnected;
+        if (s == "host_cable_fault") return x.host_cable_fault;
+        if (s == "can_comm_fault") return x.can_comm_fault;
+        if (s == "sync_signal_fault") return x.sync_signal_fault;
+        if (s == "power_supply_fault") return x.power_supply_fault;
+        if (s == "all_fan_fault") return x.all_fan_fault;
+        if (s == "dsp_error") return x.dsp_error;
+        if (s == "charger_softstart_timeout") return x.charger_softstart_timeout;
+        if (s == "all_module_fault") return x.all_module_fault;
+        if (s == "mains_ntc_open_fault") return x.mains_ntc_open_fault;
+        if (s == "mains_fuse_open_fault") return x.mains_fuse_open_fault;
+        if (s == "output_imbalance_fault") return x.output_imbalance_fault;
+        if (s == "input_mismatch_fault") return x.input_mismatch_fault;
+        if (s == "eeprom_data_lost") return x.eeprom_data_lost;
+        if (s == "mains_support_failed") return x.mains_support_failed;
+        if (s == "power_failed") return x.power_failed;
+        if (s == "system_overload_fault") return x.system_overload_fault;
+        if (s == "ads7869_error") return x.ads7869_error;
+        if (s == "bypass_mode_no_op") return x.bypass_mode_no_op;
+        if (s == "op_breaker_off_parallel") return x.op_breaker_off_parallel;
+        if (s == "r_bus_fuse_fault") return x.r_bus_fuse_fault;
+        if (s == "s_bus_fuse_fault") return x.s_bus_fuse_fault;
+        if (s == "t_bus_fuse_fault") return x.t_bus_fuse_fault;
+        if (s == "ntc_fault") return x.ntc_fault;
+        if (s == "parallel_cable_fault") return x.parallel_cable_fault;
+        if (s == "battery_fault") return x.battery_fault;
+        if (s == "frequent_overcurrent_fault") return x.frequent_overcurrent_fault;
+        if (s == "battery_overcharge_fault") return x.battery_overcharge_fault;
+        if (s == "battery_overcharge_persist") return x.battery_overcharge_persist;
+        if (s == "epo_critical_fault") return x.epo_critical_fault;
 
         return false;
     }
+    // --------------------------------------------------
 
     bool FaultRuntimeMapper::evalSmokeSignal_(const SmokeFaultState& x,
                                               const std::string& signal)
@@ -857,35 +903,49 @@ namespace control
                    signal_norm == "pcu0_offline" || signal_norm == "pcu1_offline";
         }
 
+// ------------------ 替换以下内容 ------------------
         if (source_norm == "ups")
         {
             static const char* known[] = {
-                "offline", "online",
-                "alarm_any", "fault_any", "battery_low", "bypass_active", "fault_code_nonzero",
-
-                "mains_abnormal", "battery_low_state", "bypass_mode", "ups_fault_state",
-                "backup_mode", "self_test_active",
-
-                "internal_warning", "epo_active", "module_unlock", "line_loss", "ipn_loss",
-                "line_phase_err", "site_fail", "bypass_loss", "bypass_phase_err", "bat_open",
-                "bat_low_warning", "over_chg_warning", "bat_reverse", "overload_warning",
-                "overload_fail", "fan_lock_warning", "maintain_on", "chg_fail",
-                "error_location", "turn_on_abnormal", "redundant_loss",
-                "module_hotswap_active", "battery_inform", "inspection_inform",
-                "guarantee_inform", "temp_low_warning", "temp_high_warning",
-                "bat_overtemp", "fan_maint_inform", "bus_cap_maint_inform",
-                "sys_over_capacity_warning", "high_external_warning",
-
-                "bus_soft_timeout", "bus_over", "bus_under", "bus_unbalance",
-                "bus_short", "inv_soft_timeout", "inv_volt_high", "inv_volt_low",
-                "op_volt_short", "over_load_fault", "over_temperature",
-                "comm_line_loss", "power_fault", "ups_all_fault",
-                "battery_abnormal", "battery_over_charge_fault", "epo_fault"
+                "offline", "online", "alarm_any", "fault_any", "battery_low", "bypass_active", "fault_code_nonzero",
+                "battery_low_state", "bypass_mode", "ups_fault_state", "backup_mode", "self_test_active",
+                // 32个 Warnings
+                "internal_warning", "epo_active", "module_unlock", "mains_abnormal",
+                "neutral_lost", "mains_phase_error", "ln_reverse", "bypass_abnormal",
+                "bypass_phase_error", "battery_not_connected", "battery_low_warning",
+                "battery_overcharge", "battery_reverse", "overload_warning",
+                "overload_alarm", "fan_fault", "bypass_cover_open", "charger_fault",
+                "position_error", "boot_condition_not_met", "redundancy_lost",
+                "module_loose", "battery_maint_due", "inspection_maint_due",
+                "warranty_maint_due", "temp_low_warning", "temp_high_warning",
+                "battery_overtemp", "fan_maint_due", "bus_cap_maint_due",
+                "system_overload", "reserved_warning",
+                // 60个 Faults
+                "bus_overvoltage_fault", "bus_undervoltage_fault", "bus_imbalance_fault",
+                "bus_short_circuit", "inv_softstart_timeout", "inv_overvoltage_fault",
+                "inv_undervoltage_fault", "output_short_circuit", "r_inv_short_circuit",
+                "s_inv_short_circuit", "t_inv_short_circuit", "rs_short_circuit",
+                "st_short_circuit", "tr_short_circuit", "reverse_power_fault",
+                "r_reverse_power_fault", "s_reverse_power_fault", "t_reverse_power_fault",
+                "total_reverse_power_fault", "current_imbalance_fault", "overload_fault",
+                "overtemp_fault", "inv_relay_fail_close", "inv_relay_stuck",
+                "mains_scr_fault", "battery_scr_fault", "bypass_scr_fault",
+                "rectifier_fault", "input_overcurrent_fault", "wiring_error",
+                "comm_cable_disconnected", "host_cable_fault", "can_comm_fault",
+                "sync_signal_fault", "power_supply_fault", "all_fan_fault", "dsp_error",
+                "charger_softstart_timeout", "all_module_fault", "mains_ntc_open_fault",
+                "mains_fuse_open_fault", "output_imbalance_fault", "input_mismatch_fault",
+                "eeprom_data_lost", "mains_support_failed", "power_failed",
+                "system_overload_fault", "ads7869_error", "bypass_mode_no_op",
+                "op_breaker_off_parallel", "r_bus_fuse_fault", "s_bus_fuse_fault",
+                "t_bus_fuse_fault", "ntc_fault", "parallel_cable_fault", "battery_fault",
+                "frequent_overcurrent_fault", "battery_overcharge_fault",
+                "battery_overcharge_persist", "epo_critical_fault"
             };
             for (auto* k : known) if (signal_norm == k) return true;
             return false;
         }
-
+        // --------------------------------------------------
         if (source_norm == "smoke")
         {
             static const char* known[] = {
@@ -1016,6 +1076,15 @@ namespace control
             }
             bool active = false;
             bool matched = false;
+            // 20260415
+            if (
+                rule.code == 0x1073
+                // || rule.code == 0x10AE
+                ) {
+                LOG_THROTTLE_MS("test_ups_mapper", 1000, LOGINFO,
+                    "[DEBUG_MAPPER] HexCode: 0x%X | signal_norm: %s | is_active: %d",
+                    rule.code, rule.signal_norm.c_str(), active);
+            }
 
             // ------------------------------------------------------------
             // 第七批：

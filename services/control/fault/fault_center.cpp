@@ -52,6 +52,10 @@ namespace control
 
     void FaultCenter::setActive(uint16_t code, bool on)
     {
+        // 20260415
+        if (code == 0x1073 || code == 0x10AE) {
+            LOGINFO("[DEBUG_CENTER] Receive setActive -> code: 0x%X | on: %d", code, on);
+        }
         if (on)
         {
             LOGINFO("[FAULT][CENTER] code=0x%04X active=%d", // 故障结构十批输出
@@ -313,6 +317,15 @@ namespace control
         if (!cat_) return out;
 
         const auto visible = collectCurrentVisibleCodes_();
+        // 20260415
+        LOG_THROTTLE_MS("test_hmi_page", 2000, LOGINFO,
+    "[DEBUG_HMI] Total active visible faults: %zu | Current Page: %d",
+    visible.size(), current_page_);
+        for (auto c : visible) {
+            if (c == 0x1073 || c == 0x10AE) {
+                LOGINFO("[DEBUG_HMI] Target fault 0x%X is in the visible list!", c);
+            }
+        }
 
         const uint32_t start = static_cast<uint32_t>(current_page_) * fault::FAULTS_PER_PAGE;
         for (uint16_t i = 0; i < fault::FAULTS_PER_PAGE; ++i)

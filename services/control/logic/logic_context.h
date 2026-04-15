@@ -89,7 +89,7 @@ namespace control {
         int ups_fault_code{0};
 
         // ---- Q1 / WA 基础状态位 ----
-        bool mains_abnormal{false};      // bit7
+        // bool mains_abnormal{false};      // bit7
         bool battery_low_state{false};   // bit6
         bool bypass_mode{false};         // bit5
         bool ups_fault_state{false};     // bit4
@@ -99,57 +99,103 @@ namespace control {
         // ---- Q6 warning bits（先按协议低32位展开）----
         uint32_t warning_bits{0};
 
-        bool internal_warning{false};        // bit0
-        bool epo_active{false};              // bit1
-        bool module_unlock{false};           // bit2
-        bool line_loss{false};               // bit3
-        bool ipn_loss{false};                // bit4
-        bool line_phase_err{false};          // bit5
-        bool site_fail{false};               // bit6
-        bool bypass_loss{false};             // bit7
-        bool bypass_phase_err{false};        // bit8
-        bool bat_open{false};                // bit9
-        bool bat_low_warning{false};         // bit10
-        bool over_chg_warning{false};        // bit11
-        bool bat_reverse{false};             // bit12
-        bool overload_warning{false};        // bit13
-        bool overload_fail{false};           // bit14
-        bool fan_lock_warning{false};        // bit15
-        bool maintain_on{false};             // bit16
-        bool chg_fail{false};                // bit17
-        bool error_location{false};          // bit18
-        bool turn_on_abnormal{false};        // bit19
-        bool redundant_loss{false};          // bit20
-        bool module_hotswap_active{false};   // bit21
-        bool battery_inform{false};          // bit22
-        bool inspection_inform{false};       // bit23
-        bool guarantee_inform{false};        // bit24
-        bool temp_low_warning{false};        // bit25
-        bool temp_high_warning{false};       // bit26
-        bool bat_overtemp{false};            // bit27
-        bool fan_maint_inform{false};        // bit28
-        bool bus_cap_maint_inform{false};    // bit29
-        bool sys_over_capacity_warning{false}; // bit30
-        bool high_external_warning{false};   // bit31
+// ------------------ 替换以下内容 ------------------
+        // === 32 个 Warning Bits (警告位) ===
+        bool internal_warning = false;
+        bool epo_active = false;
+        bool module_unlock = false;
+        bool mains_abnormal = false;
+        bool neutral_lost = false;
+        bool mains_phase_error = false;
+        bool ln_reverse = false;
+        bool bypass_abnormal = false;
+        bool bypass_phase_error = false;
+        bool battery_not_connected = false;
+        bool battery_low_warning = false;
+        bool battery_overcharge = false;
+        bool battery_reverse = false;
+        bool overload_warning = false;
+        bool overload_alarm = false;
+        bool fan_fault = false;
+        bool bypass_cover_open = false;
+        bool charger_fault = false;
+        bool position_error = false;
+        bool boot_condition_not_met = false;
+        bool redundancy_lost = false;
+        bool module_loose = false;
+        bool battery_maint_due = false;
+        bool inspection_maint_due = false;
+        bool warranty_maint_due = false;
+        bool temp_low_warning = false;
+        bool temp_high_warning = false;
+        bool battery_overtemp = false;
+        bool fan_maint_due = false;
+        bool bus_cap_maint_due = false;
+        bool system_overload = false;
+        bool reserved_warning = false;
 
-        // ---- Q6 fault code ----
-        bool bus_soft_timeout{false};
-        bool bus_over{false};
-        bool bus_under{false};
-        bool bus_unbalance{false};
-        bool bus_short{false};
-        bool inv_soft_timeout{false};
-        bool inv_volt_high{false};
-        bool inv_volt_low{false};
-        bool op_volt_short{false};
-        bool over_load_fault{false};
-        bool over_temperature{false};
-        bool comm_line_loss{false};
-        bool power_fault{false};
-        bool ups_all_fault{false};
-        bool battery_abnormal{false};
-        bool battery_over_charge_fault{false};
-        bool epo_fault{false};
+        // === 60 个 Fault Codes (严重故障) ===
+        bool bus_overvoltage_fault = false;
+        bool bus_undervoltage_fault = false;
+        bool bus_imbalance_fault = false;
+        bool bus_short_circuit = false;
+        bool inv_softstart_timeout = false;
+        bool inv_overvoltage_fault = false;
+        bool inv_undervoltage_fault = false;
+        bool output_short_circuit = false;
+        bool r_inv_short_circuit = false;
+        bool s_inv_short_circuit = false;
+        bool t_inv_short_circuit = false;
+        bool rs_short_circuit = false;
+        bool st_short_circuit = false;
+        bool tr_short_circuit = false;
+        bool reverse_power_fault = false;
+        bool r_reverse_power_fault = false;
+        bool s_reverse_power_fault = false;
+        bool t_reverse_power_fault = false;
+        bool total_reverse_power_fault = false;
+        bool current_imbalance_fault = false;
+        bool overload_fault = false;
+        bool overtemp_fault = false;
+        bool inv_relay_fail_close = false;
+        bool inv_relay_stuck = false;
+        bool mains_scr_fault = false;
+        bool battery_scr_fault = false;
+        bool bypass_scr_fault = false;
+        bool rectifier_fault = false;
+        bool input_overcurrent_fault = false;
+        bool wiring_error = false;
+        bool comm_cable_disconnected = false;
+        bool host_cable_fault = false;
+        bool can_comm_fault = false;
+        bool sync_signal_fault = false;
+        bool power_supply_fault = false;
+        bool all_fan_fault = false;
+        bool dsp_error = false;
+        bool charger_softstart_timeout = false;
+        bool all_module_fault = false;
+        bool mains_ntc_open_fault = false;
+        bool mains_fuse_open_fault = false;
+        bool output_imbalance_fault = false;
+        bool input_mismatch_fault = false;
+        bool eeprom_data_lost = false;
+        bool mains_support_failed = false;
+        bool power_failed = false;
+        bool system_overload_fault = false;
+        bool ads7869_error = false;
+        bool bypass_mode_no_op = false;
+        bool op_breaker_off_parallel = false;
+        bool r_bus_fuse_fault = false;
+        bool s_bus_fuse_fault = false;
+        bool t_bus_fuse_fault = false;
+        bool ntc_fault = false;
+        bool parallel_cable_fault = false;
+        bool battery_fault = false;
+        bool frequent_overcurrent_fault = false;
+        bool battery_overcharge_fault = false;
+        bool battery_overcharge_persist = false;
+        bool epo_critical_fault = false;
+        // --------------------------------------------------
     };
 
     // ===== Smoke runtime / fault 真源 =====

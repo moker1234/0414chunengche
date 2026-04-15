@@ -183,7 +183,14 @@ void Ups232AsciiProto::fillBits8(const std::string& bits01,
                                 const std::string& prefix) {
     if (bits01.size() != 8) return;
 
-    out.status[prefix + "raw"]            = std::stoul(bits01, nullptr, 2);
+    // 将 8 位 0/1 字符串 (如 "10001001") 转换为 10 进制整数
+    uint32_t raw_val = std::stoul(bits01, nullptr, 2);
+
+    //  核心修正：注入 Logic 层正在监听的 "status_bits" 键
+    out.status["status_bits"] = raw_val;
+
+    // 保留旧的字典键以兼容其他可能的业务逻辑
+    out.status[prefix + "raw"]            = raw_val;
     out.status[prefix + "mains_abnormal"] = (bits01[0] == '1');
     out.status[prefix + "battery_low"]    = (bits01[1] == '1');
     out.status[prefix + "bypass"]         = (bits01[2] == '1');
@@ -335,10 +342,20 @@ bool Ups232AsciiProto::parseQ6(const std::vector<std::string>& t, DeviceData& ou
 
     // fault / warning hex
     try {
-        out.status["fault.bits"]   = (uint32_t)std::stoul(t[17], nullptr, 16);
-        out.status["warning.bits"] = (uint32_t)std::stoul(t[18], nullptr, 16);
+        uint32_t f_code_raw = (uint32_t)std::stoul(t[17], nullptr, 16);
+        uint32_t w_bits     = (uint32_t)std::stoul(t[18], nullptr, 16);
+
+        // 核心修正：拆解 4 个故障容器 (每个容器 8 位，存储 1 个故障码)
+        out.value["ups_fault_code_1"] = (int32_t)((f_code_raw >> 24) & 0xFF);
+        out.value["ups_fault_code_2"] = (int32_t)((f_code_raw >> 16) & 0xFF);
+        out.value["ups_fault_code_3"] = (int32_t)((f_code_raw >> 8)  & 0xFF);
+        out.value["ups_fault_code_4"] = (int32_t)((f_code_raw >> 0)  & 0xFF);
+
+        // 保留基础值以兼容可能存在的 "fault_code_nonzero" 判断逻辑
+        out.value["ups_fault_code"] = (int32_t)f_code_raw;
+        out.status["warning_bits"]  = w_bits;
+        out.status["warning.bits"]  = w_bits;
     } catch (...) {
-        // 如果 hex 不合法，就不写，或返回 false
         return false;
     }
 

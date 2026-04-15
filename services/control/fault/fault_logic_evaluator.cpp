@@ -233,7 +233,7 @@ void FaultLogicEvaluator::evaluateUps_(control::LogicContext& ctx, uint64_t now_
 {
     const auto& u = ctx.ups_faults;
 
-    // UPS 通信故障
+    // UPS 通信故障 (离线)
     {
         const char* signal = "ups_offline";
         const std::string key = makeSignalKey_(signal);
@@ -263,217 +263,128 @@ void FaultLogicEvaluator::evaluateUps_(control::LogicContext& ctx, uint64_t now_
         setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
     }
 
-    // ---- Q1 / WA 状态位 ----
-    {
-        const char* signal = "ups_mains_abnormal";
+    // 使用 lambda 简化大量防抖逻辑的编写
+    auto eval_ups = [&](const char* signal, bool raw_now) {
         const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.mains_abnormal, !u.mains_abnormal, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_battery_low";
-        const std::string key = makeSignalKey_(signal);
-        const bool raw_now = u.battery_low_state || (u.battery_low != 0) || u.bat_low_warning;
+        // 统一使用: 触发需持续 3000ms，恢复需持续 1000ms 的防抖策略
         updateConfirmedWithClear_(ctx, now_ms, key, raw_now, !raw_now, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bypass_mode";
-        const std::string key = makeSignalKey_(signal);
-        const bool raw_now = u.bypass_mode || (u.bypass_active != 0);
-        updateConfirmedWithClear_(ctx, now_ms, key, raw_now, !raw_now, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
+        // 20260415
+        bool is_confirmed = ctx.fault_cond_engine.getConfirmed(key);
+        if (
+            // std::string(signal) == "ups_bus_overvoltage_fault" ||
+            std::string(signal) == "ups_epo_critical_fault") {
+            // 每秒打印一次，防止刷屏
+            LOG_THROTTLE_MS("test_ups_debounce", 1000, LOGINFO,
+                "[DEBUG_UPS_DEBOUNCE] signal: %s | raw_in: %d | confirmed_out: %d",
+                signal, raw_now, is_confirmed);
+        }
 
-    // ---- warning bits ----
-    {
-        const char* signal = "ups_internal_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.internal_warning, !u.internal_warning, 3000, 1000);
         setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_epo_active";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.epo_active, !u.epo_active, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_module_unlock";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.module_unlock, !u.module_unlock, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_line_loss";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.line_loss, !u.line_loss, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bypass_loss";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bypass_loss, !u.bypass_loss, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bat_open";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bat_open, !u.bat_open, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_over_chg_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.over_chg_warning, !u.over_chg_warning, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_overload_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.overload_warning, !u.overload_warning, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_overload_fail";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.overload_fail, !u.overload_fail, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_fan_lock_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.fan_lock_warning, !u.fan_lock_warning, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_chg_fail";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.chg_fail, !u.chg_fail, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_temp_low_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.temp_low_warning, !u.temp_low_warning, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_temp_high_warning";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.temp_high_warning, !u.temp_high_warning, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bat_overtemp";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bat_overtemp, !u.bat_overtemp, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
+    };
 
-    // ---- fault code ----
-    {
-        const char* signal = "ups_bus_soft_timeout";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bus_soft_timeout, !u.bus_soft_timeout, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bus_over";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bus_over, !u.bus_over, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bus_under";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bus_under, !u.bus_under, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bus_unbalance";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bus_unbalance, !u.bus_unbalance, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_bus_short";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.bus_short, !u.bus_short, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_inv_soft_timeout";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.inv_soft_timeout, !u.inv_soft_timeout, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_inv_volt_high";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.inv_volt_high, !u.inv_volt_high, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_inv_volt_low";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.inv_volt_low, !u.inv_volt_low, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_op_volt_short";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.op_volt_short, !u.op_volt_short, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_over_load_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.over_load_fault, !u.over_load_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_over_temperature";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.over_temperature, !u.over_temperature, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_comm_line_loss";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.comm_line_loss, !u.comm_line_loss, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_power_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.power_fault, !u.power_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_ups_all_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.ups_all_fault, !u.ups_all_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_battery_abnormal";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.battery_abnormal, !u.battery_abnormal, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_battery_over_charge_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.battery_over_charge_fault, !u.battery_over_charge_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-    {
-        const char* signal = "ups_epo_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, u.epo_fault, !u.epo_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
+    // ---- Q1/WA 基础状态位 ----
+    eval_ups("ups_mains_abnormal", u.mains_abnormal);
+    eval_ups("ups_battery_low_state", u.battery_low_state || (u.battery_low != 0));
+    eval_ups("ups_bypass_mode", u.bypass_mode || (u.bypass_active != 0));
+    eval_ups("ups_ups_fault_state", u.ups_fault_state);
+    eval_ups("ups_backup_mode", u.backup_mode);
+    eval_ups("ups_self_test_active", u.self_test_active);
+
+    // ---- 32 个 Warning Bits (警告位) ----
+    eval_ups("ups_internal_warning", u.internal_warning);
+    eval_ups("ups_epo_active", u.epo_active);
+    eval_ups("ups_module_unlock", u.module_unlock);
+    // u.mains_abnormal (Bit3) 已经在上面的基础状态中合并处理，这里无需重复 eval
+    eval_ups("ups_neutral_lost", u.neutral_lost);
+    eval_ups("ups_mains_phase_error", u.mains_phase_error);
+    eval_ups("ups_ln_reverse", u.ln_reverse);
+    eval_ups("ups_bypass_abnormal", u.bypass_abnormal);
+    eval_ups("ups_bypass_phase_error", u.bypass_phase_error);
+    eval_ups("ups_battery_not_connected", u.battery_not_connected);
+    eval_ups("ups_battery_low_warning", u.battery_low_warning);
+    eval_ups("ups_battery_overcharge", u.battery_overcharge);
+    eval_ups("ups_battery_reverse", u.battery_reverse);
+    eval_ups("ups_overload_warning", u.overload_warning);
+    eval_ups("ups_overload_alarm", u.overload_alarm);
+    eval_ups("ups_fan_fault", u.fan_fault);
+    eval_ups("ups_bypass_cover_open", u.bypass_cover_open);
+    eval_ups("ups_charger_fault", u.charger_fault);
+    eval_ups("ups_position_error", u.position_error);
+    eval_ups("ups_boot_condition_not_met", u.boot_condition_not_met);
+    eval_ups("ups_redundancy_lost", u.redundancy_lost);
+    eval_ups("ups_module_loose", u.module_loose);
+    eval_ups("ups_battery_maint_due", u.battery_maint_due);
+    eval_ups("ups_inspection_maint_due", u.inspection_maint_due);
+    eval_ups("ups_warranty_maint_due", u.warranty_maint_due);
+    eval_ups("ups_temp_low_warning", u.temp_low_warning);
+    eval_ups("ups_temp_high_warning", u.temp_high_warning);
+    eval_ups("ups_battery_overtemp", u.battery_overtemp);
+    eval_ups("ups_fan_maint_due", u.fan_maint_due);
+    eval_ups("ups_bus_cap_maint_due", u.bus_cap_maint_due);
+    eval_ups("ups_system_overload", u.system_overload);
+    eval_ups("ups_reserved_warning", u.reserved_warning);
+
+    // ---- 60 个 Fault Codes (故障) ----
+    eval_ups("ups_bus_overvoltage_fault", u.bus_overvoltage_fault);
+    eval_ups("ups_bus_undervoltage_fault", u.bus_undervoltage_fault);
+    eval_ups("ups_bus_imbalance_fault", u.bus_imbalance_fault);
+    eval_ups("ups_bus_short_circuit", u.bus_short_circuit);
+    eval_ups("ups_inv_softstart_timeout", u.inv_softstart_timeout);
+    eval_ups("ups_inv_overvoltage_fault", u.inv_overvoltage_fault);
+    eval_ups("ups_inv_undervoltage_fault", u.inv_undervoltage_fault);
+    eval_ups("ups_output_short_circuit", u.output_short_circuit);
+    eval_ups("ups_r_inv_short_circuit", u.r_inv_short_circuit);
+    eval_ups("ups_s_inv_short_circuit", u.s_inv_short_circuit);
+    eval_ups("ups_t_inv_short_circuit", u.t_inv_short_circuit);
+    eval_ups("ups_rs_short_circuit", u.rs_short_circuit);
+    eval_ups("ups_st_short_circuit", u.st_short_circuit);
+    eval_ups("ups_tr_short_circuit", u.tr_short_circuit);
+    eval_ups("ups_reverse_power_fault", u.reverse_power_fault);
+    eval_ups("ups_r_reverse_power_fault", u.r_reverse_power_fault);
+    eval_ups("ups_s_reverse_power_fault", u.s_reverse_power_fault);
+    eval_ups("ups_t_reverse_power_fault", u.t_reverse_power_fault);
+    eval_ups("ups_total_reverse_power_fault", u.total_reverse_power_fault);
+    eval_ups("ups_current_imbalance_fault", u.current_imbalance_fault);
+    eval_ups("ups_overload_fault", u.overload_fault);
+    eval_ups("ups_overtemp_fault", u.overtemp_fault);
+    eval_ups("ups_inv_relay_fail_close", u.inv_relay_fail_close);
+    eval_ups("ups_inv_relay_stuck", u.inv_relay_stuck);
+    eval_ups("ups_mains_scr_fault", u.mains_scr_fault);
+    eval_ups("ups_battery_scr_fault", u.battery_scr_fault);
+    eval_ups("ups_bypass_scr_fault", u.bypass_scr_fault);
+    eval_ups("ups_rectifier_fault", u.rectifier_fault);
+    eval_ups("ups_input_overcurrent_fault", u.input_overcurrent_fault);
+    eval_ups("ups_wiring_error", u.wiring_error);
+    eval_ups("ups_comm_cable_disconnected", u.comm_cable_disconnected);
+    eval_ups("ups_host_cable_fault", u.host_cable_fault);
+    eval_ups("ups_can_comm_fault", u.can_comm_fault);
+    eval_ups("ups_sync_signal_fault", u.sync_signal_fault);
+    eval_ups("ups_power_supply_fault", u.power_supply_fault);
+    eval_ups("ups_all_fan_fault", u.all_fan_fault);
+    eval_ups("ups_dsp_error", u.dsp_error);
+    eval_ups("ups_charger_softstart_timeout", u.charger_softstart_timeout);
+    eval_ups("ups_all_module_fault", u.all_module_fault);
+    eval_ups("ups_mains_ntc_open_fault", u.mains_ntc_open_fault);
+    eval_ups("ups_mains_fuse_open_fault", u.mains_fuse_open_fault);
+    eval_ups("ups_output_imbalance_fault", u.output_imbalance_fault);
+    eval_ups("ups_input_mismatch_fault", u.input_mismatch_fault);
+    eval_ups("ups_eeprom_data_lost", u.eeprom_data_lost);
+    eval_ups("ups_mains_support_failed", u.mains_support_failed);
+    eval_ups("ups_power_failed", u.power_failed);
+    eval_ups("ups_system_overload_fault", u.system_overload_fault);
+    eval_ups("ups_ads7869_error", u.ads7869_error);
+    eval_ups("ups_bypass_mode_no_op", u.bypass_mode_no_op);
+    eval_ups("ups_op_breaker_off_parallel", u.op_breaker_off_parallel);
+    eval_ups("ups_r_bus_fuse_fault", u.r_bus_fuse_fault);
+    eval_ups("ups_s_bus_fuse_fault", u.s_bus_fuse_fault);
+    eval_ups("ups_t_bus_fuse_fault", u.t_bus_fuse_fault);
+    eval_ups("ups_ntc_fault", u.ntc_fault);
+    eval_ups("ups_parallel_cable_fault", u.parallel_cable_fault);
+    eval_ups("ups_battery_fault", u.battery_fault);
+    eval_ups("ups_frequent_overcurrent_fault", u.frequent_overcurrent_fault);
+    eval_ups("ups_battery_overcharge_fault", u.battery_overcharge_fault);
+    eval_ups("ups_battery_overcharge_persist", u.battery_overcharge_persist);
+    eval_ups("ups_epo_critical_fault", u.epo_critical_fault);
 }
 
 void FaultLogicEvaluator::evaluateSmoke_(control::LogicContext& ctx, uint64_t now_ms) const

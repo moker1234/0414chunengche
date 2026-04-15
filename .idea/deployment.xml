@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="上传编译文件">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/zlg/userdata" local="$PROJECT_DIR$/cmake" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="上传配置json">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/zlg/userdata/config" local="$PROJECT_DIR$/config" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="远程主机 (fcf1a3b0-c40f-49cd-ba5c-d4b9d71ac4b7)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/energyStorage" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-remote-build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
