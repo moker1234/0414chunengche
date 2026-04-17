@@ -42,7 +42,7 @@ namespace control {
                                   LogicContext& ctx,
                                   std::vector<Command>& out_cmds)
     {
-        ctx.last_hmi_write_ts = w.ts_ms;
+        ctx.last_hmi_comm_ts = w.ts_ms;
         ctx.last_hmi_addr = w.start_addr;
 
         // 第八批 + 第十四批：

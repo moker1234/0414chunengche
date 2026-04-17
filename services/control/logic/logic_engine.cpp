@@ -46,6 +46,11 @@ namespace control {
             onHmiWrite_(e.hmi_write, ctx, out_cmds);
             break;
 
+        case Event::Type::HmiHeartbeat:
+            ctx.hmi_seen_once = true;
+            ctx.last_hmi_comm_ts = e.ts_ms;
+            break;
+
         case Event::Type::IoSample:
             onIoSample_(e.io_sample, ctx, out_cmds);
             break;

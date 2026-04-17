@@ -88,6 +88,8 @@ namespace control {
                                          uint32_t instance_index,
                                          uint64_t now_ms,
                                          uint32_t timeout_ms);
+        // 新增：HMI 弱在线观测
+        void feedHmiAlive(uint64_t now_ms, LogicContext& ctx);
 
         // ===================== PCU 在线状态 =====================
         void updatePcuOnlineState_(const DeviceData& d, uint64_t ts, LogicContext& ctx);

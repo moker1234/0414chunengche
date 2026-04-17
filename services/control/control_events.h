@@ -54,6 +54,7 @@ namespace control {
             DeviceData,       // 外设 RS485 / CAN 解析后的 DeviceData
             Snapshot,         // ✅ 新增：Aggregator 的 SystemSnapshot（用于渐进式迁移：snapshot -> logic -> HMI）
             HmiWrite,         // 屏幕写入
+            HmiHeartbeat,     // HMI 心跳事件
             IoSample,         // DI/AI 采样
             Tick,             // 控制定时
             LinkHealth,       // 链路 up/down（可选）

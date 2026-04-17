@@ -536,6 +536,15 @@ void AppManager::onParsed(const parser::ParserMessage& msg) {
             default:                   return "UNKNOWN";
         }
     };
+    if (msg.type == ParsedType::HmiHeartbeat) {
+        if (control_) {
+            control::Event e;
+            e.type = control::Event::Type::HmiHeartbeat;
+            e.ts_ms = msg.rx_ts_ms; // 携带底层解析到合法报文的精确时间戳
+            control_->post(std::move(e));
+        }
+        return;
+    }
 
     // ===== 成功数据 =====
     if (msg.type == ParsedType::DeviceData) {
@@ -674,7 +683,7 @@ void AppManager::onParsed(const parser::ParserMessage& msg) {
             control_->post(std::move(es));
         }
         return;
-    }
+    }// ===== 2. 真正的第三步：翻译并透传 HMI 心跳事件 =====
 
 
 

@@ -19,6 +19,7 @@ namespace parser {
         DeviceData,
         ParseError,
         Timeout,
+        HmiHeartbeat, // HMI 心跳事件
     };
 
     struct ParserMessage {

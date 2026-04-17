@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "../modbus/modbus_crc.h"   // 按你项目实际 include 路径调整
 
+
 HMIProto::HMIProto(uint8_t slave_id) : addr_(slave_id) {
     // ✅ 不再使用 compat
 }
@@ -172,10 +173,10 @@ bool HMIProto::handleReadRegs(uint8_t func, uint16_t start, uint16_t qty, std::v
         resp.push_back(uint8_t(v & 0xFF));
     }
 
-    // if (start == 0x412D)
-    // {
-    //     LOG_COMM_HEX("[HMI][TX][RESP]", resp.data(), resp.size());
-    // }
+    if (start == 0x4125)
+    {
+        LOG_COMM_HEX("[HMI][TX][RESP]", resp.data(), resp.size());
+    }
     appendCrc(resp);
     return true;
 }

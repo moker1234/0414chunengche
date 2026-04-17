@@ -1078,8 +1078,8 @@ namespace control
             bool matched = false;
             // 20260415
             if (
-                rule.code == 0x1073
-                // || rule.code == 0x10AE
+                // rule.code == 0x1073||
+                rule.code == 0x10AE
                 ) {
                 LOG_THROTTLE_MS("test_ups_mapper", 1000, LOGINFO,
                     "[DEBUG_MAPPER] HexCode: 0x%X | signal_norm: %s | is_active: %d",
@@ -1156,18 +1156,25 @@ namespace control
                 }
                 else if (rule.source_norm == "ups")
                 {
-                    add_if_not_empty("logic.ups_" + rule.signal_norm);
+                    //  智能容错：无论 JSONL 里的 signal 带不带 "ups_"，我们都将其统一清理
+                    std::string clean_sig = rule.signal_norm;
+                    if (clean_sig.find("ups_") == 0) {
+                        clean_sig = clean_sig.substr(4); // 裁掉前面的 "ups_"
+                    }
 
-                    if (rule.signal_norm == "fault_any" || rule.signal_norm == "fault_code_nonzero")
+                    // 统一拼成标准的 logic.ups_xxxxx
+                    add_if_not_empty("logic.ups_" + clean_sig);
+
+                    if (clean_sig == "fault_any" || clean_sig == "fault_code_nonzero")
                     {
                         add_if_not_empty("logic.ups_fault");
                     }
-                    if (rule.signal_norm == "alarm_any")
+                    if (clean_sig == "alarm_any")
                     {
                         add_if_not_empty("logic.ups_alarm");
                     }
-                    if (rule.signal_norm == "offline" || rule.signal_norm == "runtime_offline" ||
-                        rule.signal_norm == "ups_offline" || rule.signal_norm == "ups_comm_fault")
+                    if (clean_sig == "offline" || clean_sig == "runtime_offline" ||
+                        clean_sig == "ups_offline" || clean_sig == "ups_comm_fault")
                     {
                         add_if_not_empty("logic.ups_offline");
                     }

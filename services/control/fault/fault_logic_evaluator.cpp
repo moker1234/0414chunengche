@@ -133,30 +133,29 @@ bool FaultLogicEvaluator::rawAnyFault_(const control::LogicContext& ctx)
 
     bool FaultLogicEvaluator::rawHmiCommFault_(const control::LogicContext& ctx, uint64_t now_ms)
 {
-    // 第八批：弱在线真源
-    //
-    // 规则：
-    // 1) 未见过 HMI 写入之前，不主动报 hmi_comm_fault，避免开机即误报码。
-    // 2) 见过 HMI 写入后，如果超过 hmi_comm_timeout_ms 仍无新的 HMI 写入，
-    //    则视为 raw hmi_comm_fault。
-    // 3) 如果其他链路后续已经显式把 logic_faults.hmi_comm_fault 置位，也兼容保留。
-    if (ctx.logic_faults.hmi_comm_fault) {
-        return true;
-    }
+    // 如果系统通过其他路径已经明确置位了故障，则直接返回 true
+    // if (ctx.logic_faults.hmi_comm_fault) {
+    //     return true;
+    // }
 
+    // 如果自从启动以来从未见过任何 HMI 报文（读或写），则保持 false 不误报
     if (!ctx.hmi_seen_once) {
         return false;
     }
 
-    if (ctx.last_hmi_write_ts == 0) {
+    // 此时 last_hmi_comm_ts 已代表“最后通信时间”
+    if (ctx.last_hmi_comm_ts == 0) {
         return false;
     }
 
-    if (now_ms < ctx.last_hmi_write_ts) {
+    // 防御性检查：当前时间小于记录时间（如系统调时）
+    if (now_ms < ctx.last_hmi_comm_ts) {
         return false;
     }
 
-    return (now_ms - ctx.last_hmi_write_ts) > ctx.hmi_comm_timeout_ms;
+    // 判断当前时间与最后一次合法通信的时间差是否超过 5000ms（或配置值）
+    bool isfault = (now_ms - ctx.last_hmi_comm_ts) > ctx.hmi_comm_timeout_ms;
+    return isfault;
 }
 
     bool FaultLogicEvaluator::rawRemoteCommFault_(const control::LogicContext& ctx, uint64_t now_ms)

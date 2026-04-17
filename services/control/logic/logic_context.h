@@ -378,7 +378,7 @@ namespace control {
         std::vector<double> ai;
 
         // ===== HMI 控制缓存（可用于“按钮沿触发/锁存”）=====
-        uint64_t last_hmi_write_ts{0};
+        uint64_t last_hmi_comm_ts{0};
         uint16_t last_hmi_addr{0};
         uint16_t last_hmi_value{0};
 

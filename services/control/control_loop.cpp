@@ -158,7 +158,6 @@ void ControlLoop::stop()
         postSnapshotLatest_(std::move(e));
         return;
     }
-
     q_.push(std::move(e));
 }
 

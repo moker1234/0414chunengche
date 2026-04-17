@@ -246,6 +246,30 @@ void ProtocolParserThread::threadLoop()
 
                         // 只要这是“从站口”，策略就是：不管 handled true/false 都吞掉
                         // handled=false 只表示“协议没认出来/不是本从站地址”等，但仍不要走 parseRs485，避免刷屏
+                        if (handled){
+                            static uint64_t last_hmi_heartbeat_ts = 0;
+                            uint64_t current_ts = nowMs();
+
+                            // 节流器：每 1000 毫秒才向下游业务层投递一次活跃心跳
+                            // 防止 HMI 高频轮询导致系统的消息队列拥堵
+                            if (current_ts - last_hmi_heartbeat_ts > 1000)
+                            {
+                                last_hmi_heartbeat_ts = current_ts;
+
+                                if (on_parsed_)
+                                {
+                                    ParserMessage heartbeat_msg;
+                                    // 借用现有的 DeviceData 通道，生成一个虚拟的心跳包
+                                    heartbeat_msg.type = ParsedType::HmiHeartbeat;
+                                    heartbeat_msg.link_type = dev::LinkType::RS485;
+                                    heartbeat_msg.link_index = srx.serial_index;
+                                    heartbeat_msg.device_name = "HMI_SYS_HEARTBEAT"; // 专属的心跳标识
+                                    heartbeat_msg.rx_ts_ms = current_ts;
+
+                                    on_parsed_(heartbeat_msg);
+                                }
+                            }
+                        }
                         if (handled && !tx.empty() && send_serial_)
                         {
 #if protocol_parser_thread_LOG
@@ -254,6 +278,7 @@ void ProtocolParserThread::threadLoop()
 #endif
                             send_serial_(dev::LinkType::RS485, srx.serial_index, tx);
                         }
+
                     }
 
                     // ✅ 从站口处理完本 chunk 就结束本次循环（不走下面 parseRs485）

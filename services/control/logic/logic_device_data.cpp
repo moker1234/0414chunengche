@@ -155,6 +155,12 @@ namespace control
         {
             return;
         }
+        if (d.device_name == "HMI_SYS_HEARTBEAT") {
+            ctx.hmi_seen_once = true;
+            // 注意：如果你将 logic_context.h 里的变量改名了，这里同步改。没改就用原名：
+            ctx.last_hmi_comm_ts = ts;
+            return; // 纯心跳包，拦截后直接返回，不走后续的实体设备逻辑
+        }
 
         // BMS：交给专用适配器维护控制面缓存
         if (d.device_name == "BMS")
@@ -420,6 +426,21 @@ namespace control
                 g.status_code = static_cast<uint32_t>(it->second);
             }
 
+            switch (g.status_code)
+            {
+                case 0x0001:
+                g.sensor_fault = 1;g.low_alarm = 0;g.high_alarm = 0;
+                break;
+                case 0x0002:
+                g.sensor_fault = 0;g.low_alarm = 1;g.high_alarm = 0;
+                break;
+                case 0x0004:
+                g.sensor_fault = 0;g.low_alarm = 0;g.high_alarm = 1;
+                break;
+                default:
+                g.sensor_fault = 0;g.low_alarm = 0;g.high_alarm = 0;
+                break;
+            }
             g.sensor_fault = (g.status_code & 0x0001u) != 0;
             g.low_alarm = (g.status_code & 0x0002u) != 0;
             g.high_alarm = (g.status_code & 0x0004u) != 0;
@@ -551,7 +572,10 @@ namespace control
             updatePcuOnlineState_(d, ts, ctx);
         }
     }
-
+    void LogicEngine::feedHmiAlive(uint64_t now_ms, LogicContext& ctx) {
+        ctx.hmi_seen_once = true;
+        ctx.last_hmi_comm_ts = now_ms; // 沿用原名以减少全局改名，但其逻辑含义已变
+    }
     void LogicEngine::updatePcuOnlineState_(const DeviceData& d, uint64_t ts, LogicContext& ctx)
     {
         uint32_t instance = 0;

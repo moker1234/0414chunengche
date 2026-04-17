@@ -63,4 +63,5 @@ private:
     uint8_t addr_{3};
     HmiAddressTable table_;
     std::function<void(const HmiWriteEvent&)> on_write_;
+
 };
