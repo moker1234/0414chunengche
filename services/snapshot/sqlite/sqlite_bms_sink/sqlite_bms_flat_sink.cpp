@@ -498,6 +498,7 @@ bool SqliteBmsFlatSink::insertGroupRaw_(int64_t snapshot_id,
 
 void SqliteBmsFlatSink::onBmsSnapshot(const snapshot::BmsSnapshot& snap)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (!opened_ || !db_) return;
 
     const auto changed_groups = collectChangedGroups_(snap);

@@ -45,7 +45,7 @@ private:
     static bool parseDoubleToken(const std::string& tok, double& out);
     static bool parseIntToken(const std::string& tok, int& out);
 
-    static void fillBits8(const std::string& bits01, DeviceData& out, const std::string& prefix);
+    static bool fillBits8(const std::string& bits01, DeviceData& out, const std::string& prefix);
 
     // 给上层分组用的内部标记（后续 toJson() 里可以过滤 __ 前缀）
     static void markCmd_(PollKind kind, DeviceData& out);

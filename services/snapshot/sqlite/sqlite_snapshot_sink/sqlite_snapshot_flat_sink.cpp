@@ -79,9 +79,21 @@ nlohmann::json SqliteSnapshotFlatSink::deviceStateJson_(const std::string& name,
 {
     nlohmann::json j = nlohmann::json::object();
 
+    /*
+     * BMS shadow：
+     * 普通 SQLite snapshot 不保存 BMS 大字段。
+     * BMS 报文级/历史数据由 SqliteBmsFlatSink 负责。
+     */
+    if (isBmsShadowItem_(name) || name == "BMS") {
+        j["kind"] = "bms_shadow";
+        j["online"] = item.online;
+        j["last_ok_ms"] = item.last_ok_ms;
+        return j;
+    }
+
     if (name == "GasDetector") {
-        j["poll"] = item.data.num;
         j["gas_channels"] = nlohmann::json::object();
+
         for (const auto& [gt, ch] : item.gas_channels) {
             j["gas_channels"][std::to_string(static_cast<uint16_t>(gt))] = {
                 {"valid", ch.valid},
@@ -91,9 +103,16 @@ nlohmann::json SqliteSnapshotFlatSink::deviceStateJson_(const std::string& name,
                 {"decimal", ch.decimal_code},
                 {"type_code", ch.type_code},
                 {"unit_code", ch.unit_code},
+
+                {"fault_any", ch.fault_any},
+                {"low_alarm", ch.low_alarm},
+                {"high_alarm", ch.high_alarm},
+                {"alarm_any", ch.alarm_any},
+
                 {"ts_ms", ch.ts_ms}
             };
         }
+
         return j;
     }
 
@@ -116,24 +135,32 @@ nlohmann::json SqliteSnapshotFlatSink::deviceStateJson_(const std::string& name,
 
     if (name == "AirConditioner" && item.aircon.has_value()) {
         const auto& ac = *item.aircon;
-        j["remote_para"] = ac.remote_para.fields;
-        j["run_state"]   = ac.run_state.fields;
-        j["sensor_state"]= ac.sensor_state.fields;
-        j["sys_para"]    = ac.sys_para.fields;
-        j["version"]     = ac.version.fields;
-        j["warn_state"]  = ac.warn_state.fields;
+        j["remote_para"]  = ac.remote_para.fields;
+        j["run_state"]    = ac.run_state.fields;
+        j["sensor_state"] = ac.sensor_state.fields;
+        j["sys_para"]     = ac.sys_para.fields;
+        j["version"]      = ac.version.fields;
+        j["warn_state"]   = ac.warn_state.fields;
         return j;
     }
 
     if ((name == "PCU" || name.rfind("PCU_", 0) == 0) && item.pcu.has_value()) {
         const auto& p = *item.pcu;
+
         j["state"] = {
             {"num", p.state.num},
             {"value", p.state.value},
             {"status", p.state.status},
             {"ts_ms", p.state.ts_ms}
         };
-        if (p.ctrl.ts_ms != 0 || !p.ctrl.num.empty() || !p.ctrl.value.empty() || !p.ctrl.status.empty()) {
+
+        const bool has_ctrl =
+            (p.ctrl.ts_ms != 0) ||
+            (!p.ctrl.num.empty()) ||
+            (!p.ctrl.value.empty()) ||
+            (!p.ctrl.status.empty());
+
+        if (has_ctrl) {
             j["ctrl"] = {
                 {"num", p.ctrl.num},
                 {"value", p.ctrl.value},
@@ -141,11 +168,12 @@ nlohmann::json SqliteSnapshotFlatSink::deviceStateJson_(const std::string& name,
                 {"ts_ms", p.ctrl.ts_ms}
             };
         }
+
         return j;
     }
 
-    j["num"]    = item.data.num;
-    j["value"]  = item.data.value;
+    j["num"] = item.data.num;
+    j["value"] = item.data.value;
     j["status"] = item.data.status;
     return j;
 }
@@ -241,7 +269,6 @@ CREATE TABLE IF NOT EXISTS snapshot_main (
     id                      INTEGER PRIMARY KEY,
     ts_ms                   INTEGER NOT NULL,
 
-    gas_ppm_x1000           INTEGER,
     gas_alarm               INTEGER NOT NULL DEFAULT 0,
 
     smoke_percent_x10       INTEGER,
@@ -278,18 +305,6 @@ CREATE TABLE IF NOT EXISTS device_health (
 CREATE INDEX IF NOT EXISTS idx_device_health_name_ts
 ON device_health(device_name, ts_ms DESC);
 
-CREATE TABLE IF NOT EXISTS gas_poll_event (
-    id              INTEGER PRIMARY KEY,
-    snapshot_id     INTEGER NOT NULL,
-    ts_ms           INTEGER NOT NULL,
-    device_name     TEXT    NOT NULL,
-    type_code       INTEGER NOT NULL,
-    unit_code       INTEGER NOT NULL,
-    decimal_code    INTEGER NOT NULL,
-    status_code     INTEGER NOT NULL,
-    gas_raw         INTEGER NOT NULL,
-    gas_value_x1000 INTEGER NOT NULL
-);
 
 CREATE INDEX IF NOT EXISTS idx_gas_poll_event_name_ts
 ON gas_poll_event(device_name, ts_ms DESC);
@@ -302,10 +317,17 @@ CREATE TABLE IF NOT EXISTS gas_channel_state (
     channel_index   INTEGER NOT NULL,
     channel_ts_ms   INTEGER NOT NULL,
     valid           INTEGER NOT NULL,
+
     type_code       INTEGER NOT NULL,
     unit_code       INTEGER NOT NULL,
     decimal_code    INTEGER NOT NULL,
     status_code     INTEGER NOT NULL,
+
+    fault_any       INTEGER NOT NULL DEFAULT 0,
+    low_alarm       INTEGER NOT NULL DEFAULT 0,
+    high_alarm      INTEGER NOT NULL DEFAULT 0,
+    alarm_any       INTEGER NOT NULL DEFAULT 0,
+
     raw_value       INTEGER NOT NULL,
     value_x1000     INTEGER NOT NULL
 );
@@ -420,6 +442,39 @@ CREATE TABLE IF NOT EXISTS pcu_state (
 
 CREATE INDEX IF NOT EXISTS idx_pcu_state_name_ts
 ON pcu_state(device_name, ts_ms DESC);
+
+CREATE TABLE IF NOT EXISTS pcu_tx_state (
+    id                  INTEGER PRIMARY KEY,
+    snapshot_id         INTEGER NOT NULL,
+    ts_ms               INTEGER NOT NULL,
+    device_name         TEXT    NOT NULL,
+
+    can_index           INTEGER NOT NULL,
+    pcu_instance        INTEGER NOT NULL,
+    runtime_index       INTEGER NOT NULL,
+
+    ctrl_id             INTEGER NOT NULL,
+    status_id           INTEGER NOT NULL,
+
+    ctrl_heartbeat      INTEGER NOT NULL,
+
+    plug_state          INTEGER NOT NULL,
+    estop               INTEGER NOT NULL,
+    batt1_estop         INTEGER NOT NULL,
+    batt2_estop         INTEGER NOT NULL,
+    sys_enable          INTEGER NOT NULL,
+
+    batt1_kw_x10        INTEGER NOT NULL,
+    batt2_kw_x10        INTEGER NOT NULL,
+    batt1_branches      INTEGER NOT NULL,
+    batt2_branches      INTEGER NOT NULL,
+
+    ctrl_raw_hex        TEXT,
+    status_raw_hex      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pcu_tx_state_name_ts
+ON pcu_tx_state(device_name, ts_ms DESC);
 
 CREATE TABLE IF NOT EXISTS aircon_state (
     id                              INTEGER PRIMARY KEY,
@@ -595,11 +650,11 @@ bool SqliteSnapshotFlatSink::insertSnapshotMain_(const agg::SystemSnapshot& snap
     const char* sql =
         "INSERT INTO snapshot_main("
         "ts_ms, "
-        "gas_ppm_x1000, gas_alarm, "
+        "gas_alarm, "
         "smoke_percent_x10, smoke_temperature_x10, smoke_alarm, "
         "ac_indoor_temp_x10, ac_humidity_x10, ac_power, ac_run_state, ac_alarm, "
         "system_temperature_x10"
-        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
@@ -610,17 +665,16 @@ bool SqliteSnapshotFlatSink::insertSnapshotMain_(const agg::SystemSnapshot& snap
     }
 
     sqlite3_bind_int64(stmt, 1,  static_cast<sqlite3_int64>(snap.timestamp_ms));
-    sqlite3_bind_int(stmt,   2,  scaleX1000_(snap.gas_ppm));
-    sqlite3_bind_int(stmt,   3,  snap.gas_alarm ? 1 : 0);
-    sqlite3_bind_int(stmt,   4,  scaleX10_(snap.smoke_percent));
-    sqlite3_bind_int(stmt,   5,  snap.smoke_temperature * 10);
-    sqlite3_bind_int(stmt,   6,  snap.smoke_alarm ? 1 : 0);
-    sqlite3_bind_int(stmt,   7,  scaleX10_(snap.ac_indoor_temp));
-    sqlite3_bind_int(stmt,   8,  scaleX10_(snap.ac_humidity));
-    sqlite3_bind_int(stmt,   9,  snap.ac_power);
-    sqlite3_bind_int(stmt,   10, snap.ac_run_state);
-    sqlite3_bind_int(stmt,   11, snap.ac_alarm ? 1 : 0);
-    sqlite3_bind_int(stmt,   12, snap.system_temperature * 10);
+    sqlite3_bind_int(stmt,   2,  snap.gas_alarm ? 1 : 0);
+    sqlite3_bind_int(stmt,   3,  scaleX10_(snap.smoke_percent));
+    sqlite3_bind_int(stmt,   4,  snap.smoke_temperature * 10);
+    sqlite3_bind_int(stmt,   5,  snap.smoke_alarm ? 1 : 0);
+    sqlite3_bind_int(stmt,   6,  scaleX10_(snap.ac_indoor_temp));
+    sqlite3_bind_int(stmt,   7,  scaleX10_(snap.ac_humidity));
+    sqlite3_bind_int(stmt,   8,  snap.ac_power);
+    sqlite3_bind_int(stmt,   9,  snap.ac_run_state);
+    sqlite3_bind_int(stmt,   10, snap.ac_alarm ? 1 : 0);
+    sqlite3_bind_int(stmt,   11, snap.system_temperature * 10);
 
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -677,48 +731,7 @@ bool SqliteSnapshotFlatSink::insertDeviceHealth_(int64_t snapshot_id,
     return true;
 }
 
-bool SqliteSnapshotFlatSink::insertGasPollEvent_(int64_t snapshot_id,
-                                                 uint64_t ts_ms,
-                                                 const std::string& device_name,
-                                                 const SnapshotItem& item)
-{
-    const auto& n = item.data.num;
-    if (n.find("type_code") == n.end()) return true;
 
-    const char* sql =
-        "INSERT INTO gas_poll_event("
-        "snapshot_id, ts_ms, device_name, type_code, unit_code, decimal_code, status_code, gas_raw, gas_value_x1000"
-        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);";
-
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
-    if (rc != SQLITE_OK || !stmt) {
-        LOGERR("[SQLITE_SNAP_FLAT] prepare gas_poll_event failed err=%s",
-               sqlite3_errmsg(db_));
-        return false;
-    }
-
-    sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(snapshot_id));
-    sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(ts_ms));
-    sqlite3_bind_text(stmt,  3, device_name.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt,   4, static_cast<int>(getNumOr_(n, "type_code")));
-    sqlite3_bind_int(stmt,   5, static_cast<int>(getNumOr_(n, "unit_code")));
-    sqlite3_bind_int(stmt,   6, static_cast<int>(getNumOr_(n, "decimal")));
-    sqlite3_bind_int(stmt,   7, static_cast<int>(getNumOr_(n, "status")));
-    sqlite3_bind_int(stmt,   8, static_cast<int>(getNumOr_(n, "gas_raw")));
-    sqlite3_bind_int(stmt,   9, scaleX1000_(getNumOr_(n, "gas_value")));
-
-    rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-
-    if (rc != SQLITE_DONE) {
-        LOGERR("[SQLITE_SNAP_FLAT] insert gas_poll_event failed dev=%s err=%s",
-               device_name.c_str(), sqlite3_errmsg(db_));
-        return false;
-    }
-
-    return true;
-}
 
 bool SqliteSnapshotFlatSink::insertGasChannelDelta_(int64_t snapshot_id,
                                                     uint64_t ts_ms,
@@ -728,8 +741,10 @@ bool SqliteSnapshotFlatSink::insertGasChannelDelta_(int64_t snapshot_id,
     const char* sql =
         "INSERT INTO gas_channel_state("
         "snapshot_id, ts_ms, device_name, channel_index, channel_ts_ms, valid, "
-        "type_code, unit_code, decimal_code, status_code, raw_value, value_x1000"
-        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        "type_code, unit_code, decimal_code, status_code, "
+        "fault_any, low_alarm, high_alarm, alarm_any, "
+        "raw_value, value_x1000"
+        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     for (const auto& [gt, ch] : item.gas_channels) {
         // 只写“本轮刚更新的通道”
@@ -749,20 +764,26 @@ bool SqliteSnapshotFlatSink::insertGasChannelDelta_(int64_t snapshot_id,
         sqlite3_bind_int(stmt,   4,  static_cast<int>(static_cast<uint16_t>(gt)));
         sqlite3_bind_int64(stmt, 5,  static_cast<sqlite3_int64>(ch.ts_ms));
         sqlite3_bind_int(stmt,   6,  ch.valid ? 1 : 0);
+
         sqlite3_bind_int(stmt,   7,  static_cast<int>(ch.type_code));
         sqlite3_bind_int(stmt,   8,  static_cast<int>(ch.unit_code));
         sqlite3_bind_int(stmt,   9,  static_cast<int>(ch.decimal_code));
         sqlite3_bind_int(stmt,   10, static_cast<int>(ch.status));
-        sqlite3_bind_int(stmt,   11, static_cast<int>(ch.raw));
-        sqlite3_bind_int(stmt,   12, scaleX1000_(ch.value));
+
+        sqlite3_bind_int(stmt,   11, ch.fault_any ? 1 : 0);
+        sqlite3_bind_int(stmt,   12, ch.low_alarm ? 1 : 0);
+        sqlite3_bind_int(stmt,   13, ch.high_alarm ? 1 : 0);
+        sqlite3_bind_int(stmt,   14, ch.alarm_any ? 1 : 0);
+
+        sqlite3_bind_int(stmt,   15, static_cast<int>(ch.raw));
+        sqlite3_bind_int(stmt,   16, scaleX1000_(ch.value));
 
         rc = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if (rc != SQLITE_DONE) {
-            LOGERR("[SQLITE_SNAP_FLAT] insert gas_channel_state failed dev=%s ch=%u err=%s",
-                   device_name.c_str(), static_cast<unsigned>(static_cast<uint16_t>(gt)),
-                   sqlite3_errmsg(db_));
+            LOGERR("[SQLITE_SNAP_FLAT] insert gas_channel_state failed dev=%s err=%s",
+                   device_name.c_str(), sqlite3_errmsg(db_));
             return false;
         }
     }
@@ -848,13 +869,13 @@ bool SqliteSnapshotFlatSink::insertUpsQ1State_(int64_t snapshot_id,
     sqlite3_bind_int(stmt,   10, scaleX100_(getNumOr_(g.num, "battery.12v.v")));
     sqlite3_bind_int(stmt,   11, scaleX100_(getNumOr_(g.num, "battery.cell.v")));
     sqlite3_bind_int(stmt,   12, scaleX10_(getNumOr_(g.num, "temp.c")));
-    sqlite3_bind_int(stmt,   13, static_cast<int>(getStatusOr_(g.status, "ups.battery_low")));
-    sqlite3_bind_int(stmt,   14, static_cast<int>(getStatusOr_(g.status, "ups.bypass")));
-    sqlite3_bind_int(stmt,   15, static_cast<int>(getStatusOr_(g.status, "ups.fault")));
-    sqlite3_bind_int(stmt,   16, static_cast<int>(getStatusOr_(g.status, "ups.mains_abnormal")));
-    sqlite3_bind_int(stmt,   17, static_cast<int>(getStatusOr_(g.status, "ups.raw")));
-    sqlite3_bind_int(stmt,   18, static_cast<int>(getStatusOr_(g.status, "ups.standby")));
-    sqlite3_bind_int(stmt,   19, static_cast<int>(getStatusOr_(g.status, "ups.testing")));
+    sqlite3_bind_int(stmt,   13, static_cast<int>(getStatusOr_(g.status, "q1.battery_low")));
+    sqlite3_bind_int(stmt,   14, static_cast<int>(getStatusOr_(g.status, "q1.bypass")));
+    sqlite3_bind_int(stmt,   15, static_cast<int>(getStatusOr_(g.status, "q1.fault")));
+    sqlite3_bind_int(stmt,   16, static_cast<int>(getStatusOr_(g.status, "q1.mains_abnormal")));
+    sqlite3_bind_int(stmt,   17, static_cast<int>(getStatusOr_(g.status, "q1.status.bits")));
+    sqlite3_bind_int(stmt,   18, static_cast<int>(getStatusOr_(g.status, "q1.backup_mode")));
+    sqlite3_bind_int(stmt,   19, static_cast<int>(getStatusOr_(g.status, "q1.testing")));
 
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -992,6 +1013,104 @@ bool SqliteSnapshotFlatSink::insertPcuState_(int64_t snapshot_id,
     return true;
 }
 
+bool SqliteSnapshotFlatSink::insertPcuTxState_(int64_t snapshot_id,
+                                               uint64_t ts_ms,
+                                               const std::string& device_name,
+                                               const SnapshotItem& item)
+{
+    if (!item.pcu.has_value()) return true;
+
+    const auto& p = *item.pcu;
+
+    const bool has_ctrl =
+        (p.ctrl.ts_ms != 0) ||
+        (!p.ctrl.num.empty()) ||
+        (!p.ctrl.value.empty()) ||
+        (!p.ctrl.status.empty()) ||
+        (!p.ctrl.str.empty());
+
+    if (!has_ctrl) {
+        return true;
+    }
+
+    const auto& v  = p.ctrl.value;
+    const auto& s  = p.ctrl.status;
+    const auto& st = p.ctrl.str;
+
+    const char* sql =
+        "INSERT INTO pcu_tx_state("
+        "snapshot_id, ts_ms, device_name, "
+        "can_index, pcu_instance, runtime_index, "
+        "ctrl_id, status_id, ctrl_heartbeat, "
+        "plug_state, estop, batt1_estop, batt2_estop, sys_enable, "
+        "batt1_kw_x10, batt2_kw_x10, batt1_branches, batt2_branches, "
+        "ctrl_raw_hex, status_raw_hex"
+        ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK || !stmt) {
+        LOGERR("[SQLITE_SNAP_FLAT] prepare pcu_tx_state failed err=%s",
+               sqlite3_errmsg(db_));
+        return false;
+    }
+
+    auto getStrOr_ = [&](const char* key) -> const std::string& {
+        static const std::string empty;
+        auto it = st.find(key);
+        return (it == st.end()) ? empty : it->second;
+    };
+
+    const std::string& ctrl_raw_hex = getStrOr_("__pcu.ctrl_raw_hex");
+    const std::string& status_raw_hex = getStrOr_("__pcu.status_raw_hex");
+
+    sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(snapshot_id));
+    sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(ts_ms));
+    sqlite3_bind_text(stmt,  3, device_name.c_str(), -1, SQLITE_TRANSIENT);
+
+    sqlite3_bind_int(stmt,   4, getValOr_(v, "__can_index"));
+    sqlite3_bind_int(stmt,   5, getValOr_(v, "__pcu.instance"));
+    sqlite3_bind_int(stmt,   6, getValOr_(v, "__pcu.runtime_index"));
+
+    sqlite3_bind_int(stmt,   7, getValOr_(v, "__pcu.ctrl_id"));
+    sqlite3_bind_int(stmt,   8, getValOr_(v, "__pcu.status_id"));
+    sqlite3_bind_int(stmt,   9, getValOr_(v, "ctrl_heartbeat"));
+
+    sqlite3_bind_int(stmt,  10, static_cast<int>(getStatusOr_(s, "plug_state")));
+    sqlite3_bind_int(stmt,  11, static_cast<int>(getStatusOr_(s, "estop")));
+    sqlite3_bind_int(stmt,  12, static_cast<int>(getStatusOr_(s, "batt1_estop")));
+    sqlite3_bind_int(stmt,  13, static_cast<int>(getStatusOr_(s, "batt2_estop")));
+    sqlite3_bind_int(stmt,  14, static_cast<int>(getStatusOr_(s, "sys_enable")));
+
+    sqlite3_bind_int(stmt,  15, getValOr_(v, "batt1_kw_x10"));
+    sqlite3_bind_int(stmt,  16, getValOr_(v, "batt2_kw_x10"));
+    sqlite3_bind_int(stmt,  17, getValOr_(v, "batt1_branches"));
+    sqlite3_bind_int(stmt,  18, getValOr_(v, "batt2_branches"));
+
+    if (!ctrl_raw_hex.empty()) {
+        sqlite3_bind_text(stmt, 19, ctrl_raw_hex.c_str(), -1, SQLITE_TRANSIENT);
+    } else {
+        sqlite3_bind_null(stmt, 19);
+    }
+
+    if (!status_raw_hex.empty()) {
+        sqlite3_bind_text(stmt, 20, status_raw_hex.c_str(), -1, SQLITE_TRANSIENT);
+    } else {
+        sqlite3_bind_null(stmt, 20);
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_DONE) {
+        LOGERR("[SQLITE_SNAP_FLAT] insert pcu_tx_state failed dev=%s err=%s",
+               device_name.c_str(), sqlite3_errmsg(db_));
+        return false;
+    }
+
+    return true;
+}
+
 bool SqliteSnapshotFlatSink::insertAirconState_(int64_t snapshot_id,
                                                 uint64_t ts_ms,
                                                 const std::string& device_name,
@@ -1007,6 +1126,16 @@ bool SqliteSnapshotFlatSink::insertAirconState_(int64_t snapshot_id,
     const auto& sp = ac.sys_para.fields;
     const auto& vv = ac.version.fields;
     const auto& ws = ac.warn_state.fields;
+
+    auto getWarn01_ = [&](std::initializer_list<const char*> keys) -> int {
+        for (const char* k : keys) {
+            auto it = ws.find(k);
+            if (it != ws.end()) {
+                return (std::llround(it->second) != 0) ? 1 : 0;
+            }
+        }
+        return 0;
+    };
 
     const char* sql =
         "INSERT INTO aircon_state("
@@ -1087,40 +1216,167 @@ bool SqliteSnapshotFlatSink::insertAirconState_(int64_t snapshot_id,
 
     sqlite3_bind_int(stmt, idx++, scaleX10_(getNumOr_(vv, "version")));
 
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.any"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.ac_over_v"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.ac_power_loss"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.ac_under_v"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.coil_freeze"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.coil_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.compressor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.condense_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.dc_over_v"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.dc_under_v"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.door"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.emergency_fan_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.exhaust_high_temp"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.exhaust_lock"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.exhaust_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.freq_abnormal"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.heater_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.high_hum"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.high_pressure"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.high_pressure_lock"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.high_temp"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.hum_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.indoor_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.inner_fan_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.low_hum"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.low_pressure"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.low_pressure_lock"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.low_temp"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.outdoor_sensor_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.outer_fan_fault"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.phase_loss"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.reverse_phase"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.smoke"))));
-    sqlite3_bind_int(stmt, idx++, static_cast<int>(std::llround(getNumOr_(ws, "alarm.water"))));
+    // aircon_state 表的列名可以保留旧命名；
+    // 但写入时优先读取标准 AIR signal，兼容旧 alarm 短名。
+    sqlite3_bind_int(stmt, idx++, getWarn01_({"alarm.any"}));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.ac_over_voltage_alarm",
+        "alarm.ac_over_v"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.ac_power_loss"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.ac_under_voltage_alarm",
+        "alarm.ac_under_v"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.coil_freeze_protect",
+        "alarm.coil_freeze"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.coil_temp_sensor_fault",
+        "alarm.coil_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.compressor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.condenser_temp_sensor_fault",
+        "alarm.condense_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.dc_over_voltage_alarm",
+        "alarm.dc_over_v"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.dc_under_voltage_alarm",
+        "alarm.dc_under_v"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.gating_alarm",
+        "alarm.door"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.emergency_fan_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.exhaust_high_temp_alarm",
+        "alarm.exhaust_high_temp"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.exhaust_lock"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.exhaust_temp_sensor_fault",
+        "alarm.exhaust_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.freq_fault",
+        "alarm.freq_abnormal"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.heater_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.high_humidity_alarm",
+        "alarm.high_hum"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.high_pressure_alarm",
+        "alarm.high_pressure"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.high_pressure_lock"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.high_temp_alarm",
+        "alarm.high_temp"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.humidity_sensor_fault",
+        "alarm.hum_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.indoor_temp_sensor_fault",
+        "alarm.indoor_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.internal_fan_fault",
+        "alarm.inner_fan_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.low_humidity_alarm",
+        "alarm.low_hum"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.low_pressure_alarm",
+        "alarm.low_pressure"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.low_pressure_lock"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.low_temp_alarm",
+        "alarm.low_temp"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.outdoor_temp_sensor_fault",
+        "alarm.outdoor_sensor_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.external_fan_fault",
+        "alarm.outer_fan_fault"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.lose_phase_alarm",
+        "alarm.phase_loss"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.anti_phase_alarm",
+        "alarm.reverse_phase"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.smoke_alarm",
+        "alarm.smoke"
+    }));
+
+    sqlite3_bind_int(stmt, idx++, getWarn01_({
+        "alarm.water_alarm",
+        "alarm.water"
+    }));
 
     rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -1154,7 +1410,7 @@ void SqliteSnapshotFlatSink::onSnapshot(const agg::SystemSnapshot& snap)
     }
 
     for (const auto& [name, item] : snap.items) {
-        if (isBmsShadowItem_(name)) continue;
+        if (isBmsShadowItem_(name) || name == "BMS") continue;
 
         // 设备健康：这里每个快照都写一条，便于追溯
         if (!insertDeviceHealth_(snapshot_id, snap.timestamp_ms, name, item)) {
@@ -1164,12 +1420,11 @@ void SqliteSnapshotFlatSink::onSnapshot(const agg::SystemSnapshot& snap)
     }
 
     for (const auto& [name, item] : snap.items) {
-        if (isBmsShadowItem_(name)) continue;
+        if (isBmsShadowItem_(name) || name == "BMS") continue;
         if (changed_devices.find(name) == changed_devices.end()) continue;
 
         if (name == "GasDetector") {
-            if (!insertGasPollEvent_(snapshot_id, snap.timestamp_ms, name, item) ||
-                !insertGasChannelDelta_(snapshot_id, snap.timestamp_ms, name, item)) {
+            if ( !insertGasChannelDelta_(snapshot_id, snap.timestamp_ms, name, item)) {
                 rollbackTx_();
                 return;
             }
@@ -1194,10 +1449,11 @@ void SqliteSnapshotFlatSink::onSnapshot(const agg::SystemSnapshot& snap)
             }
         }
         else if (name == "PCU" || name.rfind("PCU_", 0) == 0) {
-            if (!insertPcuState_(snapshot_id, snap.timestamp_ms, name, item)) {
+            if (!insertPcuState_(snapshot_id, snap.timestamp_ms, name, item) ||
+                !insertPcuTxState_(snapshot_id, snap.timestamp_ms, name, item)) {
                 rollbackTx_();
                 return;
-            }
+                }
         }
     }
 

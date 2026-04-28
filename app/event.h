@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/26.
+// Created by lxy on 2025/12/26.
 //
 
 #ifndef ENERGYSTORAGE_EVENT_H
@@ -25,7 +25,6 @@ struct Event {
 
         SerialRx,      // bytes 有效（RS485/RS232 统一）
         SerialDown,
-        SerialUp,
 
         CmdStart,
         CmdStop,

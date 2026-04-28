@@ -19,15 +19,16 @@ namespace control::fault {
     /**
      * FaultLogicEvaluator
      *
-     * 作用：
-     * 1. 从 LogicContext 中读取通用原始故障真源
-     * 2. 使用 fault_cond_engine 做持续时间确认
-     * 3. 将已确认的通用故障信号写入 ctx.confirmed_faults.signals
+     * 当前职责：
+     * 1. 保留 PCU confirmed 链路
+     * 2. 保留系统级 / 聚合类 confirmed 链路
+     * 3. 不再处理 UPS / Smoke / Gas / Air 的设备协议原始故障
      *
-     * 当前这一批目标：
-     * - 把 UPS / Smoke / Gas / Air / PCU / logic 聚合类故障
-     *   正式接入 confirmed signal 主链
-     * - mapper 只负责落码，不负责复杂持续时间判断
+     * UPS / Smoke / Gas / Air 当前链路：
+     * ctx.xxx_faults
+     * -> FaultRuntimeMapper::evalXxxSignal_()
+     * -> FaultRuntimeMapper::debounceRule_()
+     * -> FaultCenter::setActive()
      */
     class FaultLogicEvaluator {
     public:
@@ -51,30 +52,22 @@ namespace control::fault {
         static bool rawPcu0Offline_(const control::LogicContext& ctx);
         static bool rawPcu1Offline_(const control::LogicContext& ctx);
 
-        static bool rawUpsOffline_(const control::LogicContext& ctx);
-        static bool rawUpsFault_(const control::LogicContext& ctx);
-
-        static bool rawSmokeOffline_(const control::LogicContext& ctx);
-        static bool rawSmokeAlarm_(const control::LogicContext& ctx);
-
-        static bool rawGasOffline_(const control::LogicContext& ctx);
-        static bool rawGasAlarm_(const control::LogicContext& ctx);
-
-        static bool rawAirOffline_(const control::LogicContext& ctx);
+        static bool rawPcu0EmergencyStop_(const control::LogicContext& ctx);
+        static bool rawPcu1EmergencyStop_(const control::LogicContext& ctx);
 
         static bool rawEnvAnyAlarm_(const control::LogicContext& ctx);
         static bool rawAnyFault_(const control::LogicContext& ctx);
 
-        static bool rawHmiCommFault_(const control::LogicContext& ctx, uint64_t now_ms);
-        static bool rawRemoteCommFault_(const control::LogicContext& ctx, uint64_t now_ms);
+        static bool rawHmiCommFault_(const control::LogicContext& ctx,
+                                     uint64_t now_ms);
+
+        static bool rawRemoteCommFault_(const control::LogicContext& ctx,
+                                        uint64_t now_ms);
+
         static bool rawSdcardFault_(const control::LogicContext& ctx);
 
-        // ---------- grouped evaluators ----------
+        // ---------- evaluators ----------
         void evaluatePcu_(control::LogicContext& ctx, uint64_t now_ms) const;
-        void evaluateUps_(control::LogicContext& ctx, uint64_t now_ms) const;
-        void evaluateSmoke_(control::LogicContext& ctx, uint64_t now_ms) const;
-        void evaluateGas_(control::LogicContext& ctx, uint64_t now_ms) const;
-        void evaluateAir_(control::LogicContext& ctx, uint64_t now_ms) const;
         void evaluateLogic_(control::LogicContext& ctx, uint64_t now_ms) const;
     };
 

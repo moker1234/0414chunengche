@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/17.
+// Created by lxy on 2025/12/17.
 //
 
 #ifndef ENERGYSTORAGE_LOGGER_H
@@ -8,6 +8,8 @@
 #pragma once
 #include <cstdarg>
 #include <cstdint>
+#include <mutex>
+#include <unordered_map>
 
 #define LOGI LOGINFO
 #define LOGD LOGDEBUG
@@ -213,5 +215,37 @@ constexpr const char* log_basename(const char* path) {
             LOGMACRO(fmt, ##__VA_ARGS__); \
         } \
     } while (0)
+
+/*
+ * ===================== 按 key 限频日志 =====================
+ *
+ * LOG_THROTTLE_MS 是“按调用点限频”，key 当前不参与计算。
+ * 在 for 循环里打印多个对象时，例如 PCU1/PCU2，必须使用本宏。
+ */
+inline bool log_throttle_keyed_allow_(const char* key, uint64_t interval_ms)
+{
+    static std::mutex mtx;
+    static std::unordered_map<std::string, uint64_t> last_ms_by_key;
+
+    const char* safe_key = (key && *key) ? key : "<empty>";
+    const uint64_t now = log_now_ms();
+
+    std::lock_guard<std::mutex> lk(mtx);
+
+    auto& last = last_ms_by_key[safe_key];
+    if (last == 0 || now - last >= interval_ms) {
+        last = now;
+        return true;
+    }
+
+    return false;
+}
+
+#define LOG_THROTTLE_KEYED_MS(key, interval_ms, LOGMACRO, fmt, ...) \
+do { \
+if (log_throttle_keyed_allow_((key), static_cast<uint64_t>(interval_ms))) { \
+LOGMACRO(fmt, ##__VA_ARGS__); \
+} \
+} while (0)
 
 #endif //ENERGYSTORAGE_LOGGER_H

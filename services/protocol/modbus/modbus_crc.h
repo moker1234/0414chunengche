@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/31.
+// Created by lxy on 2025/12/31.
 //
 
 #ifndef ENERGYSTORAGE_MODBUS_CRC_H

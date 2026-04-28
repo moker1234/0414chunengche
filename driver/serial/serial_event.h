@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/20.
+// Created by lxy on 2025/12/20.
 //
 
 #ifndef ENERGYSTORAGE_SERIAL_EVENT_H

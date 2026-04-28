@@ -1,5 +1,5 @@
 //
-// Created by ChatGPT on 2026/4/8.
+// Created by lxy on 2026/4/8.
 //
 
 #include "fault_runtime_mapper.h"
@@ -80,23 +80,24 @@ namespace control
             return defv;
         }
 
-        static const control::bms::BmsPerInstanceCache* findBmsInst_(
-            const control::bms::BmsLogicCache& cache,
-            uint32_t inst)
-        {
-            if (inst < 1 || inst > 4) return nullptr;
-
-            const std::string key = "BMS_" + std::to_string(inst);
-            auto it = cache.items.find(key);
-            if (it == cache.items.end()) return nullptr;
-            return &it->second;
-        }
+        // static const control::bms::BmsPerInstanceCache* findBmsInst_(
+        //     const control::bms::BmsLogicCache& cache,
+        //     uint32_t inst)
+        // {
+        //     if (inst < 1 || inst > 4) return nullptr;
+        //
+        //     const std::string key = "BMS_" + std::to_string(inst);
+        //     auto it = cache.items.find(key);
+        //     if (it == cache.items.end()) return nullptr;
+        //     return &it->second;
+        // }
     } // namespace
 
     void FaultRuntimeMapper::clear()
     {
         rules_.clear();
         stats_ = LoadStats{};
+        debounce_states_.clear();
     }
 
     std::string FaultRuntimeMapper::trim_(const std::string& s)
@@ -145,22 +146,37 @@ namespace control
         if (t == "pcu" || t == "pcu1" || t == "pcu2")
             return "pcu";
 
-        if (t == "ups")
+        if (t == "ups" || t == "ups232" || t == "ups_ascii" || t == "rs232_ups")
             return "ups";
 
-        if (t == "smoke" || t == "tss" || t == "smokesensor")
+        if (t == "smoke" ||
+            t == "smokesensor" ||
+            t == "smoke_sensor" ||
+            t == "tss" ||
+            t == "tss_smoke" ||
+            t == "tss_sensor")
             return "smoke";
 
-        if (t == "gas" || t == "cgs" || t == "gasdetector")
+        if (t == "gas" ||
+            t == "gasdetector" ||
+            t == "gas_detector" ||
+            t == "cgs" ||
+            t == "cgs_sensor")
             return "gas";
 
-        if (t == "air" || t == "aircon" || t == "airconditioner" || t == "ac")
+        if (t == "air" ||
+            t == "aircon" ||
+            t == "air_conditioner" ||
+            t == "airconditioner" ||
+            t == "ac")
             return "air";
 
         if (t == "logic" || t == "vcu" || t == "system")
             return "logic";
 
-        // 第十批：system/comm 类来源统一收口到 logic
+        // system / comm 类来源仍统一收口到 logic。
+        // 但 UPS / AIR / SMOKE / GAS 的通信故障本批已经要求在 fault_map 中改成设备 source，
+        // 所以这些设备通信故障不再依赖 VCU 转发。
         if (t == "hmi" || t == "screen" || t == "display")
             return "logic";
 
@@ -178,130 +194,147 @@ namespace control
         const std::string t = normalizeToken_(s);
 
         // ---- offline / online ----
-        if (t == "offline" || t == "runtime_offline") return "offline";
-        if (t == "online" || t == "runtime_online") return "online";
+        if (t == "offline" || t == "runtime_offline")
+            return "offline";
+
+        if (t == "online" || t == "runtime_online")
+            return "online";
 
         // ---- PCU comm fault ----
-        // 这里不再统一收成 "offline"，而是保留实例粒度，
-        // 交给 logic source / evalLogicSignal_() 去识别。
-        if (t == "pcu1_comm_fault" || t == "pcu_1_comm_fault") return "pcu0_offline";
-        if (t == "pcu2_comm_fault" || t == "pcu_2_comm_fault") return "pcu1_offline";
+        // PCU 仍暂留 logic / confirmed 链路，因此这里保留实例化 token。
+        if (t == "pcu1_comm_fault" || t == "pcu_1_comm_fault")
+            return "pcu0_offline";
 
-        // ---- UPS / smoke / gas / air comm fault ----
-        if (t == "ups_comm_fault") return "ups_offline";
-        if (t == "tss_comm_fault" || t == "smoke_comm_fault") return "smoke_offline";
-        if (t == "cgs_comm_fault" || t == "gas_comm_fault") return "gas_offline";
-        if (t == "aircon_comm_fault" || t == "air_comm_fault" || t == "airconditioner_comm_fault") return "air_offline";
+        if (t == "pcu2_comm_fault" || t == "pcu_2_comm_fault")
+            return "pcu1_offline";
+
+        // ---- UPS comm fault ----
+        if (t == "ups_comm_fault" ||
+            t == "ups_offline" ||
+            t == "ups_runtime_offline")
+            return "ups_offline";
+
+        // ---- Smoke / TSS comm fault ----
+        if (t == "tss_offline" ||
+            t == "tss_comm_fault" ||
+            t == "smoke_offline" ||
+            t == "smoke_comm_fault" ||
+            t == "smokesensor_comm_fault" ||
+            t == "smoke_sensor_comm_fault")
+            return "tss_offline";
+
+        // ---- Gas / CGS comm fault ----
+        if (t == "gas_offline" ||
+            t == "gas_comm_fault" ||
+            t == "cgs_comm_fault" ||
+            t == "gasdetector_comm_fault" ||
+            t == "gas_detector_comm_fault")
+            return "gas_offline";
+
+        // ---- Air / Aircon comm fault ----
+        if (t == "air_offline" ||
+            t == "air_comm_fault" ||
+            t == "aircon_comm_fault" ||
+            t == "airconditioner_comm_fault" ||
+            t == "air_conditioner_comm_fault")
+            return "air_offline";
 
         // ---- HMI / remote / sdcard ----
-        if (t == "hmi_comm_fault" || t == "screen_comm_fault" || t == "display_comm_fault")
+        if (t == "hmi_comm_fault" ||
+            t == "screen_comm_fault" ||
+            t == "display_comm_fault")
             return "hmi_comm_fault";
 
-        if (t == "remote_comm_fault" || t == "remoteio_comm_fault" || t == "remote_io_comm_fault")
+        if (t == "remote_comm_fault" ||
+            t == "remoteio_comm_fault" ||
+            t == "remote_io_comm_fault")
             return "remote_comm_fault";
 
-        if (t == "sdcard_fault" || t == "sd_fault" || t == "tfcard_fault" || t == "tf_fault")
+        if (t == "sdcard_fault" ||
+            t == "sd_fault" ||
+            t == "tfcard_fault" ||
+            t == "tf_fault")
             return "sdcard_fault";
 
         // ---- 通用聚合 ----
-        if (t == "alarm_any" || t == "env_alarm_any") return "alarm_any";
-        if (t == "fault_any") return "fault_any";
-        if (t == "logic_any_fault") return "any_fault";
-        if (t == "env_any_alarm") return "env_any_alarm";
-        if (t == "system_estop" || t == "estop") return "system_estop";
-
-        // ---- UPS ----
-        if (t == "ups_alarm_any") return "alarm_any";
-        if (t == "ups_fault_any") return "fault_any";
-        if (t == "ups_fault_code_nonzero") return "fault_code_nonzero";
-        if (t == "ups_battery_low") return "battery_low";
-        if (t == "ups_bypass" || t == "ups_bypass_active") return "bypass_active";
-
-        // ---- Smoke / TSS ----
-        if (t == "smoke_alarm_any" || t == "tss_alarm_any") return "alarm_any";
-        if (t == "smoke_fault_any" || t == "tss_fault_any") return "fault_any";
-
-        if (t == "tss_smoke_alarm") return "smoke_alarm";
-        if (t == "tss_temp_alarm") return "temp_alarm";
-        if (t == "tss_ss_alarm" || t == "tss_smoke_sensor_fault" || t == "tss_smoke_fault")
-            return "smoke_sensor_fault";
-        if (t == "tss_spollution_alarm" || t == "tss_smoke_pollution_fault" || t == "tss_pollution_fault")
-            return "smoke_pollution_fault";
-        if (t == "tss_temp_fault") return "temp_sensor_fault";
-
-        // ---- Gas / CGS ----
-        if (t == "gas_alarm_any" || t == "cgs_alarm_any") return "alarm_any";
-        if (t == "gas_fault_any" || t == "cgs_fault_any") return "fault_any";
-        if (t == "gas_status_nonzero" || t == "cgs_status_nonzero") return "status_nonzero";
-
-        if (t == "cgs_sensor_fault" || t == "cgs_fault") return "sensor_fault";
-        if (t == "cgs_sensor_low" || t == "cgs_low_alarm") return "low_alarm";
-        if (t == "cgs_sensor_high" || t == "cgs_high_alarm") return "high_alarm";
-
-        // ---- Air / AirConditioner ----
-        if (t == "air_alarm_any" || t == "aircon_alarm_any" || t == "aircon_alarm")
+        if (t == "alarm_any" || t == "env_alarm_any")
             return "alarm_any";
-        if (t == "air_fault_any" || t == "aircon_fault_any" || t == "aircon_fault")
+
+        if (t == "fault_any")
             return "fault_any";
 
-        if (t == "aircon_hightemp_alarm") return "high_temp_alarm";
-        if (t == "aircon_lowtemp_alarm") return "low_temp_alarm";
-        if (t == "aircon_highhumi_alarm") return "high_humidity_alarm";
-        if (t == "aircon_lowhumi_alarm") return "low_humidity_alarm";
-        if (t == "aircon_coil_freeze_protect") return "coil_freeze_protect";
-        if (t == "aircon_exhaust_hightemp_alarm") return "exhaust_high_temp_alarm";
+        if (t == "logic_any_fault")
+            return "any_fault";
 
-        if (t == "aircon_coil_temp_sensor_fault") return "coil_temp_sensor_fault";
-        if (t == "aircon_outdoor_temp_sensor_fault") return "outdoor_temp_sensor_fault";
-        if (t == "aircon_condenser_temp_sensor_fault") return "condenser_temp_sensor_fault";
-        if (t == "aircon_indoor_temp_sensor_fault") return "indoor_temp_sensor_fault";
-        if (t == "aircon_exhaust_temp_sensor_fault") return "exhaust_temp_sensor_fault";
-        if (t == "aircon_humidity_sensor_fault") return "humidity_sensor_fault";
+        if (t == "env_any_alarm")
+            return "env_any_alarm";
 
-        if (t == "aircon_internal_fan_fault") return "internal_fan_fault";
-        if (t == "aircon_external_fan_fault") return "external_fan_fault";
-        if (t == "aircon_compressor_fault") return "compressor_fault";
-        if (t == "aircon_heater_fault") return "heater_fault";
-        if (t == "aircon_emergency_fan_fault") return "emergency_fan_fault";
+        if (t == "system_estop" || t == "estop")
+            return "system_estop";
 
-        if (t == "aircon_high_pressure_alarm") return "high_pressure_alarm";
-        if (t == "aircon_low_pressure_alarm") return "low_pressure_alarm";
-        if (t == "aircon_water_alarm" || t == "aircon_water_leak_alarm") return "water_alarm";
-        if (t == "aircon_smoke_alarm" || t == "aircon_smoke") return "smoke_alarm";
-        if (t == "aircon_gating_alarm" || t == "aircon_door_alarm" || t == "aircon_door")
-            return "gating_alarm";
+        // ---- UPS common aliases ----
+        if (t == "ups_alarm_any")
+            return "alarm_any";
 
-        if (t == "aircon_high_pressure_lock") return "high_pressure_lock";
-        if (t == "aircon_low_pressure_lock") return "low_pressure_lock";
-        if (t == "aircon_exhaust_lock") return "exhaust_lock";
+        if (t == "ups_fault_any")
+            return "fault_any";
 
-        if (t == "aircon_ac_over_voltage_alarm") return "ac_over_voltage_alarm";
-        if (t == "aircon_ac_under_voltage_alarm") return "ac_under_voltage_alarm";
-        if (t == "aircon_ac_power_loss") return "ac_power_loss";
-        if (t == "aircon_lose_phase_alarm" || t == "aircon_phase_loss") return "lose_phase_alarm";
-        if (t == "aircon_freq_fault") return "freq_fault";
-        if (t == "aircon_anti_phase_alarm" || t == "aircon_phase_reverse") return "anti_phase_alarm";
-        if (t == "aircon_dc_over_voltage_alarm") return "dc_over_voltage_alarm";
-        if (t == "aircon_dc_under_voltage_alarm") return "dc_under_voltage_alarm";
+        if (t == "ups_fault_code_nonzero")
+            return "fault_code_nonzero";
 
-        // ---- UPS 额外别名 ----
-        if (t == "ups_overload") return "overload_warning";
-        if (t == "ups_overload_alarm") return "overload_fail";
-        if (t == "ups_fan_fault") return "fan_lock_warning";
-        if (t == "ups_battery_overtemp") return "bat_overtemp";
-        if (t == "ups_sys_over_capacity") return "sys_over_capacity_warning";
+        if (t == "ups_battery_low")
+            return "battery_low";
 
-        // ---- BMS 额外别名 ----
-        if (t == "bms_runtime_offline") return "offline";
-        if (t == "bms_runtime_online") return "online";
-        if (t == "bms_runtime_stale") return "runtime_stale";
-        if (t == "bms_st2_stale") return "st2_stale";
-        if (t == "bms_current_limit_stale") return "current_limit_stale";
-        if (t == "bms_fault1_stale") return "fault1_stale";
-        if (t == "bms_fault2_stale") return "fault2_stale";
+        if (t == "ups_bypass" || t == "ups_bypass_active")
+            return "bypass_active";
+
+        // ---- Smoke / TSS aliases ----
+        if (t == "tss_smoke_alarm")
+            return "tss_smoke_alarm";
+
+        if (t == "tss_temp_alarm")
+            return "tss_temp_alarm";
+
+        if (t == "tss_ss_alarm")
+            return "tss_ss_alarm";
+
+        if (t == "tss_spollution_alarm" ||
+            t == "tss_pollution_alarm" ||
+            t == "tss_s_pollution_alarm")
+            return "tss_spollution_alarm";
+
+        if (t == "tss_temp_fault")
+            return "tss_temp_fault";
+
+        // ---- Gas aliases ----
+        if (t == "gas_alarm_any")
+            return "gas_alarm_any";
+
+        if (t == "gas_fault_any")
+            return "gas_fault_any";
+
+        if (t == "gas_sensor_fault")
+            return "gas_sensor_fault";
+
+        if (t == "gas_low_alarm")
+            return "gas_low_alarm";
+
+        if (t == "gas_high_alarm")
+            return "gas_high_alarm";
+
+        if (t == "gas_status_nonzero")
+            return "gas_status_nonzero";
+
+        // ---- Air common aliases ----
+        if (t == "air_alarm_any" || t == "aircon_alarm_any")
+            return "alarm_any";
+
+        if (t == "air_fault_any" || t == "aircon_fault_any")
+            return "fault_any";
 
         return t;
     }
+
     bool FaultRuntimeMapper::parseBoolLoose_(const std::string& s, bool defv)
     {
         std::string t = normalizeToken_(s);
@@ -318,19 +351,23 @@ namespace control
         // --------------------------
         // BMS: BMS_1 ~ BMS_4 风格
         // --------------------------
-        if (t.find("bms1") != std::string::npos || t.find("bms_1") != std::string::npos) {
+        if (t.find("bms1") != std::string::npos || t.find("bms_1") != std::string::npos)
+        {
             out_inst = 1;
             return true;
         }
-        if (t.find("bms2") != std::string::npos || t.find("bms_2") != std::string::npos) {
+        if (t.find("bms2") != std::string::npos || t.find("bms_2") != std::string::npos)
+        {
             out_inst = 2;
             return true;
         }
-        if (t.find("bms3") != std::string::npos || t.find("bms_3") != std::string::npos) {
+        if (t.find("bms3") != std::string::npos || t.find("bms_3") != std::string::npos)
+        {
             out_inst = 3;
             return true;
         }
-        if (t.find("bms4") != std::string::npos || t.find("bms_4") != std::string::npos) {
+        if (t.find("bms4") != std::string::npos || t.find("bms_4") != std::string::npos)
+        {
             out_inst = 4;
             return true;
         }
@@ -347,31 +384,37 @@ namespace control
         // --------------------------
 
         // 外部规则常见写法
-        if (t.find("pcu1commfault") != std::string::npos || t.find("pcu_1_comm_fault") != std::string::npos) {
+        if (t.find("pcu1commfault") != std::string::npos || t.find("pcu_1_comm_fault") != std::string::npos)
+        {
             out_inst = 1;
             return true;
         }
-        if (t.find("pcu2commfault") != std::string::npos || t.find("pcu_2_comm_fault") != std::string::npos) {
+        if (t.find("pcu2commfault") != std::string::npos || t.find("pcu_2_comm_fault") != std::string::npos)
+        {
             out_inst = 2;
             return true;
         }
 
         // 归一化后实例别名
-        if (t == "pcu0offline" || t == "pcu_0_offline") {
+        if (t == "pcu0offline" || t == "pcu_0_offline")
+        {
             out_inst = 1;
             return true;
         }
-        if (t == "pcu1offline" || t == "pcu_1_offline") {
+        if (t == "pcu1offline" || t == "pcu_1_offline")
+        {
             out_inst = 2;
             return true;
         }
 
         // 兼容直接写 pcu1_offline / pcu2_offline 的规则表
-        if (t.find("pcu1offline") != std::string::npos || t.find("pcu_1_offline") != std::string::npos) {
+        if (t.find("pcu1offline") != std::string::npos || t.find("pcu_1_offline") != std::string::npos)
+        {
             out_inst = 1;
             return true;
         }
-        if (t.find("pcu2offline") != std::string::npos || t.find("pcu_2_offline") != std::string::npos) {
+        if (t.find("pcu2offline") != std::string::npos || t.find("pcu_2_offline") != std::string::npos)
+        {
             out_inst = 2;
             return true;
         }
@@ -468,7 +511,7 @@ namespace control
 
                 // 支持多 source
                 const bool supported_source =
-                    (r.source_norm == "bms") ||
+                    // (r.source_norm == "bms") ||
                     (r.source_norm == "pcu") ||
                     (r.source_norm == "ups") ||
                     (r.source_norm == "smoke") ||
@@ -483,7 +526,9 @@ namespace control
                 }
 
                 // BMS / PCU 若 instance 未填，可尝试从 signal 推导
-                if ((r.source_norm == "bms" || r.source_norm == "pcu") && r.instance == 0)
+                if ((
+                    // r.source_norm == "bms" ||
+                    r.source_norm == "pcu") && r.instance == 0)
                 {
                     uint32_t inferred = 0;
                     if (tryParseInstanceFromSignal_(r.signal_norm, inferred))
@@ -492,158 +537,191 @@ namespace control
                     }
                 }
 
-                    LOGINFO("[FAULT][MAP][LOAD] code=0x%04X name=%s source=%s signal=%s -> source_norm=%s signal_norm=%s inst=%u", // 20260414
-                        (unsigned)r.code,
-                        r.name.c_str(),
-                        r.source.c_str(),
-                        r.signal.c_str(),
-                        r.source_norm.c_str(),
-                        r.signal_norm.c_str(),
-                        (unsigned)r.instance);
-                    ++stats_.accepted_rules;
-                    rules_.push_back(std::move(r));
-
+                // LOGINFO("[FAULT][MAP][LOAD] code=0x%04X name=%s source=%s signal=%s -> source_norm=%s signal_norm=%s inst=%u", // 20260414
+                //     (unsigned)r.code,
+                //     r.name.c_str(),
+                //     r.source.c_str(),
+                //     r.signal.c_str(),
+                //     r.source_norm.c_str(),
+                //     r.signal_norm.c_str(),
+                //     (unsigned)r.instance);
+                ++stats_.accepted_rules;
+                rules_.push_back(std::move(r));
             }
         }
 
         return true;
     }
 
-    bool FaultRuntimeMapper::evalBmsSignal_(const control::bms::BmsPerInstanceCache& x,
-                                            const std::string& signal)
-    {
-        const std::string s = normalizeToken_(signal);
-
-        if (s == "offline" || s == "runtime_offline" || s == "bms_offline") return !x.online;
-        if (s == "online" || s == "runtime_online" || s == "bms_online") return x.online;
-
-        if (s == "runtime_stale" || s == "runtime_fault_stale" || s == "bms_runtime_stale")
-            return x.runtime_fault_stale;
-
-        if (s == "fault_block_hv" || s == "bms_fault_block_hv")
-            return x.hv_should_open ||
-                x.f1_hvil_fault ||
-                x.f1_over_chg ||
-                (x.f1_low_ins_res >= 3) ||
-                x.f2_pack_self_protect ||
-                x.f2_main_loop_prechg_err ||
-                x.f2_aux_loop_prechg_err ||
-                x.f2_chrg_ins_low_err;
-
-        if (s == "ins_low_any" || s == "bms_ins_low_any")
-            return (x.f1_low_ins_res != 0) || x.f2_chrg_ins_low_err;
-
-        if (s == "alarm_any" || s == "bms_alarm_any")
-            return x.alarm_any;
-
-        if (s == "fault_any" || s == "bms_fault_any")
-            return (x.fault_level > 0) || x.rq_hv_power_off ||
-                (x.fire_fault_level > 0) || (x.tms_fault_level > 0);
-
-        if (s == "st2_stale" || s == "bms_st2_stale")
-            return (x.last_st2_ms > 0) && !x.st2_online;
-
-        if (s == "current_limit_stale" || s == "bms_current_limit_stale")
-            return (x.last_current_limit_ms > 0) && !x.current_limit_online;
-
-        if (s == "fault1_stale" || s == "bms_fault1_stale")
-            return (x.last_fault1_ms > 0) && !x.fault1_online;
-
-        if (s == "fault2_stale" || s == "bms_fault2_stale")
-            return (x.last_fault2_ms > 0) && !x.fault2_online;
-
-        if (s == "rq_hv_power_off" || s == "bms_rq_hv_power_off")
-            return x.rq_hv_power_off;
-
-        if (s == "fault_level_ge_1") return x.fault_level >= 1;
-        if (s == "fault_level_ge_2") return x.fault_level >= 2;
-        if (s == "tms_fault_level_ge_1") return x.tms_fault_level >= 1;
-        if (s == "tms_fault_level_ge_2") return x.tms_fault_level >= 2;
-        if (s == "fire_fault_level_ge_1") return x.fire_fault_level >= 1;
-        if (s == "fire_fault_level_ge_2") return x.fire_fault_level >= 2;
-
-        if (s == "f1_del_temp" || s == "bms_f1_del_temp") return x.f1_del_temp != 0;
-        if (s == "f1_over_temp" || s == "bms_f1_over_temp") return x.f1_over_temp >= 3;
-        if (s == "f1_over_ucell" || s == "bms_f1_over_ucell") return x.f1_over_ucell >= 3;
-        if (s == "f1_low_ucell" || s == "bms_f1_low_ucell") return x.f1_low_ucell >= 3;
-        if (s == "f1_low_ins_res" || s == "bms_f1_low_ins_res") return x.f1_low_ins_res >= 3;
-        if (s == "f1_ucell_uniformity" || s == "bms_f1_ucell_uniformity") return x.f1_ucell_uniformity;
-        if (s == "f1_over_chg" || s == "bms_f1_over_chg") return x.f1_over_chg;
-        if (s == "f1_over_soc" || s == "bms_f1_over_soc") return x.f1_over_soc;
-        if (s == "f1_soc_change_fast" || s == "bms_f1_soc_change_fast") return x.f1_soc_change_fast;
-        if (s == "f1_bat_sys_not_match" || s == "bms_f1_bat_sys_not_match") return x.f1_bat_sys_not_match;
-        if (s == "f1_hvil_fault" || s == "bms_f1_hvil_fault") return x.f1_hvil_fault;
-
-        if (s == "f2_tms_err" || s == "bms_f2_tms_err") return x.f2_tms_err;
-        if (s == "f2_pack_self_protect" || s == "bms_f2_pack_self_protect") return x.f2_pack_self_protect;
-        if (s == "f2_main_loop_prechg_err" || s == "bms_f2_main_loop_prechg_err") return x.f2_main_loop_prechg_err;
-        if (s == "f2_aux_loop_prechg_err" || s == "bms_f2_aux_loop_prechg_err") return x.f2_aux_loop_prechg_err;
-        if (s == "f2_chrg_ins_low_err" || s == "bms_f2_chrg_ins_low_err") return x.f2_chrg_ins_low_err;
-        if (s == "f2_acan_lost" || s == "bms_f2_acan_lost") return x.f2_acan_lost;
-        if (s == "f2_inner_comm_err" || s == "bms_f2_inner_comm_err") return x.f2_inner_comm_err;
-        if (s == "f2_dcdc_err" || s == "bms_f2_dcdc_err") return x.f2_dcdc_err;
-        if (s == "f2_branch_break_err" || s == "bms_f2_branch_break_err") return x.f2_branch_break_err;
-        if (s == "f2_heat_relay_open_err" || s == "bms_f2_heat_relay_open_err") return x.f2_heat_relay_open_err;
-        if (s == "f2_heat_relay_weld_err" || s == "bms_f2_heat_relay_weld_err") return x.f2_heat_relay_weld_err;
-        if (s == "f2_main_pos_open_err" || s == "bms_f2_main_pos_open_err") return x.f2_main_pos_open_err;
-        if (s == "f2_main_pos_weld_err" || s == "bms_f2_main_pos_weld_err") return x.f2_main_pos_weld_err;
-        if (s == "f2_main_neg_open_err" || s == "bms_f2_main_neg_open_err") return x.f2_main_neg_open_err;
-        if (s == "f2_main_neg_weld_err" || s == "bms_f2_main_neg_weld_err") return x.f2_main_neg_weld_err;
-
-        return false;
-    }
+    // bool FaultRuntimeMapper::evalBmsSignal_(const control::bms::BmsPerInstanceCache& x,
+    //                                         const std::string& signal)
+    // {
+    //     const std::string s = normalizeToken_(signal);
+    //
+    //     if (s == "offline" || s == "runtime_offline" || s == "bms_offline") return !x.online;
+    //     if (s == "online" || s == "runtime_online" || s == "bms_online") return x.online;
+    //
+    //     if (s == "runtime_stale" || s == "runtime_fault_stale" || s == "bms_runtime_stale")
+    //         return x.runtime_fault_stale;
+    //
+    //     if (s == "fault_block_hv" || s == "bms_fault_block_hv")
+    //         return x.hv_should_open ||
+    //             x.f1_hvil_fault ||
+    //             x.f1_over_chg ||
+    //             (x.f1_low_ins_res >= 3) ||
+    //             x.f2_pack_self_protect ||
+    //             x.f2_main_loop_prechg_err ||
+    //             x.f2_aux_loop_prechg_err ||
+    //             x.f2_chrg_ins_low_err;
+    //
+    //     if (s == "ins_low_any" || s == "bms_ins_low_any")
+    //         return (x.f1_low_ins_res != 0) || x.f2_chrg_ins_low_err;
+    //
+    //     if (s == "alarm_any" || s == "bms_alarm_any")
+    //         return x.alarm_any;
+    //
+    //     if (s == "fault_any" || s == "bms_fault_any")
+    //         return (x.fault_level > 0) || x.rq_hv_power_off ||
+    //             (x.fire_fault_level > 0) || (x.tms_fault_level > 0);
+    //
+    //     if (s == "st2_stale" || s == "bms_st2_stale")
+    //         return (x.last_st2_ms > 0) && !x.st2_online;
+    //
+    //     if (s == "current_limit_stale" || s == "bms_current_limit_stale")
+    //         return (x.last_current_limit_ms > 0) && !x.current_limit_online;
+    //
+    //     if (s == "fault1_stale" || s == "bms_fault1_stale")
+    //         return (x.last_fault1_ms > 0) && !x.fault1_online;
+    //
+    //     if (s == "fault2_stale" || s == "bms_fault2_stale")
+    //         return (x.last_fault2_ms > 0) && !x.fault2_online;
+    //
+    //     if (s == "rq_hv_power_off" || s == "bms_rq_hv_power_off")
+    //         return x.rq_hv_power_off;
+    //
+    //     if (s == "fault_level_ge_1") return x.fault_level >= 1;
+    //     if (s == "fault_level_ge_2") return x.fault_level >= 2;
+    //     if (s == "tms_fault_level_ge_1") return x.tms_fault_level >= 1;
+    //     if (s == "tms_fault_level_ge_2") return x.tms_fault_level >= 2;
+    //     if (s == "fire_fault_level_ge_1") return x.fire_fault_level >= 1;
+    //     if (s == "fire_fault_level_ge_2") return x.fire_fault_level >= 2;
+    //
+    //     if (s == "f1_del_temp" || s == "bms_f1_del_temp") return x.f1_del_temp != 0;
+    //     if (s == "f1_over_temp" || s == "bms_f1_over_temp") return x.f1_over_temp >= 3;
+    //     if (s == "f1_over_ucell" || s == "bms_f1_over_ucell") return x.f1_over_ucell >= 3;
+    //     if (s == "f1_low_ucell" || s == "bms_f1_low_ucell") return x.f1_low_ucell >= 3;
+    //     if (s == "f1_low_ins_res" || s == "bms_f1_low_ins_res") return x.f1_low_ins_res >= 3;
+    //     if (s == "f1_ucell_uniformity" || s == "bms_f1_ucell_uniformity") return x.f1_ucell_uniformity;
+    //     if (s == "f1_over_chg" || s == "bms_f1_over_chg") return x.f1_over_chg;
+    //     if (s == "f1_over_soc" || s == "bms_f1_over_soc") return x.f1_over_soc;
+    //     if (s == "f1_soc_change_fast" || s == "bms_f1_soc_change_fast") return x.f1_soc_change_fast;
+    //     if (s == "f1_bat_sys_not_match" || s == "bms_f1_bat_sys_not_match") return x.f1_bat_sys_not_match;
+    //     if (s == "f1_hvil_fault" || s == "bms_f1_hvil_fault") return x.f1_hvil_fault;
+    //
+    //     if (s == "f2_tms_err" || s == "bms_f2_tms_err") return x.f2_tms_err;
+    //     if (s == "f2_pack_self_protect" || s == "bms_f2_pack_self_protect") return x.f2_pack_self_protect;
+    //     if (s == "f2_main_loop_prechg_err" || s == "bms_f2_main_loop_prechg_err") return x.f2_main_loop_prechg_err;
+    //     if (s == "f2_aux_loop_prechg_err" || s == "bms_f2_aux_loop_prechg_err") return x.f2_aux_loop_prechg_err;
+    //     if (s == "f2_chrg_ins_low_err" || s == "bms_f2_chrg_ins_low_err") return x.f2_chrg_ins_low_err;
+    //     if (s == "f2_acan_lost" || s == "bms_f2_acan_lost") return x.f2_acan_lost;
+    //     if (s == "f2_inner_comm_err" || s == "bms_f2_inner_comm_err") return x.f2_inner_comm_err;
+    //     if (s == "f2_dcdc_err" || s == "bms_f2_dcdc_err") return x.f2_dcdc_err;
+    //     if (s == "f2_branch_break_err" || s == "bms_f2_branch_break_err") return x.f2_branch_break_err;
+    //     if (s == "f2_heat_relay_open_err" || s == "bms_f2_heat_relay_open_err") return x.f2_heat_relay_open_err;
+    //     if (s == "f2_heat_relay_weld_err" || s == "bms_f2_heat_relay_weld_err") return x.f2_heat_relay_weld_err;
+    //     if (s == "f2_main_pos_open_err" || s == "bms_f2_main_pos_open_err") return x.f2_main_pos_open_err;
+    //     if (s == "f2_main_pos_weld_err" || s == "bms_f2_main_pos_weld_err") return x.f2_main_pos_weld_err;
+    //     if (s == "f2_main_neg_open_err" || s == "bms_f2_main_neg_open_err") return x.f2_main_neg_open_err;
+    //     if (s == "f2_main_neg_weld_err" || s == "bms_f2_main_neg_weld_err") return x.f2_main_neg_weld_err;
+    //
+    //     return false;
+    // }
 
     bool FaultRuntimeMapper::evalPcuSignal_(const PcuOnlineState& x,
                                             const std::string& signal)
     {
-        const std::string s = normalizeSignal_(signal);
+        const std::string s = normalizeToken_(signal);
 
-        // 基础在线状态
-        if (s == "offline" || s == "runtime_offline") return !x.online;
-        if (s == "online"  || s == "runtime_online")  return x.online;
+        // 通信 / 在线状态
+        if (s == "offline" ||
+            s == "runtime_offline" ||
+            s == "comm_fault" ||
+            s == "communication_fault" ||
+            s == "pcu_comm_fault" ||
+            s == "pcu1_comm_fault" ||
+            s == "pcu2_comm_fault")
+        {
+            return !x.online;
+        }
 
-        // 第12批：兼容实例化后的 offline token
-        // 一旦路由到本实例，实例化 offline token 语义就等同于 offline。
-        if (s == "pcu0_offline" || s == "pcu1_offline") return !x.online;
+        if (s == "online" ||
+            s == "runtime_online")
+        {
+            return x.online;
+        }
 
-        // 通信 / 心跳类
-        if (s == "rx_timeout") return x.seen_once && !x.rx_alive;
-        if (s == "heartbeat_stale") return x.seen_once && x.rx_alive && !x.hb_alive;
-        if (s == "heartbeat_missing") return !x.has_last_heartbeat;
-        if (s == "estop") return x.estop;
+        if (s == "rx_timeout") {
+            return x.seen_once && !x.rx_alive;
+        }
 
-        // 兼容规则表里直接写 comm fault
-        if (s == "pcu1_comm_fault" || s == "pcu2_comm_fault") return !x.online;
+        if (s == "heartbeat_stale") {
+            return x.seen_once && x.rx_alive && !x.hb_alive;
+        }
+
+        if (s == "heartbeat_missing") {
+            return !x.has_last_heartbeat;
+        }
+
+        // 急停：只在 online 时承认，避免离线后沿用旧 estop
+        if (s == "estop" ||
+            s == "emergency_stop" ||
+            s == "fault_estop" ||
+            s == "pcu_emergency_stop" ||
+            s == "pcu1_emergency_stop" ||
+            s == "pcu2_emergency_stop")
+        {
+            return x.online && x.estop;
+        }
 
         return false;
     }
 
-// ------------------ 替换以下内容 ------------------
+    // ------------------ 替换以下内容 ------------------
     bool FaultRuntimeMapper::evalUpsSignal_(const UpsFaultState& x, const std::string& signal)
     {
         const std::string s = normalizeToken_(signal);
 
-        // 基础离在线与聚合状态
-        if (s == "offline" || s == "runtime_offline" || s == "ups_offline") return !x.online;
-        if (s == "online" || s == "runtime_online" || s == "ups_online") return x.online;
+        if (s == "offline" || s == "runtime_offline" ||
+            s == "ups_offline" || s == "ups_comm_fault")
+        {
+            return !x.online;
+        }
+
+        if (s == "online" || s == "runtime_online" || s == "ups_online")
+        {
+            return x.online;
+        }
+
+        // UPS 离线时，内部 warning/fault 一律不报，只保留通信故障。
+        if (!x.online) return false;
+
         if (s == "alarm_any") return x.alarm_any;
         if (s == "fault_any") return x.fault_any;
-        if (s == "battery_low") return x.battery_low != 0;
-        if (s == "bypass_active" || s == "bypass") return x.bypass_active != 0;
-        if (s == "fault_code_nonzero") return x.ups_fault_code != 0;
+        if (s == "battery_low") return x.battery_low_state || x.battery_low_warning;
+        if (s == "bypass_active" || s == "bypass") return x.bypass_mode || x.bypass_abnormal;
+        if (s == "fault_code_nonzero") return x.fault_bits != 0;
 
-        // 基础运行状态位
+        if (s == "mains_abnormal") return x.mains_abnormal;
         if (s == "battery_low_state") return x.battery_low_state;
         if (s == "bypass_mode") return x.bypass_mode;
         if (s == "ups_fault_state") return x.ups_fault_state;
         if (s == "backup_mode") return x.backup_mode;
         if (s == "self_test_active") return x.self_test_active;
 
-        // --- 32 个 Warning Bits ---
+        // Warning bits
         if (s == "internal_warning") return x.internal_warning;
         if (s == "epo_active") return x.epo_active;
         if (s == "module_unlock") return x.module_unlock;
-        if (s == "mains_abnormal") return x.mains_abnormal;
         if (s == "neutral_lost") return x.neutral_lost;
         if (s == "mains_phase_error") return x.mains_phase_error;
         if (s == "ln_reverse") return x.ln_reverse;
@@ -673,11 +751,13 @@ namespace control
         if (s == "system_overload") return x.system_overload;
         if (s == "reserved_warning") return x.reserved_warning;
 
-        // --- 60 个 Fault Codes ---
+        // Fault codes
+        if (s == "bus_softstart_timeout") return x.bus_softstart_timeout;
         if (s == "bus_overvoltage_fault") return x.bus_overvoltage_fault;
         if (s == "bus_undervoltage_fault") return x.bus_undervoltage_fault;
         if (s == "bus_imbalance_fault") return x.bus_imbalance_fault;
         if (s == "bus_short_circuit") return x.bus_short_circuit;
+
         if (s == "inv_softstart_timeout") return x.inv_softstart_timeout;
         if (s == "inv_overvoltage_fault") return x.inv_overvoltage_fault;
         if (s == "inv_undervoltage_fault") return x.inv_undervoltage_fault;
@@ -688,6 +768,7 @@ namespace control
         if (s == "rs_short_circuit") return x.rs_short_circuit;
         if (s == "st_short_circuit") return x.st_short_circuit;
         if (s == "tr_short_circuit") return x.tr_short_circuit;
+
         if (s == "reverse_power_fault") return x.reverse_power_fault;
         if (s == "r_reverse_power_fault") return x.r_reverse_power_fault;
         if (s == "s_reverse_power_fault") return x.s_reverse_power_fault;
@@ -696,6 +777,7 @@ namespace control
         if (s == "current_imbalance_fault") return x.current_imbalance_fault;
         if (s == "overload_fault") return x.overload_fault;
         if (s == "overtemp_fault") return x.overtemp_fault;
+
         if (s == "inv_relay_fail_close") return x.inv_relay_fail_close;
         if (s == "inv_relay_stuck") return x.inv_relay_stuck;
         if (s == "mains_scr_fault") return x.mains_scr_fault;
@@ -704,6 +786,7 @@ namespace control
         if (s == "rectifier_fault") return x.rectifier_fault;
         if (s == "input_overcurrent_fault") return x.input_overcurrent_fault;
         if (s == "wiring_error") return x.wiring_error;
+
         if (s == "comm_cable_disconnected") return x.comm_cable_disconnected;
         if (s == "host_cable_fault") return x.host_cable_fault;
         if (s == "can_comm_fault") return x.can_comm_fault;
@@ -713,6 +796,7 @@ namespace control
         if (s == "dsp_error") return x.dsp_error;
         if (s == "charger_softstart_timeout") return x.charger_softstart_timeout;
         if (s == "all_module_fault") return x.all_module_fault;
+
         if (s == "mains_ntc_open_fault") return x.mains_ntc_open_fault;
         if (s == "mains_fuse_open_fault") return x.mains_fuse_open_fault;
         if (s == "output_imbalance_fault") return x.output_imbalance_fault;
@@ -724,6 +808,7 @@ namespace control
         if (s == "ads7869_error") return x.ads7869_error;
         if (s == "bypass_mode_no_op") return x.bypass_mode_no_op;
         if (s == "op_breaker_off_parallel") return x.op_breaker_off_parallel;
+
         if (s == "r_bus_fuse_fault") return x.r_bus_fuse_fault;
         if (s == "s_bus_fuse_fault") return x.s_bus_fuse_fault;
         if (s == "t_bus_fuse_fault") return x.t_bus_fuse_fault;
@@ -732,11 +817,11 @@ namespace control
         if (s == "battery_fault") return x.battery_fault;
         if (s == "frequent_overcurrent_fault") return x.frequent_overcurrent_fault;
         if (s == "battery_overcharge_fault") return x.battery_overcharge_fault;
-        if (s == "battery_overcharge_persist") return x.battery_overcharge_persist;
         if (s == "epo_critical_fault") return x.epo_critical_fault;
 
         return false;
     }
+
     // --------------------------------------------------
 
     bool FaultRuntimeMapper::evalSmokeSignal_(const SmokeFaultState& x,
@@ -744,17 +829,53 @@ namespace control
     {
         const std::string s = normalizeToken_(signal);
 
-        if (s == "offline" || s == "runtime_offline" || s == "smoke_offline") return !x.online;
-        if (s == "online" || s == "runtime_online" || s == "smoke_online") return x.online;
+        if (s == "tss_offline" ||
+            s == "smoke_offline" ||
+            s == "tss_comm_fault" ||
+            s == "smoke_comm_fault")
+        {
+            return !x.online;
+        }
 
-        if (s == "alarm_any") return x.alarm_any;
-        if (s == "fault_any") return x.fault_any;
+        if (!x.online)
+        {
+            return false;
+        }
 
-        if (s == "smoke_alarm") return x.smoke_alarm;
-        if (s == "temp_alarm") return x.temp_alarm;
-        if (s == "smoke_sensor_fault") return x.smoke_sensor_fault;
-        if (s == "smoke_pollution_fault") return x.smoke_pollution_fault;
-        if (s == "temp_sensor_fault") return x.temp_sensor_fault;
+        if (s == "tss_smoke_alarm")
+        {
+            return x.smoke_alarm;
+        }
+
+        if (s == "tss_temp_alarm")
+        {
+            return x.temp_alarm;
+        }
+
+        if (s == "tss_ss_alarm")
+        {
+            return x.smoke_sensor_fault;
+        }
+
+        if (s == "tss_spollution_alarm")
+        {
+            return x.smoke_pollution_fault;
+        }
+
+        if (s == "tss_temp_fault")
+        {
+            return x.temp_sensor_fault;
+        }
+
+        if (s == "alarm_any")
+        {
+            return x.alarm_any;
+        }
+
+        if (s == "fault_any")
+        {
+            return x.fault_any;
+        }
 
         return false;
     }
@@ -764,16 +885,53 @@ namespace control
     {
         const std::string s = normalizeToken_(signal);
 
-        if (s == "offline" || s == "runtime_offline" || s == "gas_offline") return !x.online;
-        if (s == "online" || s == "runtime_online" || s == "gas_online") return x.online;
+        // Gas fault_map 统一使用 gas_ 前缀：
+        // gas_offline / gas_online
+        // gas_alarm / gas_alarm_any
+        // gas_sensor_fault / gas_fault_any
+        // gas_low_alarm / gas_high_alarm / gas_status_nonzero
 
-        if (s == "alarm_any") return x.alarm_any;
-        if (s == "fault_any") return x.fault_any;
-        if (s == "status_nonzero") return x.status_code != 0;
+        if (s == "gas_offline" ||
+            s == "cgs_comm_fault" ||
+            s == "gas_comm_fault")
+        {
+            return !x.online;
+        }
 
-        if (s == "sensor_fault") return x.sensor_fault;
-        if (s == "low_alarm") return x.low_alarm;
-        if (s == "high_alarm") return x.high_alarm;
+        if (s == "gas_online")
+        {
+            return x.online;
+        }
+
+        if (!x.online)
+        {
+            return false;
+        }
+
+        if (s == "gas_alarm" || s == "gas_alarm_any" || s == "alarm_any")
+        {
+            return x.alarm_any;
+        }
+
+        if (s == "gas_sensor_fault" || s == "gas_fault_any" || s == "fault_any")
+        {
+            return x.sensor_fault || x.fault_any;
+        }
+
+        if (s == "gas_status_nonzero")
+        {
+            return x.status_code != 0;
+        }
+
+        if (s == "gas_low_alarm")
+        {
+            return x.low_alarm;
+        }
+
+        if (s == "gas_high_alarm")
+        {
+            return x.high_alarm;
+        }
 
         return false;
     }
@@ -783,8 +941,24 @@ namespace control
     {
         const std::string s = normalizeToken_(signal);
 
-        if (s == "offline" || s == "runtime_offline" || s == "air_offline") return !x.online;
-        if (s == "online" || s == "runtime_online" || s == "air_online") return x.online;
+        if (s == "offline" ||
+            s == "runtime_offline" ||
+            s == "air_offline" ||
+            s == "aircon_comm_fault" ||
+            s == "air_comm_fault")
+        {
+            return !x.online;
+        }
+
+        if (s == "online" || s == "runtime_online" || s == "air_online")
+        {
+            return x.online;
+        }
+
+        if (!x.online)
+        {
+            return false;
+        }
 
         if (s == "alarm_any") return x.alarm_any;
         if (s == "fault_any") return x.fault_any;
@@ -872,145 +1046,128 @@ namespace control
     bool FaultRuntimeMapper::isKnownSignalForSource_(const std::string& source_norm,
                                                      const std::string& signal_norm)
     {
+        // UPS / AIR / SMOKE / GAS 已迁移到 direct runtime mapper。
+        //
+        // 这里不再对设备协议信号做严格白名单过滤，原因：
+        // 1. UPS fault_map 信号很多，硬白名单容易漏；
+        // 2. AIR / SMOKE / GAS 后续也可能新增 signal；
+        // 3. 真正是否 active 由 evalXxxSignal_() 判断；
+        // 4. 未识别 signal 最终只会返回 false，不会误触发故障。
+        if (source_norm == "ups" ||
+            source_norm == "air" ||
+            source_norm == "smoke" ||
+            source_norm == "gas")
+        {
+            return !signal_norm.empty();
+        }
+
         if (source_norm == "bms")
         {
             static const char* known[] = {
-                "offline", "online", "runtime_stale", "fault_block_hv", "ins_low_any", "alarm_any", "fault_any",
-                "st2_stale", "current_limit_stale", "fault1_stale", "fault2_stale",
+                "offline", "online",
+                "runtime_stale",
+                "fault_block_hv",
+                "ins_low_any",
+                "alarm_any",
+                "fault_any",
+
+                "st2_stale",
+                "current_limit_stale",
+                "fault1_stale",
+                "fault2_stale",
+
                 "rq_hv_power_off",
-                "fault_level_ge_1", "fault_level_ge_2",
-                "tms_fault_level_ge_1", "tms_fault_level_ge_2",
-                "fire_fault_level_ge_1", "fire_fault_level_ge_2",
-                "f1_del_temp", "f1_over_temp", "f1_over_ucell", "f1_low_ucell", "f1_low_ins_res",
-                "f1_ucell_uniformity", "f1_over_chg", "f1_over_soc", "f1_soc_change_fast",
-                "f1_bat_sys_not_match", "f1_hvil_fault",
-                "f2_tms_err", "f2_pack_self_protect", "f2_main_loop_prechg_err",
-                "f2_aux_loop_prechg_err", "f2_chrg_ins_low_err", "f2_acan_lost",
-                "f2_inner_comm_err", "f2_dcdc_err", "f2_branch_break_err",
-                "f2_heat_relay_open_err", "f2_heat_relay_weld_err",
-                "f2_main_pos_open_err", "f2_main_pos_weld_err",
-                "f2_main_neg_open_err", "f2_main_neg_weld_err"
+
+                "fault_level_ge_1",
+                "fault_level_ge_2",
+                "tms_fault_level_ge_1",
+                "tms_fault_level_ge_2",
+                "fire_fault_level_ge_1",
+                "fire_fault_level_ge_2",
+
+                "f1_del_temp",
+                "f1_over_temp",
+                "f1_over_ucell",
+                "f1_low_ucell",
+                "f1_low_ins_res",
+                "f1_ucell_uniformity",
+                "f1_over_chg",
+                "f1_over_soc",
+                "f1_soc_change_fast",
+                "f1_bat_sys_not_match",
+                "f1_hvil_fault",
+
+                "f2_tms_err",
+                "f2_pack_self_protect",
+                "f2_main_loop_prechg_err",
+                "f2_aux_loop_prechg_err",
+                "f2_chrg_ins_low_err",
+                "f2_acan_lost",
+                "f2_inner_comm_err",
+                "f2_dcdc_err",
+                "f2_branch_break_err",
+
+                "f2_heat_relay_open_err",
+                "f2_heat_relay_weld_err",
+                "f2_main_pos_open_err",
+                "f2_main_pos_weld_err",
+                "f2_main_neg_open_err",
+                "f2_main_neg_weld_err"
             };
-            for (auto* k : known) if (signal_norm == k) return true;
+
+            for (auto* k : known)
+            {
+                if (signal_norm == k) return true;
+            }
+
             return false;
         }
 
         if (source_norm == "pcu")
         {
-            return signal_norm == "offline" || signal_norm == "online" ||
-                   signal_norm == "rx_timeout" || signal_norm == "heartbeat_stale" ||
-                   signal_norm == "heartbeat_missing" || signal_norm == "estop" ||
-                   signal_norm == "pcu0_offline" || signal_norm == "pcu1_offline";
-        }
+            return signal_norm == "offline" ||
+                   signal_norm == "online" ||
+                   signal_norm == "runtime_offline" ||
+                   signal_norm == "runtime_online" ||
+                   signal_norm == "rx_timeout" ||
+                   signal_norm == "heartbeat_stale" ||
+                   signal_norm == "heartbeat_missing" ||
 
-// ------------------ 替换以下内容 ------------------
-        if (source_norm == "ups")
-        {
-            static const char* known[] = {
-                "offline", "online", "alarm_any", "fault_any", "battery_low", "bypass_active", "fault_code_nonzero",
-                "battery_low_state", "bypass_mode", "ups_fault_state", "backup_mode", "self_test_active",
-                // 32个 Warnings
-                "internal_warning", "epo_active", "module_unlock", "mains_abnormal",
-                "neutral_lost", "mains_phase_error", "ln_reverse", "bypass_abnormal",
-                "bypass_phase_error", "battery_not_connected", "battery_low_warning",
-                "battery_overcharge", "battery_reverse", "overload_warning",
-                "overload_alarm", "fan_fault", "bypass_cover_open", "charger_fault",
-                "position_error", "boot_condition_not_met", "redundancy_lost",
-                "module_loose", "battery_maint_due", "inspection_maint_due",
-                "warranty_maint_due", "temp_low_warning", "temp_high_warning",
-                "battery_overtemp", "fan_maint_due", "bus_cap_maint_due",
-                "system_overload", "reserved_warning",
-                // 60个 Faults
-                "bus_overvoltage_fault", "bus_undervoltage_fault", "bus_imbalance_fault",
-                "bus_short_circuit", "inv_softstart_timeout", "inv_overvoltage_fault",
-                "inv_undervoltage_fault", "output_short_circuit", "r_inv_short_circuit",
-                "s_inv_short_circuit", "t_inv_short_circuit", "rs_short_circuit",
-                "st_short_circuit", "tr_short_circuit", "reverse_power_fault",
-                "r_reverse_power_fault", "s_reverse_power_fault", "t_reverse_power_fault",
-                "total_reverse_power_fault", "current_imbalance_fault", "overload_fault",
-                "overtemp_fault", "inv_relay_fail_close", "inv_relay_stuck",
-                "mains_scr_fault", "battery_scr_fault", "bypass_scr_fault",
-                "rectifier_fault", "input_overcurrent_fault", "wiring_error",
-                "comm_cable_disconnected", "host_cable_fault", "can_comm_fault",
-                "sync_signal_fault", "power_supply_fault", "all_fan_fault", "dsp_error",
-                "charger_softstart_timeout", "all_module_fault", "mains_ntc_open_fault",
-                "mains_fuse_open_fault", "output_imbalance_fault", "input_mismatch_fault",
-                "eeprom_data_lost", "mains_support_failed", "power_failed",
-                "system_overload_fault", "ads7869_error", "bypass_mode_no_op",
-                "op_breaker_off_parallel", "r_bus_fuse_fault", "s_bus_fuse_fault",
-                "t_bus_fuse_fault", "ntc_fault", "parallel_cable_fault", "battery_fault",
-                "frequent_overcurrent_fault", "battery_overcharge_fault",
-                "battery_overcharge_persist", "epo_critical_fault"
-            };
-            for (auto* k : known) if (signal_norm == k) return true;
-            return false;
-        }
-        // --------------------------------------------------
-        if (source_norm == "smoke")
-        {
-            static const char* known[] = {
-                "offline", "online", "alarm_any", "fault_any",
-                "smoke_alarm", "temp_alarm",
-                "smoke_sensor_fault", "smoke_pollution_fault", "temp_sensor_fault"
-            };
-            for (auto* k : known) if (signal_norm == k) return true;
-            return false;
-        }
+                   signal_norm == "estop" ||
+                   signal_norm == "emergency_stop" ||
+                   signal_norm == "fault_estop" ||
+                   signal_norm == "pcu_emergency_stop" ||
 
-        if (source_norm == "gas")
-        {
-            static const char* known[] = {
-                "offline", "online", "alarm_any", "fault_any", "status_nonzero",
-                "sensor_fault", "low_alarm", "high_alarm"
-            };
-            for (auto* k : known) if (signal_norm == k) return true;
-            return false;
-        }
-
-        if (source_norm == "air")
-        {
-            static const char* known[] = {
-                "offline", "online", "alarm_any", "fault_any", "run_state_zero", "power_off",
-
-                "high_temp_alarm", "low_temp_alarm",
-                "high_humidity_alarm", "low_humidity_alarm",
-                "coil_freeze_protect", "exhaust_high_temp_alarm",
-
-                "coil_temp_sensor_fault", "outdoor_temp_sensor_fault",
-                "condenser_temp_sensor_fault", "indoor_temp_sensor_fault",
-                "exhaust_temp_sensor_fault", "humidity_sensor_fault",
-
-                "internal_fan_fault", "external_fan_fault", "compressor_fault",
-                "heater_fault", "emergency_fan_fault",
-
-                "high_pressure_alarm", "low_pressure_alarm", "water_alarm",
-                "smoke_alarm", "gating_alarm",
-
-                "high_pressure_lock", "low_pressure_lock", "exhaust_lock",
-
-                "ac_over_voltage_alarm", "ac_under_voltage_alarm", "ac_power_loss",
-                "lose_phase_alarm", "freq_fault", "anti_phase_alarm",
-                "dc_over_voltage_alarm", "dc_under_voltage_alarm"
-            };
-            for (auto* k : known) if (signal_norm == k) return true;
-            return false;
+                   signal_norm == "pcu1_comm_fault" ||
+                   signal_norm == "pcu2_comm_fault" ||
+                   signal_norm == "pcu1_emergency_stop" ||
+                   signal_norm == "pcu2_emergency_stop";
         }
 
         if (source_norm == "logic")
         {
-            static const char* known[] = {
-                "any_fault", "pcu_any_offline", "bms_any_offline",
-                "ups_offline", "smoke_offline", "gas_offline", "air_offline",
-                "env_any_alarm", "system_estop",
+            return signal_norm == "any_fault" ||
+                signal_norm == "pcu_any_offline" ||
+                signal_norm == "bms_any_offline" ||
 
-                // 第十批：system/comm
-                "hmi_comm_fault", "remote_comm_fault", "sdcard_fault",
+                signal_norm == "ups_offline" ||
+                signal_norm == "smoke_offline" ||
+                signal_norm == "gas_offline" ||
+                signal_norm == "air_offline" ||
 
-                // 第十批：实例化 PCU comm alias
-                "pcu0_offline", "pcu1_offline"
-            };
-            for (auto* k : known) if (signal_norm == k) return true;
-            return false;
+                signal_norm == "env_any_alarm" ||
+                signal_norm == "alarm_any" ||
+                signal_norm == "fault_any" ||
+                signal_norm == "system_estop" ||
+
+                signal_norm == "hmi_comm_fault" ||
+                signal_norm == "remote_comm_fault" ||
+                signal_norm == "sdcard_fault" ||
+
+                signal_norm == "pcu0_offline" ||
+                signal_norm == "pcu1_offline" ||
+                signal_norm == "pcu1_comm_fault" ||
+                signal_norm == "pcu2_comm_fault";
         }
 
         return false;
@@ -1026,71 +1183,308 @@ namespace control
     void FaultRuntimeMapper::applyBms(const control::bms::BmsLogicCache& cache,
                                       control::FaultCenter& faults) const
     {
-        for (const auto& rule : rules_)
+        (void)cache;
+        (void)faults;
+
+        // 第五批收敛：
+        // BMS 内部故障不再由 FaultRuntimeMapper 直接解释。
+        //
+        // 正确链路：
+        //   BmsFaultEvaluator
+        //      -> ctx.bms_confirmed_faults
+        //      -> BmsFaultMapper
+        //      -> FaultCenter
+        //
+        // 这里保留空函数只是兼容旧调用点，避免旧接口删除引发联动修改。
+    }
+
+    bool FaultRuntimeMapper::isRuntimeDebounceSource_(const std::string& source_norm)
+    {
+        return source_norm == "ups" ||
+            source_norm == "air" ||
+            source_norm == "smoke" ||
+            source_norm == "gas";
+    }
+
+    bool FaultRuntimeMapper::isOfflineSignal_(const Rule& rule)
+    {
+        const std::string src = normalizeToken_(rule.source_norm);
+        const std::string sig = normalizeToken_(rule.signal_norm);
+
+        if (src == "ups")
         {
-            if (rule.source_norm != "bms") continue;
-
-            uint32_t inst = rule.instance;
-
-            if (inst == 0)
-            {
-                uint32_t inferred = 0;
-                if (tryParseInstanceFromSignal_(rule.signal_norm, inferred))
-                {
-                    inst = inferred;
-                }
-            }
-
-            if (inst < 1 || inst > 4) continue;
-
-            const auto* x = findBmsInst_(cache, inst);
-            const bool active = (x != nullptr) ? evalBmsSignal_(*x, rule.signal_norm) : false;
-            faults.setActive(rule.code, active);
+            return sig == "offline" ||
+                sig == "runtime_offline" ||
+                sig == "ups_offline" ||
+                sig == "ups_comm_fault";
         }
+
+        if (src == "air")
+        {
+            return sig == "offline" ||
+                sig == "runtime_offline" ||
+                sig == "air_offline" ||
+                sig == "aircon_comm_fault" ||
+                sig == "air_comm_fault";
+        }
+
+        if (src == "smoke")
+        {
+            return sig == "tss_offline" ||
+                sig == "smoke_offline" ||
+                sig == "tss_comm_fault" ||
+                sig == "smoke_comm_fault";
+        }
+
+        if (src == "gas")
+        {
+            return sig == "gas_offline" ||
+                sig == "cgs_comm_fault" ||
+                sig == "gas_comm_fault";
+        }
+
+        return false;
+    }
+
+    FaultRuntimeMapper::DebouncePolicy
+    FaultRuntimeMapper::policyForRule_(const Rule& rule)
+    {
+        DebouncePolicy p{};
+
+        if (!isRuntimeDebounceSource_(rule.source_norm))
+        {
+            p.enable = false;
+            return p;
+        }
+
+        p.enable = true;
+
+        // 通信离线类：沿用旧设备 evaluateXxx_ 风格。
+        // 注意：离线前面通常已经过 Scheduler disconnect_window aging，
+        // 这里再做 3000ms 是为了避免 HMI 故障页抖动。
+        if (isOfflineSignal_(rule))
+        {
+            p.trigger_ms = 3000;
+            p.clear_ms = 0;
+            return p;
+        }
+
+        // 设备内部故障 / 告警：沿用旧 Smoke/Gas/Air/UPS 的 3000/1000 防抖风格。
+        p.trigger_ms = 3000;
+        p.clear_ms = 1000;
+        return p;
+    }
+
+    std::string FaultRuntimeMapper::makeDebounceKey_(const Rule& rule)
+    {
+        // code 加入 key，避免不同故障码错误共用同一 source/signal 状态。
+        return rule.source_norm + "|" +
+            rule.signal_norm + "|" +
+            std::to_string(static_cast<unsigned>(rule.instance)) + "|" +
+            std::to_string(static_cast<unsigned>(rule.code));
+    }
+
+    bool FaultRuntimeMapper::debounceRule_(const Rule& rule,
+                                           bool raw_active,
+                                           uint64_t now_ms) const
+    {
+        const DebouncePolicy policy = policyForRule_(rule);
+
+        if (!policy.enable)
+        {
+            return raw_active;
+        }
+
+        const std::string key = makeDebounceKey_(rule);
+        auto& st = debounce_states_[key];
+
+        if (!st.initialized)
+        {
+            st.initialized = true;
+            st.last_raw = raw_active;
+            st.raw_since_ms = now_ms;
+
+            // 初始为 active 时仍需满足 trigger_ms；
+            // 初始为 inactive 时直接保持 inactive。
+            st.output = raw_active && (policy.trigger_ms == 0);
+            return st.output;
+        }
+
+        if (st.last_raw != raw_active)
+        {
+            st.last_raw = raw_active;
+            st.raw_since_ms = now_ms;
+        }
+
+        if (now_ms < st.raw_since_ms)
+        {
+            // 防御系统时间异常回跳。
+            st.raw_since_ms = now_ms;
+        }
+
+        const uint64_t held_ms = now_ms - st.raw_since_ms;
+
+        if (raw_active != st.output)
+        {
+            const uint32_t need_ms = raw_active ? policy.trigger_ms : policy.clear_ms;
+            if (need_ms == 0 || held_ms >= need_ms)
+            {
+                st.output = raw_active;
+            }
+        }
+
+        return st.output;
     }
 
 
     void FaultRuntimeMapper::applyAll(const LogicContext& ctx,
-                                      control::FaultCenter& faults) const
+                                      control::FaultCenter& faults,
+                                      uint64_t now_ms) const
     {
-        LOG_THROTTLE_MS("fault_runtime_apply_enter", 1000, LOGINFO, // 20260414
-    "[PROVE][RUNTIME_APPLY] rules=%zu air{seen=%d online=%d low=%d freeze=%d exhaust=%d} confirmed=%zu",
-    rules_.size(),
-    ctx.air_faults.seen_once ? 1 : 0,
-    ctx.air_faults.online ? 1 : 0,
-    ctx.air_faults.low_humidity_alarm ? 1 : 0,
-    ctx.air_faults.coil_freeze_protect ? 1 : 0,
-    ctx.air_faults.exhaust_high_temp_alarm ? 1 : 0,
-    ctx.confirmed_faults.signals.size());
         for (const auto& rule : rules_)
         {
-            if (rule.code == 0x102B || rule.code == 0x102C || rule.code == 0x102D) { // 20260414
-                LOG_THROTTLE_MS(("fault_rule_probe_" + std::to_string(rule.code)).c_str(), 1000, LOGINFO,
-                    "[PROBE][RULE] code=0x%04X src=%s/%s sig=%s/%s inst=%u",
-                    (unsigned)rule.code,
-                    rule.source.c_str(),
-                    rule.source_norm.c_str(),
-                    rule.signal.c_str(),
-                    rule.signal_norm.c_str(),
-                    (unsigned)rule.instance);
-            }
+            // 第五批收敛：
+            // source_norm == "bms" 的 BMS 内部故障，不再由 RuntimeMapper 解释。
+            // 否则会在 LogicEngine::applyFaultPages_() 中，
+            // 覆盖前一步 BmsFaultMapper 对同一 code 的 setActive 结果。
+            //
+            // 注意：
+            // - VCU 侧的 BMS1~BMS4 通信故障 source_norm 不是 bms，不受影响。
+            // - UPS/AIR/Smoke/Gas direct debounce 不受影响。
+            // if (rule.source_norm == "bms") {
+            //     continue;
+            // }
+
             bool active = false;
             bool matched = false;
-            // 20260415
-            if (
-                // rule.code == 0x1073||
-                rule.code == 0x10AE
-                ) {
-                LOG_THROTTLE_MS("test_ups_mapper", 1000, LOGINFO,
-                    "[DEBUG_MAPPER] HexCode: 0x%X | signal_norm: %s | is_active: %d",
-                    rule.code, rule.signal_norm.c_str(), active);
+
+            // ------------------------------------------------------------
+            // UPS / AIR / Smoke / Gas：
+            // 设备协议原始故障统一走 direct runtime mapper。
+            //
+            // raw_active:
+            //   ctx.xxx_faults -> evalXxxSignal_()
+            //
+            // active:
+            //   raw_active -> debounceRule_()
+            //
+            // 目的：
+            //   1. 不再经过 FaultLogicEvaluator confirmed 中转
+            //   2. 不恢复 evaluateUps_()
+            //   3. AIR/Smoke/Gas 也迁出 evaluateXxx_()
+            //   4. 保留旧链路中的 3000/1000 防抖能力
+            // ------------------------------------------------------------
+            if (rule.source_norm == "ups")
+            {
+                const bool raw_active = evalUpsSignal_(ctx.ups_faults, rule.signal_norm);
+                active = debounceRule_(rule, raw_active, now_ms);
+                matched = true;
+
+                LOG_THROTTLE_MS(
+                    ("fault_ups_direct_debounced_" + std::to_string(rule.code)).c_str(),
+                    500,
+                    LOGINFO,
+                    "[FAULT][UPS][DIRECT_DEBOUNCE] code=0x%04X sig=%s raw=%d active=%d "
+                    "seen=%d online=%d alarm_any=%d fault_any=%d warn=0x%08X fault=0x%08X",
+                    static_cast<unsigned>(rule.code),
+                    rule.signal_norm.c_str(),
+                    raw_active ? 1 : 0,
+                    active ? 1 : 0,
+                    ctx.ups_faults.seen_once ? 1 : 0,
+                    ctx.ups_faults.online ? 1 : 0,
+                    ctx.ups_faults.alarm_any ? 1 : 0,
+                    ctx.ups_faults.fault_any ? 1 : 0,
+                    static_cast<unsigned>(ctx.ups_faults.warning_bits),
+                    static_cast<unsigned>(ctx.ups_faults.fault_bits)
+                );
+
+                faults.setActive(rule.code, active);
+                continue;
+            }
+
+            if (rule.source_norm == "air")
+            {
+                const bool raw_active = evalAirSignal_(ctx.air_faults, rule.signal_norm);
+                active = debounceRule_(rule, raw_active, now_ms);
+                matched = true;
+
+                LOG_THROTTLE_MS(
+                    ("fault_air_direct_debounced_" + std::to_string(rule.code)).c_str(),
+                    500,
+                    LOGINFO,
+                    "[FAULT][AIR][DIRECT_DEBOUNCE] code=0x%04X sig=%s raw=%d active=%d "
+                    "seen=%d online=%d alarm_any=%d fault_any=%d",
+                    static_cast<unsigned>(rule.code),
+                    rule.signal_norm.c_str(),
+                    raw_active ? 1 : 0,
+                    active ? 1 : 0,
+                    ctx.air_faults.seen_once ? 1 : 0,
+                    ctx.air_faults.online ? 1 : 0,
+                    ctx.air_faults.alarm_any ? 1 : 0,
+                    ctx.air_faults.fault_any ? 1 : 0
+                );
+
+                faults.setActive(rule.code, active);
+                continue;
+            }
+
+            if (rule.source_norm == "smoke")
+            {
+                const bool raw_active = evalSmokeSignal_(ctx.smoke_faults, rule.signal_norm);
+                active = debounceRule_(rule, raw_active, now_ms);
+                matched = true;
+
+                LOG_THROTTLE_MS(
+                    ("fault_smoke_direct_debounced_" + std::to_string(rule.code)).c_str(),
+                    500,
+                    LOGINFO,
+                    "[FAULT][SMOKE][DIRECT_DEBOUNCE] code=0x%04X sig=%s raw=%d active=%d "
+                    "seen=%d online=%d alarm_any=%d fault_any=%d",
+                    static_cast<unsigned>(rule.code),
+                    rule.signal_norm.c_str(),
+                    raw_active ? 1 : 0,
+                    active ? 1 : 0,
+                    ctx.smoke_faults.seen_once ? 1 : 0,
+                    ctx.smoke_faults.online ? 1 : 0,
+                    ctx.smoke_faults.alarm_any ? 1 : 0,
+                    ctx.smoke_faults.fault_any ? 1 : 0
+                );
+
+                faults.setActive(rule.code, active);
+                continue;
+            }
+
+            if (rule.source_norm == "gas")
+            {
+                const bool raw_active = evalGasSignal_(ctx.gas_faults, rule.signal_norm);
+                active = debounceRule_(rule, raw_active, now_ms);
+                matched = true;
+
+                LOG_THROTTLE_MS(
+                    ("fault_gas_direct_debounced_" + std::to_string(rule.code)).c_str(),
+                    500,
+                    LOGINFO,
+                    "[FAULT][GAS][DIRECT_DEBOUNCE] code=0x%04X sig=%s raw=%d active=%d "
+                    "seen=%d online=%d alarm_any=%d fault_any=%d status=0x%04X",
+                    static_cast<unsigned>(rule.code),
+                    rule.signal_norm.c_str(),
+                    raw_active ? 1 : 0,
+                    active ? 1 : 0,
+                    ctx.gas_faults.seen_once ? 1 : 0,
+                    ctx.gas_faults.online ? 1 : 0,
+                    ctx.gas_faults.alarm_any ? 1 : 0,
+                    ctx.gas_faults.fault_any ? 1 : 0,
+                    static_cast<unsigned>(ctx.gas_faults.status_code)
+                );
+
+                faults.setActive(rule.code, active);
+                continue;
             }
 
             // ------------------------------------------------------------
-            // 第七批：
-            // 优先读取 confirmed signals（来自 FaultLogicEvaluator / BmsFaultEvaluator）
-            // 若不存在对应 confirmed key，再回退到旧的原始真源判断逻辑。
-            // 这样可保持 fault_map.jsonl 不变结构。
+            // 其余 source：保持 confirmed 优先。
+            // BMS：主要由 BmsFaultEvaluator 写入 confirmed，再由这里落码。
+            // PCU / Logic：仍然使用 FaultLogicEvaluator 的 confirmed 防抖。
             // ------------------------------------------------------------
             auto tryConfirmedSignal = [&](bool& out_active) -> bool
             {
@@ -1102,18 +1496,20 @@ namespace control
                 };
 
                 // ---------- BMS confirmed signals ----------
-                if (rule.source_norm == "bms")
-                {
-                    if (rule.instance >= 1 && rule.instance <= 4)
-                    {
-                        add_if_not_empty("BMS_" + std::to_string(rule.instance) + "." + rule.signal_norm);
-                    }
-                }
+                // if (rule.source_norm == "bms")
+                // {
+                //     if (rule.instance >= 1 && rule.instance <= 4)
+                //     {
+                //         add_if_not_empty("BMS_" + std::to_string(rule.instance) + "." + rule.signal_norm);
+                //     }
+                // }
 
-                // ---------- 通用 confirmed signals ----------
+                // ---------- PCU confirmed signals ----------
+                // else
                 if (rule.source_norm == "pcu")
                 {
                     uint32_t inst = rule.instance;
+
                     if (inst == 0)
                     {
                         uint32_t inferred = 0;
@@ -1123,139 +1519,86 @@ namespace control
                         }
                     }
 
+                    /*
+                     * fault_map:
+                     *   PCU1 -> instance=1 -> 内部 pcu0_state
+                     *   PCU2 -> instance=2 -> 内部 pcu1_state
+                     */
                     if (inst == 1)
                     {
-                        add_if_not_empty("logic.pcu0_" + rule.signal_norm);
-                        add_if_not_empty("logic.pcu0_offline");
-
-                        // 兼容规则表直接写 pcu1_comm_fault / pcu1_offline
-                        if (rule.signal_norm == "pcu0_offline" ||
-                            rule.signal_norm == "pcu1_comm_fault" ||
-                            rule.signal_norm == "pcu1_offline" ||
+                        if (rule.signal_norm == "pcu1_comm_fault" ||
                             rule.signal_norm == "offline" ||
                             rule.signal_norm == "runtime_offline")
                         {
+                            add_if_not_empty("logic.pcu1_comm_fault");
                             add_if_not_empty("logic.pcu0_offline");
+                        }
+
+                        if (rule.signal_norm == "pcu1_emergency_stop" ||
+                            rule.signal_norm == "estop" ||
+                            rule.signal_norm == "emergency_stop" ||
+                            rule.signal_norm == "fault_estop")
+                        {
+                            add_if_not_empty("logic.pcu1_emergency_stop");
+                            add_if_not_empty("logic.pcu0_emergency_stop");
                         }
                     }
                     else if (inst == 2)
                     {
-                        add_if_not_empty("logic.pcu1_" + rule.signal_norm);
-                        add_if_not_empty("logic.pcu1_offline");
-
-                        // 兼容规则表直接写 pcu2_comm_fault / pcu2_offline
-                        if (rule.signal_norm == "pcu1_offline" ||
-                            rule.signal_norm == "pcu2_comm_fault" ||
-                            rule.signal_norm == "pcu2_offline" ||
+                        if (rule.signal_norm == "pcu2_comm_fault" ||
                             rule.signal_norm == "offline" ||
                             rule.signal_norm == "runtime_offline")
                         {
+                            add_if_not_empty("logic.pcu2_comm_fault");
                             add_if_not_empty("logic.pcu1_offline");
+                        }
+
+                        if (rule.signal_norm == "pcu2_emergency_stop" ||
+                            rule.signal_norm == "estop" ||
+                            rule.signal_norm == "emergency_stop" ||
+                            rule.signal_norm == "fault_estop")
+                        {
+                            add_if_not_empty("logic.pcu2_emergency_stop");
+                            add_if_not_empty("logic.pcu1_emergency_stop");
                         }
                     }
                 }
-                else if (rule.source_norm == "ups")
-                {
-                    //  智能容错：无论 JSONL 里的 signal 带不带 "ups_"，我们都将其统一清理
-                    std::string clean_sig = rule.signal_norm;
-                    if (clean_sig.find("ups_") == 0) {
-                        clean_sig = clean_sig.substr(4); // 裁掉前面的 "ups_"
-                    }
 
-                    // 统一拼成标准的 logic.ups_xxxxx
-                    add_if_not_empty("logic.ups_" + clean_sig);
-
-                    if (clean_sig == "fault_any" || clean_sig == "fault_code_nonzero")
-                    {
-                        add_if_not_empty("logic.ups_fault");
-                    }
-                    if (clean_sig == "alarm_any")
-                    {
-                        add_if_not_empty("logic.ups_alarm");
-                    }
-                    if (clean_sig == "offline" || clean_sig == "runtime_offline" ||
-                        clean_sig == "ups_offline" || clean_sig == "ups_comm_fault")
-                    {
-                        add_if_not_empty("logic.ups_offline");
-                    }
-                }
-                else if (rule.source_norm == "smoke")
-                {
-                    add_if_not_empty("logic.smoke_" + rule.signal_norm);
-
-                    if (rule.signal_norm == "alarm_any")
-                    {
-                        add_if_not_empty("logic.smoke_alarm");
-                    }
-                    if (rule.signal_norm == "offline" || rule.signal_norm == "runtime_offline" ||
-                        rule.signal_norm == "smoke_offline" || rule.signal_norm == "tss_comm_fault")
-                    {
-                        add_if_not_empty("logic.smoke_offline");
-                    }
-                }
-                else if (rule.source_norm == "gas")
-                {
-                    add_if_not_empty("logic.gas_" + rule.signal_norm);
-
-                    if (rule.signal_norm == "alarm_any")
-                    {
-                        add_if_not_empty("logic.gas_alarm");
-                    }
-                    if (rule.signal_norm == "offline" || rule.signal_norm == "runtime_offline" ||
-                        rule.signal_norm == "gas_offline" || rule.signal_norm == "cgs_comm_fault")
-                    {
-                        add_if_not_empty("logic.gas_offline");
-                    }
-                }
-                else if (rule.source_norm == "air")
-                {
-                    add_if_not_empty("logic.air_" + rule.signal_norm);
-
-                    if (rule.signal_norm == "alarm_any")
-                    {
-                        add_if_not_empty("logic.air_alarm");
-                    }
-                    if (rule.signal_norm == "fault_any")
-                    {
-                        add_if_not_empty("logic.air_fault");
-                    }
-                    if (rule.signal_norm == "offline" || rule.signal_norm == "runtime_offline" ||
-                        rule.signal_norm == "air_offline" || rule.signal_norm == "aircon_comm_fault")
-                    {
-                        add_if_not_empty("logic.air_offline");
-                    }
-                }
+                // ---------- Logic / VCU / system confirmed signals ----------
                 else if (rule.source_norm == "logic")
                 {
                     add_if_not_empty("logic." + rule.signal_norm);
 
-                    // 第13批：system/comm 规则表兼容 key
-                    if (rule.signal_norm == "pcu1_comm_fault" || rule.signal_norm == "pcu1_offline")
+                    if (rule.signal_norm == "pcu1_comm_fault" ||
+                        rule.signal_norm == "pcu1_offline")
+                    {
                         add_if_not_empty("logic.pcu0_offline");
+                        add_if_not_empty("logic.pcu1_comm_fault");
+                    }
 
-                    if (rule.signal_norm == "pcu2_comm_fault" || rule.signal_norm == "pcu2_offline")
+                    if (rule.signal_norm == "pcu2_comm_fault" ||
+                        rule.signal_norm == "pcu2_offline")
+                    {
                         add_if_not_empty("logic.pcu1_offline");
+                        add_if_not_empty("logic.pcu2_comm_fault");
+                    }
 
                     if (rule.signal_norm == "ups_comm_fault")
-                        add_if_not_empty("logic.ups_offline");
+                        add_if_not_empty("logic.ups_comm_fault");
 
-                    if (rule.signal_norm == "tss_comm_fault" || rule.signal_norm == "smoke_comm_fault")
-                        add_if_not_empty("logic.smoke_offline");
+                    if (rule.signal_norm == "ups_offline")
+                        add_if_not_empty("logic.ups_comm_fault");
+
+                    if (rule.signal_norm == "tss_offline" || rule.signal_norm == "tss_comm_fault")
+                        add_if_not_empty("logic.tss_comm_fault");
 
                     if (rule.signal_norm == "cgs_comm_fault" || rule.signal_norm == "gas_comm_fault")
-                        add_if_not_empty("logic.gas_offline");
+                        add_if_not_empty("logic.cgs_comm_fault");
 
-                    if (rule.signal_norm == "aircon_comm_fault" || rule.signal_norm == "air_comm_fault")
-                        add_if_not_empty("logic.air_offline");
-
-                    if (rule.signal_norm == "hmi_comm_fault")
-                        add_if_not_empty("logic.hmi_comm_fault");
-
-                    if (rule.signal_norm == "remote_comm_fault")
-                        add_if_not_empty("logic.remote_comm_fault");
-
-                    if (rule.signal_norm == "sdcard_fault")
-                        add_if_not_empty("logic.sdcard_fault");
+                    if (rule.signal_norm == "air_offline" ||
+                        rule.signal_norm == "air_comm_fault" ||
+                        rule.signal_norm == "aircon_comm_fault")
+                        add_if_not_empty("logic.air_comm_fault");
                 }
 
                 for (const auto& k : keys)
@@ -1270,69 +1613,53 @@ namespace control
 
                 return false;
             };
-            if (rule.code == 0x102B || rule.code == 0x102C || rule.code == 0x102D)
-            {
-                bool confirmed_probe_active = false;
-                const bool confirmed_probe_hit = tryConfirmedSignal(confirmed_probe_active);
 
-                LOG_THROTTLE_MS(("air_rule_result_" + std::to_string(rule.code)).c_str(), 1000, LOGINFO,
-                                "[RESULT][AIR_RULE] code=0x%04X src=%s/%s sig=%s/%s inst=%u "
-                                "confirmed_hit=%d confirmed_active=%d "
-                                "raw{seen=%d online=%d low=%d freeze=%d exhaust=%d} confirmed_size=%zu",
-                                (unsigned)rule.code,
-                                rule.source.c_str(),
-                                rule.source_norm.c_str(),
-                                rule.signal.c_str(),
-                                rule.signal_norm.c_str(),
-                                (unsigned)rule.instance,
-                                confirmed_probe_hit ? 1 : 0,
-                                confirmed_probe_active ? 1 : 0,
-                                ctx.air_faults.seen_once ? 1 : 0,
-                                ctx.air_faults.online ? 1 : 0,
-                                ctx.air_faults.low_humidity_alarm ? 1 : 0,
-                                ctx.air_faults.coil_freeze_protect ? 1 : 0,
-                                ctx.air_faults.exhaust_high_temp_alarm ? 1 : 0,
-                                ctx.confirmed_faults.signals.size());
-            }
             // 1) 优先 confirmed signals
             if (tryConfirmedSignal(active))
             {
-                LOG_THROTTLE_MS(("fault_rule_confirmed_" + std::to_string(rule.code)).c_str(), 1000, LOGINFO,
-                                "[FAULT][RUNTIME][CONFIRMED] code=0x%04X source=%s signal=%s inst=%u active=%d",
-                                (unsigned)rule.code,
-                                rule.source_norm.c_str(),
-                                rule.signal_norm.c_str(),
-                                (unsigned)rule.instance,
-                                active ? 1 : 0);
+                LOG_THROTTLE_MS(
+                    ("fault_rule_confirmed_" + std::to_string(rule.code)).c_str(),
+                    1000,
+                    LOGINFO,
+                    "[FAULT][RUNTIME][CONFIRMED] code=0x%04X source=%s signal=%s inst=%u active=%d",
+                    static_cast<unsigned>(rule.code),
+                    rule.source_norm.c_str(),
+                    rule.signal_norm.c_str(),
+                    static_cast<unsigned>(rule.instance),
+                    active ? 1 : 0
+                );
+
                 faults.setActive(rule.code, active);
                 continue;
             }
+
             // 2) 回退到现有原始真源逻辑
-            if (rule.source_norm == "bms")
-            {
-                uint32_t inst = rule.instance;
-
-                if (inst == 0)
-                {
-                    uint32_t inferred = 0;
-                    if (tryParseInstanceFromSignal_(rule.signal_norm, inferred))
-                    {
-                        inst = inferred;
-                    }
-                }
-
-                if (inst >= 1 && inst <= 4)
-                {
-                    const std::string key = "BMS_" + std::to_string(inst);
-                    auto it = ctx.bms_cache.items.find(key);
-                    if (it != ctx.bms_cache.items.end())
-                    {
-                        active = evalBmsSignal_(it->second, rule.signal_norm);
-                        matched = true;
-                    }
-                }
-            }
-            else if (rule.source_norm == "pcu")
+            // if (rule.source_norm == "bms")
+            // {
+            //     uint32_t inst = rule.instance;
+            //
+            //     if (inst == 0)
+            //     {
+            //         uint32_t inferred = 0;
+            //         if (tryParseInstanceFromSignal_(rule.signal_norm, inferred))
+            //         {
+            //             inst = inferred;
+            //         }
+            //     }
+            //
+            //     if (inst >= 1 && inst <= 4)
+            //     {
+            //         const std::string key = "BMS_" + std::to_string(inst);
+            //         auto it = ctx.bms_cache.items.find(key);
+            //         if (it != ctx.bms_cache.items.end())
+            //         {
+            //             active = evalBmsSignal_(it->second, rule.signal_norm);
+            //             matched = true;
+            //         }
+            //     }
+            // }
+            // else
+            if (rule.source_norm == "pcu")
             {
                 uint32_t inst = rule.instance;
 
@@ -1356,40 +1683,24 @@ namespace control
                     matched = true;
                 }
             }
-            else if (rule.source_norm == "ups")
-            {
-                active = evalUpsSignal_(ctx.ups_faults, rule.signal_norm);
-                matched = true;
-            }
-            else if (rule.source_norm == "smoke")
-            {
-                active = evalSmokeSignal_(ctx.smoke_faults, rule.signal_norm);
-                matched = true;
-            }
-            else if (rule.source_norm == "gas")
-            {
-                active = evalGasSignal_(ctx.gas_faults, rule.signal_norm);
-                matched = true;
-            }
-            else if (rule.source_norm == "air")
-            {
-                active = evalAirSignal_(ctx.air_faults, rule.signal_norm);
-                matched = true;
-            }
             else if (rule.source_norm == "logic")
             {
                 active = evalLogicSignal_(ctx.logic_faults, rule.signal_norm);
                 matched = true;
             }
 
-            LOG_THROTTLE_MS(("fault_rule_fallback_" + std::to_string(rule.code)).c_str(), 1000, LOGINFO, // 故障结构十批输出
-                            "[FAULT][RUNTIME][FALLBACK] code=0x%04X source=%s signal=%s inst=%u active=%d matched=%d",
-                            (unsigned)rule.code,
-                            rule.source_norm.c_str(),
-                            rule.signal_norm.c_str(),
-                            (unsigned)rule.instance,
-                            active ? 1 : 0,
-                            matched ? 1 : 0);
+            LOG_THROTTLE_MS(
+                ("fault_rule_fallback_" + std::to_string(rule.code)).c_str(),
+                1000,
+                LOGINFO,
+                "[FAULT][RUNTIME][FALLBACK] code=0x%04X source=%s signal=%s inst=%u active=%d matched=%d",
+                static_cast<unsigned>(rule.code),
+                rule.source_norm.c_str(),
+                rule.signal_norm.c_str(),
+                static_cast<unsigned>(rule.instance),
+                active ? 1 : 0,
+                matched ? 1 : 0
+            );
 
             faults.setActive(rule.code, active);
         }

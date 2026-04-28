@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/17.
+// Created by lxy on 2025/12/17.
 //
 
 #include "can_thread.h"
@@ -259,7 +259,7 @@ void CanThread::tryReconnect()
     }
 
     // 如果驱动程序重新连接成功, 则发送 CanUp 事件
-    if (driver_.reopen())
+    if (ok)
     {
         need_reconnect_ = false;
 

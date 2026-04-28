@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/31.
+// Created by lxy on 2025/12/31.
 //
 /* 解释整个文件的作用
  * 该文件实现了Modbus协议的CRC16计算函数。

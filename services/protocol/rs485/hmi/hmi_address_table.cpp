@@ -4,6 +4,8 @@
 //
 #include "hmi_address_table.h"
 
+#include "logger.h"
+
 // ===== 现在不进行任何地址映射，只做区间合法性判断 =====
 
 bool HmiAddressTable::mapCoilAddr(uint16_t in, uint16_t& out) const {
@@ -65,6 +67,10 @@ bool HmiAddressTable::readBoolRead(uint16_t addr, bool& out) const {
         out = false; return true;
     }
     out = it->second;
+
+    // if (addr >= 0x3068 && addr <= 0x306B) {
+    //     LOG_COMM_D("[HmiAddressTable::readBoolRead] addr=0x%04X bool=%d", addr, out);
+    // }
     return true;
 }
 
@@ -84,9 +90,7 @@ bool HmiAddressTable::readIntRead(uint16_t addr, uint16_t& out) const {
         return true;
     }
     out = it->second;
-    if (addr == 0x4010 || addr == 0x4011){// || addr == 0x407F || addr == 0x409A) {
-        printf("[HMI][READ_INT_RD] addr=0x%04X out=%u\n", addr, out);
-    }
+
     return true;
 }
 
@@ -94,6 +98,11 @@ void HmiAddressTable::setBoolRead(uint16_t addr, bool v) {
     if (!inRange(addr, HMI_BOOL_RD_START, HMI_BOOL_RD_END)) return;
     std::lock_guard<std::mutex> lk(mtx_);
     bool_rd_[addr] = v;
+
+    // if (addr >= 0x3065 && addr <= 0x306B) {
+    //     LOGDEBUG("[HmiAddressTable::setBoolRead] addr=0x%04X bool=%d",
+    //                addr, v);
+    // }
 }
 
 void HmiAddressTable::setIntRead(uint16_t addr, uint16_t v) {

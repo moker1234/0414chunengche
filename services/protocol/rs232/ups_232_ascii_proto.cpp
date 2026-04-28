@@ -13,18 +13,63 @@
 
 using std::string;
 using std::vector;
+// 检查是否为 10-10 分钟的浮点数
 static inline bool isDashDouble(const std::string& tok) {
     // ---.- 或 ----. 或 --- 等也算缺失
     if (tok.empty()) return false;
     if (tok.find('-') == std::string::npos) return false;
     return tok.find_first_not_of("-._") == std::string::npos;
 }
-
+// 检查是否为 10-10 分钟的整数
 static inline bool isDashInt(const std::string& tok) {
     if (tok.empty()) return false;
     if (tok.find('-') == std::string::npos) return false;
     return tok.find_first_not_of("-") == std::string::npos;
 }
+// 检查是否为 8 位 0/1 字符串
+static inline bool isBits01_8(const std::string& tok)
+{
+    if (tok.size() != 8) return false;
+    for (char c : tok) {
+        if (c != '0' && c != '1') return false;
+    }
+    return true;
+}
+// 检查是否为 32 位十六进制字符串
+static inline bool parseHexU32Token_(const std::string& tok, uint32_t& out)
+{
+    if (tok.empty()) return false;
+    for (char c : tok) {
+        if (!std::isxdigit(static_cast<unsigned char>(c))) return false;
+    }
+
+    try {
+        unsigned long v = std::stoul(tok, nullptr, 16);
+        if (v > 0xFFFFFFFFul) return false;
+        out = static_cast<uint32_t>(v);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+// 检查是否为 10-10 分钟的整数
+static inline bool isValidShutdownDelay_(const std::string& n)
+{
+    // UPS 协议允许 .2 / .3 / 01..10，单位 min
+    if (n == ".2" || n == ".3") return true;
+
+    if (n.size() != 2) return false;
+    if (!std::isdigit(static_cast<unsigned char>(n[0])) ||
+        !std::isdigit(static_cast<unsigned char>(n[1]))) {
+        return false;
+        }
+
+    int v = (n[0] - '0') * 10 + (n[1] - '0');
+    return v >= 1 && v <= 10;
+}
+
+
+
 Ups232AsciiProto::Ups232AsciiProto() = default;
 
 /* =======================
@@ -42,16 +87,25 @@ std::vector<uint8_t> Ups232AsciiProto::buildReadCmd() {
     return {cmd.begin(), cmd.end()};
 }
 
-std::vector<uint8_t> Ups232AsciiProto::buildShutdownCmd(const std::string& n) {
+std::vector<uint8_t> Ups232AsciiProto::buildShutdownCmd(const std::string& n)
+{
+    if (!isValidShutdownDelay_(n)) {
+        LOGERR("[UPS][CMD] invalid shutdown delay: %s", n.c_str());
+        return {};
+    }
+
     std::string cmd = "S";
     cmd += n;
     cmd.push_back(char(0x0D));
     return {cmd.begin(), cmd.end()};
 }
 
-std::vector<uint8_t> Ups232AsciiProto::buildWriteCmd(uint16_t, uint16_t) {
-    // 默认：0.3 分钟
-    return buildShutdownCmd(".3");
+std::vector<uint8_t> Ups232AsciiProto::buildWriteCmd(uint16_t, uint16_t)
+{
+    // 禁止默认 S.3。
+    // UPS 关机命令必须由上层明确调用 buildShutdownCmd(".2/.3/01..10")。
+    LOGERR("[UPS][CMD] buildWriteCmd disabled; use buildShutdownCmd(delay) explicitly");
+    return {};
 }
 
 /* =======================
@@ -151,80 +205,98 @@ std::vector<std::string> Ups232AsciiProto::splitTokens(const std::string& s) {
 /* =======================
  * Token parse helpers
  * ======================= */
-
-bool Ups232AsciiProto::parseDoubleToken(const std::string& tok, double& out) {
+bool Ups232AsciiProto::parseDoubleToken(const std::string& tok, double& out)
+{
     if (tok.empty()) return false;
-    if (tok.find('-') != std::string::npos &&
-        tok.find_first_not_of("-._") == std::string::npos)
-        return false;
+    if (isDashDouble(tok)) return false;
 
     char* end = nullptr;
     out = std::strtod(tok.c_str(), &end);
-    return end && end != tok.c_str();
+
+    // 必须完整消费 token，避免 "12abc" 被解析成 12
+    return end && end != tok.c_str() && *end == '\0';
 }
 
-bool Ups232AsciiProto::parseIntToken(const std::string& tok, int& out) {
+bool Ups232AsciiProto::parseIntToken(const std::string& tok, int& out)
+{
     if (tok.empty()) return false;
     if (isDashInt(tok)) return false;
 
-    // 必须全部是数字（允许前导 + 或 -）
-    size_t p = 0;
+    std::size_t p = 0;
     if (tok[0] == '+' || tok[0] == '-') p = 1;
     if (p >= tok.size()) return false;
-    for (; p < tok.size(); ++p) if (!std::isdigit((unsigned char)tok[p])) return false;
 
-    long v = std::strtol(tok.c_str(), nullptr, 10);
-    out = (int)v;
+    for (; p < tok.size(); ++p) {
+        if (!std::isdigit(static_cast<unsigned char>(tok[p]))) return false;
+    }
+
+    char* end = nullptr;
+    long v = std::strtol(tok.c_str(), &end, 10);
+    if (!end || *end != '\0') return false;
+
+    out = static_cast<int>(v);
     return true;
 }
 
-void Ups232AsciiProto::fillBits8(const std::string& bits01,
-                                DeviceData& out,
-                                const std::string& prefix) {
-    if (bits01.size() != 8) return;
+bool Ups232AsciiProto::fillBits8(const std::string& bits01,
+                                 DeviceData& out,
+                                 const std::string& prefix)
+{
+    if (!isBits01_8(bits01)) {
+        LOGERR("[UPS][PARSE] invalid 8-bit status token: %s", bits01.c_str());
+        return false;
+    }
 
-    // 将 8 位 0/1 字符串 (如 "10001001") 转换为 10 进制整数
-    uint32_t raw_val = std::stoul(bits01, nullptr, 2);
+    uint32_t raw_val = 0;
+    for (char c : bits01) {
+        raw_val = (raw_val << 1) | static_cast<uint32_t>(c == '1');
+    }
 
-    //  核心修正：注入 Logic 层正在监听的 "status_bits" 键
-    out.status["status_bits"] = raw_val;
+    // prefix 建议使用 "q1." 或 "wa."，避免 Q1/WA 状态位混淆。
+    out.status[prefix + "status.bits"]    = raw_val;
+    out.status[prefix + "mains_abnormal"] = (bits01[0] == '1'); // bit7
+    out.status[prefix + "battery_low"]    = (bits01[1] == '1'); // bit6
+    out.status[prefix + "bypass"]         = (bits01[2] == '1'); // bit5
+    out.status[prefix + "fault"]          = (bits01[3] == '1'); // bit4
+    out.status[prefix + "backup_mode"]    = (bits01[4] == '1'); // bit3
+    out.status[prefix + "testing"]        = (bits01[5] == '1'); // bit2
 
-    // 保留旧的字典键以兼容其他可能的业务逻辑
-    out.status[prefix + "raw"]            = raw_val;
-    out.status[prefix + "mains_abnormal"] = (bits01[0] == '1');
-    out.status[prefix + "battery_low"]    = (bits01[1] == '1');
-    out.status[prefix + "bypass"]         = (bits01[2] == '1');
-    out.status[prefix + "fault"]          = (bits01[3] == '1');
-    out.status[prefix + "standby"]        = (bits01[4] == '1');
-    out.status[prefix + "testing"]        = (bits01[5] == '1');
+    return true;
 }
 
 /* =======================
  * Q1
  * ======================= */
 
-bool Ups232AsciiProto::parseQ1(const std::vector<std::string>& t, DeviceData& out) {
-    double vin=0, vin_last=0, vout=0, fin=0, cell=0, temp=0;
-    int load=0;
+bool Ups232AsciiProto::parseQ1(const std::vector<std::string>& t, DeviceData& out)
+{
+    if (t.size() != 8) return false;
+
+    double vin = 0.0;
+    double vin_last = 0.0;
+    double vout = 0.0;
+    double fin = 0.0;
+    double cell = 0.0;
+    double temp = 0.0;
+    int load = 0;
 
     if (!parseDoubleToken(t[0], vin)) return false;
-    parseDoubleToken(t[1], vin_last);
-    parseDoubleToken(t[2], vout);
-    parseIntToken   (t[3], load);
-    parseDoubleToken(t[4], fin);
-    parseDoubleToken(t[5], cell);
-    parseDoubleToken(t[6], temp);
+    if (!parseDoubleToken(t[1], vin_last)) return false;
+    if (!parseDoubleToken(t[2], vout)) return false;
+    if (!parseIntToken(t[3], load)) return false;
+    if (!parseDoubleToken(t[4], fin)) return false;
+    if (!parseDoubleToken(t[5], cell)) return false;
+    if (!parseDoubleToken(t[6], temp)) return false;
+    if (!fillBits8(t[7], out, "q1.")) return false;
 
     out.num["input.v"]        = vin;
     out.num["input.last.v"]   = vin_last;
     out.num["output.v"]       = vout;
-    out.num["load.pct"]       = load;
+    out.num["load.pct"]       = static_cast<double>(load);
     out.num["input.freq.hz"]  = fin;
     out.num["battery.cell.v"] = cell;
     out.num["battery.12v.v"]  = cell * 6.0;
     out.num["temp.c"]         = temp;
-
-    fillBits8(t[7], out, "ups.");
 
     return true;
 }
@@ -233,26 +305,36 @@ bool Ups232AsciiProto::parseQ1(const std::vector<std::string>& t, DeviceData& ou
  * WA
  * ======================= */
 
-bool Ups232AsciiProto::parseWA(const std::vector<std::string>& t, DeviceData& out) {
+bool Ups232AsciiProto::parseWA(const std::vector<std::string>& t, DeviceData& out)
+{
     if (t.size() != 13) return false;
 
-    double w_r=0,w_s=0,w_t=0, va_r=0,va_s=0,va_t=0;
-    double w_total=0, va_total=0;
-    double a_r=0,a_s=0,a_t=0;
-    int load=0;
+    double w_r = 0.0;
+    double w_s = 0.0;
+    double w_t = 0.0;
+    double va_r = 0.0;
+    double va_s = 0.0;
+    double va_t = 0.0;
+    double w_total = 0.0;
+    double va_total = 0.0;
+    double a_r = 0.0;
+    double a_s = 0.0;
+    double a_t = 0.0;
+    int load = 0;
 
-    parseDoubleToken(t[0], w_r);
-    parseDoubleToken(t[1], w_s);
-    parseDoubleToken(t[2], w_t);
-    parseDoubleToken(t[3], va_r);
-    parseDoubleToken(t[4], va_s);
-    parseDoubleToken(t[5], va_t);
-    parseDoubleToken(t[6], w_total);
-    parseDoubleToken(t[7], va_total);
-    parseDoubleToken(t[8], a_r);
-    parseDoubleToken(t[9], a_s);
-    parseDoubleToken(t[10],a_t);
-    parseIntToken   (t[11],load);
+    if (!parseDoubleToken(t[0], w_r)) return false;
+    if (!parseDoubleToken(t[1], w_s)) return false;
+    if (!parseDoubleToken(t[2], w_t)) return false;
+    if (!parseDoubleToken(t[3], va_r)) return false;
+    if (!parseDoubleToken(t[4], va_s)) return false;
+    if (!parseDoubleToken(t[5], va_t)) return false;
+    if (!parseDoubleToken(t[6], w_total)) return false;
+    if (!parseDoubleToken(t[7], va_total)) return false;
+    if (!parseDoubleToken(t[8], a_r)) return false;
+    if (!parseDoubleToken(t[9], a_s)) return false;
+    if (!parseDoubleToken(t[10], a_t)) return false;
+    if (!parseIntToken(t[11], load)) return false;
+    if (!fillBits8(t[12], out, "wa.")) return false;
 
     out.num["power.kw.r"]          = w_r;
     out.num["power.kw.s"]          = w_s;
@@ -265,9 +347,7 @@ bool Ups232AsciiProto::parseWA(const std::vector<std::string>& t, DeviceData& ou
     out.num["output.i.r"]          = a_r;
     out.num["output.i.s"]          = a_s;
     out.num["output.i.t"]          = a_t;
-    out.num["load.pct"]            = load;
-
-    fillBits8(t[12], out, "ups.");
+    out.num["load.pct"]            = static_cast<double>(load);
 
     return true;
 }
@@ -276,94 +356,117 @@ bool Ups232AsciiProto::parseWA(const std::vector<std::string>& t, DeviceData& ou
  * Q6
  * ======================= */
 
-bool Ups232AsciiProto::parseQ6(const std::vector<std::string>& t, DeviceData& out) {
-    // 你的实际机型：Q6 token = 20
-    // 0..15: 常规数值
-    // 16: KB (两字符)
-    // 17: fault hex
-    // 18: warning hex
-    // 19: YO (两字符)
+bool Ups232AsciiProto::parseQ6(const std::vector<std::string>& t, DeviceData& out)
+{
+    // 实测机型 token = 20：
+    // 0..15: 数值
+    // 16: KB
+    // 17: fault hex，4 个 fault container，每个 8 bit
+    // 18: warning hex，低 32 位 warning bits
+    // 19: YO
     if (t.size() < 20) return false;
 
-    auto D = [&](size_t i, const char* k){
+    auto D = [&](std::size_t i, const char* k) -> bool {
         const std::string key(k);
-        if (isDashDouble(t[i])) { out.status[key + ".valid"] = 0; return; }
 
-        double v;
-        if (parseDoubleToken(t[i], v)) {
-            out.status[key + ".valid"] = 1;
-            out.num[k] = v;
+        if (i >= t.size()) return false;
+
+        if (isDashDouble(t[i])) {
+            out.status[key + ".valid"] = 0;
+            return true;
         }
+
+        double v = 0.0;
+        if (!parseDoubleToken(t[i], v)) {
+            out.status[key + ".valid"] = 0;
+            return false;
+        }
+
+        out.status[key + ".valid"] = 1;
+        out.num[k] = v;
+        return true;
     };
 
-    auto I = [&](size_t i, const char* k){
+    auto I = [&](std::size_t i, const char* k) -> bool {
         const std::string key(k);
-        if (isDashInt(t[i])) { out.status[key + ".valid"] = 0; return; }
 
-        int v;
-        if (parseIntToken(t[i], v)) {
-            out.status[key + ".valid"] = 1;
-            out.value[k] = v;
+        if (i >= t.size()) return false;
+
+        if (isDashInt(t[i])) {
+            out.status[key + ".valid"] = 0;
+            return true;
         }
+
+        int v = 0;
+        if (!parseIntToken(t[i], v)) {
+            out.status[key + ".valid"] = 0;
+            return false;
+        }
+
+        out.status[key + ".valid"] = 1;
+        out.value[k] = v;
+        return true;
     };
 
-    // 浮点
-    D(0,"input.v.r");  D(1,"input.v.s");  D(2,"input.v.t");
-    D(3,"input.freq.hz");
+    if (!D(0,  "input.v.r")) return false;
+    if (!D(1,  "input.v.s")) return false;
+    if (!D(2,  "input.v.t")) return false;
+    if (!D(3,  "input.freq.hz")) return false;
 
-    D(4,"output.v.r");
-    // 5,6 可能是 ---.-（单相机型缺省），parseDoubleToken 会失败 => 不写入 out.num
-    D(5,"output.v.s");
-    D(6,"output.v.t");
+    if (!D(4,  "output.v.r")) return false;
+    if (!D(5,  "output.v.s")) return false;
+    if (!D(6,  "output.v.t")) return false;
+    if (!D(7,  "output.freq.hz")) return false;
 
-    D(7,"output.freq.hz");
+    if (!D(8,  "output.i.r")) return false;
+    if (!D(9,  "output.i.s")) return false;
+    if (!D(10, "output.i.t")) return false;
 
-    // 电流：8 是 "010"，9/10 是 "---"（缺省）
-    D(8,"output.i.r");
-    D(9,"output.i.s");
-    D(10,"output.i.t");
+    if (!D(11, "battery.v.pos")) return false;
+    if (!D(12, "battery.v.neg")) return false;
+    if (!D(13, "temp.c")) return false;
 
-    D(11,"battery.v.pos");
-    D(12,"battery.v.neg"); // 这里通常是 ---.-
+    if (!I(14, "battery.remain.sec")) return false;
+    if (!I(15, "battery.capacity")) return false;
 
-    D(13,"temp.c");
-
-    // 整数
-    I(14,"battery.remain.sec");
-    I(15,"battery.capacity");
-
-    // KB：t[16] = "31" => K=3, B=1
-    if (t[16].size() >= 2) {
-        char K = t[16][0];
-        char B = t[16][1];
-        if (K >= '0' && K <= '9') out.value["system.mode"] = K - '0';
-        if (B >= '0' && B <= '9') out.value["battery.test.state"] = B - '0';
-    }
-
-    // fault / warning hex
-    try {
-        uint32_t f_code_raw = (uint32_t)std::stoul(t[17], nullptr, 16);
-        uint32_t w_bits     = (uint32_t)std::stoul(t[18], nullptr, 16);
-
-        // 核心修正：拆解 4 个故障容器 (每个容器 8 位，存储 1 个故障码)
-        out.value["ups_fault_code_1"] = (int32_t)((f_code_raw >> 24) & 0xFF);
-        out.value["ups_fault_code_2"] = (int32_t)((f_code_raw >> 16) & 0xFF);
-        out.value["ups_fault_code_3"] = (int32_t)((f_code_raw >> 8)  & 0xFF);
-        out.value["ups_fault_code_4"] = (int32_t)((f_code_raw >> 0)  & 0xFF);
-
-        // 保留基础值以兼容可能存在的 "fault_code_nonzero" 判断逻辑
-        out.value["ups_fault_code"] = (int32_t)f_code_raw;
-        out.status["warning_bits"]  = w_bits;
-        out.status["warning.bits"]  = w_bits;
-    } catch (...) {
+    // KB：K=system.mode，B=battery.test.state
+    if (t[16].size() < 2 ||
+        !std::isdigit(static_cast<unsigned char>(t[16][0])) ||
+        !std::isdigit(static_cast<unsigned char>(t[16][1]))) {
         return false;
     }
 
-    // YO：t[19] = "11"
-    if (t[19].size() >= 2) {
-        out.status["transformer.y"] = (t[19][0] == '1');
-        out.status["lcd.phase.v"]   = (t[19][1] == '1');
+    out.value["system.mode"] = t[16][0] - '0';
+    out.value["battery.test.state"] = t[16][1] - '0';
+
+    uint32_t fault_raw = 0;
+    uint32_t warning_bits = 0;
+
+    if (!parseHexU32Token_(t[17], fault_raw)) return false;
+    if (!parseHexU32Token_(t[18], warning_bits)) return false;
+
+    // Q6 处于 Q6 分组里，因此这里保留 fault.bits / warning.bits；
+    // JSON 路径会是 items.UPS.data.Q6.status.fault.bits。
+    out.status["fault.bits"]   = fault_raw;
+    out.status["warning.bits"] = warning_bits;
+
+    out.value["fault.raw"] = static_cast<int32_t>(fault_raw);
+
+    // 4 个 fault container，每个 container 是一个 fault code。
+    out.value["fault.code.1"] = static_cast<int32_t>((fault_raw >> 24) & 0xFFu);
+    out.value["fault.code.2"] = static_cast<int32_t>((fault_raw >> 16) & 0xFFu);
+    out.value["fault.code.3"] = static_cast<int32_t>((fault_raw >> 8)  & 0xFFu);
+    out.value["fault.code.4"] = static_cast<int32_t>((fault_raw >> 0)  & 0xFFu);
+
+    // YO
+    if (t[19].size() < 2) return false;
+    if ((t[19][0] != '0' && t[19][0] != '1') ||
+        (t[19][1] != '0' && t[19][1] != '1')) {
+        return false;
     }
+
+    out.status["transformer.y"] = (t[19][0] == '1');
+    out.status["lcd.phase.v"]   = (t[19][1] == '1');
 
     return true;
 }

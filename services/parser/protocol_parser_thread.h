@@ -15,7 +15,6 @@
 #include <mutex>
 #include <deque>
 #include <vector>
-#include <unordered_map>
 #include <string>
 
 #include "../../services/device/device_base.h"
@@ -24,13 +23,12 @@
 #include "hmi/hmi_proto.h"
 #include "../protocol/can/bms/bms_thread/bms_queue.h"
 
-
 #define protocol_parser_thread_LOG 0
 
 namespace parser {
 
-
-//  P1：发送模式（Normal：不允许 pending 重发；Resend：允许并刷新 pending）
+// P1：发送模式。
+// 当前新模型下，sendPoll 只负责发送，不再在 Parser 内维护 pending/timeout 健康状态。
 enum class PollSendMode {
     Normal,
 };
@@ -39,7 +37,9 @@ class ProtocolParserThread {
 public:
     using OnParsedFn = std::function<void(const ParserMessage&)>;
     using SendSerialFn =
-        std::function<void(dev::LinkType /*type*/, int /*index*/, const std::vector<uint8_t>& /*bytes*/)>;
+        std::function<void(dev::LinkType /*type*/,
+                           int /*index*/,
+                           const std::vector<uint8_t>& /*bytes*/)>;
 
     ProtocolParserThread();
     ~ProtocolParserThread();
@@ -57,12 +57,12 @@ public:
     // Parser → Driver（真正发送串口字节）
     void setSendSerial(SendSerialFn fn);
 
-    // 为了bms线程异步解析
+    // BMS 异步专线：
+    // 指定某个 can_index 的 BMS 帧不再同步解析，而是进入 BmsQueue，
+    // 后续由 BmsWorker + BmsProto 专线处理。
     void setBmsQueue(int bms_can_index, proto::bms::BmsQueue* q);
 
     // Scheduler → Parser：执行一次轮询发送（决策在 Scheduler）
-    // 新模型下 sendPoll 只负责“发”，不再负责 pending/timeout 健康链路
-    // timeout_ms 参数继续保留，作为上层传入的断连窗口兼容参数，但本函数不再注册 pending
     bool sendPoll(dev::LinkType type,
                   int index,
                   const std::string& device_name,
@@ -70,6 +70,7 @@ public:
                   PollSendMode mode = PollSendMode::Normal);
 
     HMIProto* getHmiProto(int rs485_index);
+
 private:
     void threadLoop();
     static uint64_t nowMs();

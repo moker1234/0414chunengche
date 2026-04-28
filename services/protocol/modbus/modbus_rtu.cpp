@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/31.
+// Created by lxy on 2025/12/31.
 //
 /* 解释整个文件的作用
  * 该文件实现了Modbus RTU协议的构建函数和解析函数。

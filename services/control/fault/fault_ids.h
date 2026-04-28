@@ -63,49 +63,49 @@ namespace fault_ids {
     }
 
     // ---- summary/runtime ----
-    constexpr uint16_t BMS_RUNTIME_OFFLINE(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x01); }
-    constexpr uint16_t BMS_FAULT_BLOCK_HV(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x02); }
-    constexpr uint16_t BMS_INS_LOW_ANY(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x03); }
-    constexpr uint16_t BMS_RUNTIME_STALE(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x04); }
-    constexpr uint16_t BMS_ST2_STALE(uint8_t inst)             { return static_cast<uint16_t>(bmsBase(inst) + 0x05); }
-    constexpr uint16_t BMS_CURRENT_LIMIT_STALE(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x06); }
-    constexpr uint16_t BMS_FAULT1_STALE(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x07); }
-    constexpr uint16_t BMS_FAULT2_STALE(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x08); }
-
-    // ---- Fault1 ----
-    constexpr uint16_t BMS_F1_DEL_TEMP(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x10); }
-    constexpr uint16_t BMS_F1_OVER_TEMP(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x11); }
-    constexpr uint16_t BMS_F1_OVER_UCELL(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x12); }
-    constexpr uint16_t BMS_F1_LOW_UCELL(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x13); }
-    constexpr uint16_t BMS_F1_LOW_INS_RES(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x14); }
-    constexpr uint16_t BMS_F1_UCELL_UNIFORMITY(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x15); }
-    constexpr uint16_t BMS_F1_OVER_CHG(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x16); }
-    constexpr uint16_t BMS_F1_OVER_SOC(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x17); }
-    constexpr uint16_t BMS_F1_SOC_CHANGE_FAST(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x18); }
-    constexpr uint16_t BMS_F1_BAT_SYS_NOT_MATCH(uint8_t inst)  { return static_cast<uint16_t>(bmsBase(inst) + 0x19); }
-    constexpr uint16_t BMS_F1_HVIL_FAULT(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x1A); }
-
-    // ---- Fault2 ----
-    constexpr uint16_t BMS_F2_TMS_ERR(uint8_t inst)                { return static_cast<uint16_t>(bmsBase(inst) + 0x20); }
-    constexpr uint16_t BMS_F2_PACK_SELF_PROTECT(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x21); }
-    constexpr uint16_t BMS_F2_MAIN_LOOP_PRECHG_ERR(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x22); }
-    constexpr uint16_t BMS_F2_AUX_LOOP_PRECHG_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x23); }
-    constexpr uint16_t BMS_F2_CHRG_INS_LOW_ERR(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x24); }
-    constexpr uint16_t BMS_F2_ACAN_LOST(uint8_t inst)              { return static_cast<uint16_t>(bmsBase(inst) + 0x25); }
-    constexpr uint16_t BMS_F2_INNER_COMM_ERR(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x26); }
-    constexpr uint16_t BMS_F2_DCDC_ERR(uint8_t inst)               { return static_cast<uint16_t>(bmsBase(inst) + 0x27); }
-    constexpr uint16_t BMS_F2_BRANCH_BREAK_ERR(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x28); }
-    constexpr uint16_t BMS_F2_HEAT_RELAY_OPEN_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x29); }
-    constexpr uint16_t BMS_F2_HEAT_RELAY_WELD_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x2A); }
-    constexpr uint16_t BMS_F2_MAIN_POS_OPEN_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2B); }
-    constexpr uint16_t BMS_F2_MAIN_POS_WELD_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2C); }
-    constexpr uint16_t BMS_F2_MAIN_NEG_OPEN_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2D); }
-    constexpr uint16_t BMS_F2_MAIN_NEG_WELD_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2E); }
-
-    // ---- confirmed sample faults（第八批正式落码）----
-    constexpr uint16_t BMS_SOC_LOW_20_CONFIRM(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x30); }
-    constexpr uint16_t BMS_SOC_GT_100_CONFIRM(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x31); }
-    constexpr uint16_t BMS_TEMP_DELTA_GE_25_CONFIRM(uint8_t inst)  { return static_cast<uint16_t>(bmsBase(inst) + 0x32); }
+    // constexpr uint16_t BMS_RUNTIME_OFFLINE(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x01); }
+    // constexpr uint16_t BMS_FAULT_BLOCK_HV(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x02); }
+    // constexpr uint16_t BMS_INS_LOW_ANY(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x03); }
+    // constexpr uint16_t BMS_RUNTIME_STALE(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x04); }
+    // constexpr uint16_t BMS_ST2_STALE(uint8_t inst)             { return static_cast<uint16_t>(bmsBase(inst) + 0x05); }
+    // constexpr uint16_t BMS_CURRENT_LIMIT_STALE(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x06); }
+    // constexpr uint16_t BMS_FAULT1_STALE(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x07); }
+    // constexpr uint16_t BMS_FAULT2_STALE(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x08); }
+    //
+    // // ---- Fault1 ----
+    // constexpr uint16_t BMS_F1_DEL_TEMP(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x10); }
+    // constexpr uint16_t BMS_F1_OVER_TEMP(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x11); }
+    // constexpr uint16_t BMS_F1_OVER_UCELL(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x12); }
+    // constexpr uint16_t BMS_F1_LOW_UCELL(uint8_t inst)          { return static_cast<uint16_t>(bmsBase(inst) + 0x13); }
+    // constexpr uint16_t BMS_F1_LOW_INS_RES(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x14); }
+    // constexpr uint16_t BMS_F1_UCELL_UNIFORMITY(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x15); }
+    // constexpr uint16_t BMS_F1_OVER_CHG(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x16); }
+    // constexpr uint16_t BMS_F1_OVER_SOC(uint8_t inst)           { return static_cast<uint16_t>(bmsBase(inst) + 0x17); }
+    // constexpr uint16_t BMS_F1_SOC_CHANGE_FAST(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x18); }
+    // constexpr uint16_t BMS_F1_BAT_SYS_NOT_MATCH(uint8_t inst)  { return static_cast<uint16_t>(bmsBase(inst) + 0x19); }
+    // constexpr uint16_t BMS_F1_HVIL_FAULT(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x1A); }
+    //
+    // // ---- Fault2 ----
+    // constexpr uint16_t BMS_F2_TMS_ERR(uint8_t inst)                { return static_cast<uint16_t>(bmsBase(inst) + 0x20); }
+    // constexpr uint16_t BMS_F2_PACK_SELF_PROTECT(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x21); }
+    // constexpr uint16_t BMS_F2_MAIN_LOOP_PRECHG_ERR(uint8_t inst)   { return static_cast<uint16_t>(bmsBase(inst) + 0x22); }
+    // constexpr uint16_t BMS_F2_AUX_LOOP_PRECHG_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x23); }
+    // constexpr uint16_t BMS_F2_CHRG_INS_LOW_ERR(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x24); }
+    // constexpr uint16_t BMS_F2_ACAN_LOST(uint8_t inst)              { return static_cast<uint16_t>(bmsBase(inst) + 0x25); }
+    // constexpr uint16_t BMS_F2_INNER_COMM_ERR(uint8_t inst)         { return static_cast<uint16_t>(bmsBase(inst) + 0x26); }
+    // constexpr uint16_t BMS_F2_DCDC_ERR(uint8_t inst)               { return static_cast<uint16_t>(bmsBase(inst) + 0x27); }
+    // constexpr uint16_t BMS_F2_BRANCH_BREAK_ERR(uint8_t inst)       { return static_cast<uint16_t>(bmsBase(inst) + 0x28); }
+    // constexpr uint16_t BMS_F2_HEAT_RELAY_OPEN_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x29); }
+    // constexpr uint16_t BMS_F2_HEAT_RELAY_WELD_ERR(uint8_t inst)    { return static_cast<uint16_t>(bmsBase(inst) + 0x2A); }
+    // constexpr uint16_t BMS_F2_MAIN_POS_OPEN_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2B); }
+    // constexpr uint16_t BMS_F2_MAIN_POS_WELD_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2C); }
+    // constexpr uint16_t BMS_F2_MAIN_NEG_OPEN_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2D); }
+    // constexpr uint16_t BMS_F2_MAIN_NEG_WELD_ERR(uint8_t inst)      { return static_cast<uint16_t>(bmsBase(inst) + 0x2E); }
+    //
+    // // ---- confirmed sample faults（第八批正式落码）----
+    // constexpr uint16_t BMS_SOC_LOW_20_CONFIRM(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x30); }
+    // constexpr uint16_t BMS_SOC_GT_100_CONFIRM(uint8_t inst)        { return static_cast<uint16_t>(bmsBase(inst) + 0x31); }
+    // constexpr uint16_t BMS_TEMP_DELTA_GE_25_CONFIRM(uint8_t inst)  { return static_cast<uint16_t>(bmsBase(inst) + 0x32); }
 
 } // namespace fault_ids
 #endif //ENERGYSTORAGE_FAULT_IDS_H

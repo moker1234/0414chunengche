@@ -245,17 +245,54 @@ struct BmsPerInstanceCache {
 
     // ===== TM2B_Info =====
     int32_t tms_work_state{0};
+    int32_t tms_fault_code{0};
     int32_t tms_fault_level{0};
+    uint64_t tms_panel_aircon_seen_ms{0};
+    uint64_t tms_ats_water_pump_seen_ms{0};
 
-    // ===== Fire2B_Info =====
+    // ===== Fire2B_state =====
+    int32_t fire_value_number{0};
+    int32_t fire_value_alarm_level{0};
+
+    bool fire_by_start_sts{false};
+    bool fire_sensor_error_sts{false};
+    bool fire_hw_error_sts{false};
+
+    bool fire_temp_sensor1_err{false};
+    bool fire_temp_sensor2_err{false};
+    bool fire_air_sensor_err{false};
+    bool fire_sam_sensor_err{false};
+
+    bool fire_temp_alarm{false};
+    bool fire_gas_alarm{false};
+    bool fire_fog_alarm{false};
+    bool fire_leak_alarm{false};
+
+    double fire_max_temp{0.0};
+    bool fire_max_temp_valid{false};
+
+    double fire_max_gas{0.0};
+    bool fire_max_gas_valid{false};
+
+    double fire_max_fog{0.0};
+    bool fire_max_fog_valid{false};
+
+    // ===== compatibility projection =====
+    // 保留给旧链路 / summary / command_manager 用
     int32_t fire_fault_level{0};
     int32_t fire_fault_code{0};
-
     // ===== B2V_Fault1 =====
+    // 说明：
+    // 1) 这一批开始，F1/F2 字段优先按“报文原始等级/原始位”保留
+    // 2) evaluator 直接根据这些字段做 confirmed 投影，不再做阈值推导/延时确认
     int32_t f1_del_temp{0};
     int32_t f1_over_temp{0};
     int32_t f1_over_ucell{0};
     int32_t f1_low_ucell{0};
+
+    int32_t f1_pack_over_hvolt{0};
+    int32_t f1_pack_low_hvolt{0};
+    int32_t f1_low_soc{0};
     int32_t f1_low_ins_res{0};
 
     bool f1_ucell_uniformity{false};
@@ -268,24 +305,32 @@ struct BmsPerInstanceCache {
     int32_t f1_fault_num{0};
 
     // ===== B2V_Fault2 =====
+    bool f2_cell_over_dischrg{false};
+    bool f2_cell_low_temp{false};
+    bool f2_pack_fire_warning{false};
+
+    int32_t f2_over_dischrg_curr_level{0};
+    int32_t f2_over_chrg_curr_in_drive_level{0};
+
+    bool f2_curr_sensor_err{false};
+    bool f2_power_supply_err{false};
+    bool f2_soc_differ_err{false};
+
     bool f2_tms_err{false};
     bool f2_pack_self_protect{false};
     bool f2_main_loop_prechg_err{false};
     bool f2_aux_loop_prechg_err{false};
     bool f2_chrg_ins_low_err{false};
 
-    bool f2_curr_sensor_err{false};
-    bool f2_power_supply_err{false};
-
     bool f2_chrg_connect_err{false};
     bool f2_over_dischrg_curr_when_in_chrg{false};
     bool f2_over_chrg_curr_in_the_chrg{false};
     bool f2_chrg_ntc_err{false};
-    // 第八批：原来按 bool 处理，现改为等级值
+
     // 0 = none
     // 1 = connector overtemp lvl1
     // 2 = connector overtemp lvl2
-    // 其它值暂按 >=2 归到 lvl2
+    // >=2 统一按二级处理
     int32_t f2_chrg_ntc_temp_over_level{0};
 
     bool f2_acan_lost{false};
@@ -360,29 +405,30 @@ struct BmsPerInstanceCache {
     bool raw_internal_hv_circuit_open_fault{false};
 
     // 第四批：接触器/回路 open-weld 业务真源
+    // f2
     bool raw_heat_relay_open_fault{false};
     bool raw_heat_relay_weld_fault{false};
-
+    // f2
     bool raw_main_pos_relay_open_fault{false};
     bool raw_main_pos_relay_weld_fault{false};
     bool raw_main_neg_relay_open_fault{false};
     bool raw_main_neg_relay_weld_fault{false};
-
+    // f2
     bool raw_dc_chrg_pos1_relay_open_fault{false};
     bool raw_dc_chrg_pos1_relay_weld_fault{false};
     bool raw_dc_chrg_neg1_relay_open_fault{false};
     bool raw_dc_chrg_neg1_relay_weld_fault{false};
-
+    // f2
     bool raw_dc_chrg_pos2_relay_open_fault{false};
     bool raw_dc_chrg_pos2_relay_weld_fault{false};
     bool raw_dc_chrg_neg2_relay_open_fault{false};
     bool raw_dc_chrg_neg2_relay_weld_fault{false};
-
+    // f2
     bool raw_ac_chrg_pos_relay_open_fault{false};
     bool raw_ac_chrg_pos_relay_weld_fault{false};
     bool raw_ac_chrg_neg_relay_open_fault{false};
     bool raw_ac_chrg_neg_relay_weld_fault{false};
-
+    // f2
     bool raw_panto_chrg_pos_relay_open_fault{false};
     bool raw_panto_chrg_pos_relay_weld_fault{false};
     bool raw_panto_chrg_neg_relay_open_fault{false};

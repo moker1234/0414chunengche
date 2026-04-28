@@ -109,6 +109,41 @@ bool FileSink::deviceChanged_(const std::string& name,
         }
         cur = j.dump();
     }
+    /* ---------- PCU：使用 state/ctrl 分组后的数据 ---------- */
+    else if ((name == "PCU" || name.rfind("PCU_", 0) == 0) &&
+             item.pcu.has_value())
+    {
+        const auto& p = *item.pcu;
+
+        nlohmann::json j = nlohmann::json::object();
+
+        j["state"] = {
+            {"ts_ms", p.state.ts_ms},
+            {"num", p.state.num},
+            {"value", p.state.value},
+            {"status", p.state.status},
+            {"str", p.state.str}
+        };
+
+        const bool has_ctrl =
+            (p.ctrl.ts_ms != 0) ||
+            (!p.ctrl.num.empty()) ||
+            (!p.ctrl.value.empty()) ||
+            (!p.ctrl.status.empty()) ||
+            (!p.ctrl.str.empty());
+
+        if (has_ctrl) {
+            j["ctrl"] = {
+                {"ts_ms", p.ctrl.ts_ms},
+                {"num", p.ctrl.num},
+                {"value", p.ctrl.value},
+                {"status", p.ctrl.status},
+                {"str", p.ctrl.str}
+            };
+        }
+
+        cur = j.dump();
+    }
     /* ---------- 其他设备：使用 device data ---------- */
     else {
         nlohmann::json j;
@@ -194,9 +229,10 @@ void FileSink::appendHistory_(const agg::SystemSnapshot& snap) {
     std::ofstream ofs(file, std::ios::out | std::ios::app);
     if (!ofs.is_open()) return;
 
+    // SystemSnapshot::toJson() 已经对 BMS_x 做 shadow 瘦身。
+    // 这里不再额外写 BMS 大字段。
     ofs << snap.toJson().dump() << "\n";
 }
-
 /* ================= onSnapshot ================= */
 
 void FileSink::onSnapshot(const agg::SystemSnapshot& snap) {

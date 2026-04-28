@@ -14,21 +14,6 @@ namespace control::fault {
 
 namespace {
 
-inline void updateConfirmedSimple_(control::LogicContext& ctx,
-                                   uint64_t now_ms,
-                                   const std::string& key,
-                                   bool raw_now,
-                                   uint32_t assert_ms,
-                                   uint32_t clear_ms)
-{
-    ctx.fault_cond_engine.updateCondition(
-        key,
-        raw_now,
-        now_ms,
-        assert_ms,
-        clear_ms
-    );
-}
 
 inline void updateConfirmedWithClear_(control::LogicContext& ctx,
                                       uint64_t now_ms,
@@ -85,41 +70,23 @@ bool FaultLogicEvaluator::rawPcu1Offline_(const control::LogicContext& ctx)
 {
     return !ctx.pcu1_state.online;
 }
-
-bool FaultLogicEvaluator::rawUpsOffline_(const control::LogicContext& ctx)
+    bool FaultLogicEvaluator::rawPcu0EmergencyStop_(const control::LogicContext& ctx)
 {
-    return !ctx.ups_faults.online;
+    /*
+     * PCU 急停来自 PCU 状态反馈帧 Byte1。
+     *
+     * 注意：
+     * - PCU 离线时不沿用旧 estop 值；
+     * - 只有 online && estop 才认为 PCU 急停有效。
+     */
+    return ctx.pcu0_state.online && ctx.pcu0_state.estop;
 }
 
-bool FaultLogicEvaluator::rawUpsFault_(const control::LogicContext& ctx)
+    bool FaultLogicEvaluator::rawPcu1EmergencyStop_(const control::LogicContext& ctx)
 {
-    return ctx.ups_faults.fault_any;
+    return ctx.pcu1_state.online && ctx.pcu1_state.estop;
 }
 
-bool FaultLogicEvaluator::rawSmokeOffline_(const control::LogicContext& ctx)
-{
-    return !ctx.smoke_faults.online;
-}
-
-bool FaultLogicEvaluator::rawSmokeAlarm_(const control::LogicContext& ctx)
-{
-    return ctx.smoke_faults.alarm_any;
-}
-
-bool FaultLogicEvaluator::rawGasOffline_(const control::LogicContext& ctx)
-{
-    return !ctx.gas_faults.online;
-}
-
-bool FaultLogicEvaluator::rawGasAlarm_(const control::LogicContext& ctx)
-{
-    return ctx.gas_faults.alarm_any;
-}
-
-bool FaultLogicEvaluator::rawAirOffline_(const control::LogicContext& ctx)
-{
-    return !ctx.air_faults.online;
-}
 
 bool FaultLogicEvaluator::rawEnvAnyAlarm_(const control::LogicContext& ctx)
 {
@@ -189,344 +156,65 @@ bool FaultLogicEvaluator::rawAnyFault_(const control::LogicContext& ctx)
     return ctx.logic_faults.sdcard_fault;
 }
 
-void FaultLogicEvaluator::evaluatePcu_(control::LogicContext& ctx, uint64_t now_ms) const
+    void FaultLogicEvaluator::evaluatePcu_(control::LogicContext& ctx, uint64_t now_ms) const
 {
-    // PCU0 offline: 持续 3s 触发，恢复即时
+    auto eval_confirmed = [&](const char* signal,
+                              bool raw_active,
+                              uint32_t trigger_ms,
+                              uint32_t clear_ms)
     {
-        const char* signal = "pcu0_offline";
         const std::string key = makeSignalKey_(signal);
 
         updateConfirmedWithClear_(
             ctx,
             now_ms,
             key,
-            rawPcu0Offline_(ctx),
-            !rawPcu0Offline_(ctx),
-            3000,
-            0
+            raw_active,
+            !raw_active,
+            trigger_ms,
+            clear_ms
         );
-
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    // PCU1 offline: 持续 3s 触发，恢复即时
-    {
-        const char* signal = "pcu1_offline";
-        const std::string key = makeSignalKey_(signal);
-
-        updateConfirmedWithClear_(
-            ctx,
-            now_ms,
-            key,
-            rawPcu1Offline_(ctx),
-            !rawPcu1Offline_(ctx),
-            3000,
-            0
-        );
-
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-}
-
-void FaultLogicEvaluator::evaluateUps_(control::LogicContext& ctx, uint64_t now_ms) const
-{
-    const auto& u = ctx.ups_faults;
-
-    // UPS 通信故障 (离线)
-    {
-        const char* signal = "ups_offline";
-        const std::string key = makeSignalKey_(signal);
-
-        updateConfirmedWithClear_(
-            ctx, now_ms, key,
-            rawUpsOffline_(ctx),
-            !rawUpsOffline_(ctx),
-            3000, 0
-        );
-
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    // UPS 总故障
-    {
-        const char* signal = "ups_fault";
-        const std::string key = makeSignalKey_(signal);
-
-        updateConfirmedWithClear_(
-            ctx, now_ms, key,
-            rawUpsFault_(ctx),
-            !rawUpsFault_(ctx),
-            3000, 1000
-        );
-
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    // 使用 lambda 简化大量防抖逻辑的编写
-    auto eval_ups = [&](const char* signal, bool raw_now) {
-        const std::string key = makeSignalKey_(signal);
-        // 统一使用: 触发需持续 3000ms，恢复需持续 1000ms 的防抖策略
-        updateConfirmedWithClear_(ctx, now_ms, key, raw_now, !raw_now, 3000, 1000);
-        // 20260415
-        bool is_confirmed = ctx.fault_cond_engine.getConfirmed(key);
-        if (
-            // std::string(signal) == "ups_bus_overvoltage_fault" ||
-            std::string(signal) == "ups_epo_critical_fault") {
-            // 每秒打印一次，防止刷屏
-            LOG_THROTTLE_MS("test_ups_debounce", 1000, LOGINFO,
-                "[DEBUG_UPS_DEBOUNCE] signal: %s | raw_in: %d | confirmed_out: %d",
-                signal, raw_now, is_confirmed);
-        }
 
         setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
     };
 
-    // ---- Q1/WA 基础状态位 ----
-    eval_ups("ups_mains_abnormal", u.mains_abnormal);
-    eval_ups("ups_battery_low_state", u.battery_low_state || (u.battery_low != 0));
-    eval_ups("ups_bypass_mode", u.bypass_mode || (u.bypass_active != 0));
-    eval_ups("ups_ups_fault_state", u.ups_fault_state);
-    eval_ups("ups_backup_mode", u.backup_mode);
-    eval_ups("ups_self_test_active", u.self_test_active);
+    /*
+     * 通信故障：
+     * 内部命名：
+     *   pcu0_offline -> PCU1通信故障
+     *   pcu1_offline -> PCU2通信故障
+     *
+     * 同时写别名：
+     *   pcu1_comm_fault
+     *   pcu2_comm_fault
+     *
+     * 这样 fault_map 中 source=VCU/signal=pcu1_comm_fault 或
+     * source=VCU/signal=pcu2_comm_fault 都能命中 confirmed。
+     */
+    eval_confirmed("pcu0_offline", rawPcu0Offline_(ctx), 3000, 0);
+    eval_confirmed("pcu1_offline", rawPcu1Offline_(ctx), 3000, 0);
 
-    // ---- 32 个 Warning Bits (警告位) ----
-    eval_ups("ups_internal_warning", u.internal_warning);
-    eval_ups("ups_epo_active", u.epo_active);
-    eval_ups("ups_module_unlock", u.module_unlock);
-    // u.mains_abnormal (Bit3) 已经在上面的基础状态中合并处理，这里无需重复 eval
-    eval_ups("ups_neutral_lost", u.neutral_lost);
-    eval_ups("ups_mains_phase_error", u.mains_phase_error);
-    eval_ups("ups_ln_reverse", u.ln_reverse);
-    eval_ups("ups_bypass_abnormal", u.bypass_abnormal);
-    eval_ups("ups_bypass_phase_error", u.bypass_phase_error);
-    eval_ups("ups_battery_not_connected", u.battery_not_connected);
-    eval_ups("ups_battery_low_warning", u.battery_low_warning);
-    eval_ups("ups_battery_overcharge", u.battery_overcharge);
-    eval_ups("ups_battery_reverse", u.battery_reverse);
-    eval_ups("ups_overload_warning", u.overload_warning);
-    eval_ups("ups_overload_alarm", u.overload_alarm);
-    eval_ups("ups_fan_fault", u.fan_fault);
-    eval_ups("ups_bypass_cover_open", u.bypass_cover_open);
-    eval_ups("ups_charger_fault", u.charger_fault);
-    eval_ups("ups_position_error", u.position_error);
-    eval_ups("ups_boot_condition_not_met", u.boot_condition_not_met);
-    eval_ups("ups_redundancy_lost", u.redundancy_lost);
-    eval_ups("ups_module_loose", u.module_loose);
-    eval_ups("ups_battery_maint_due", u.battery_maint_due);
-    eval_ups("ups_inspection_maint_due", u.inspection_maint_due);
-    eval_ups("ups_warranty_maint_due", u.warranty_maint_due);
-    eval_ups("ups_temp_low_warning", u.temp_low_warning);
-    eval_ups("ups_temp_high_warning", u.temp_high_warning);
-    eval_ups("ups_battery_overtemp", u.battery_overtemp);
-    eval_ups("ups_fan_maint_due", u.fan_maint_due);
-    eval_ups("ups_bus_cap_maint_due", u.bus_cap_maint_due);
-    eval_ups("ups_system_overload", u.system_overload);
-    eval_ups("ups_reserved_warning", u.reserved_warning);
+    eval_confirmed("pcu1_comm_fault", rawPcu0Offline_(ctx), 3000, 0);
+    eval_confirmed("pcu2_comm_fault", rawPcu1Offline_(ctx), 3000, 0);
 
-    // ---- 60 个 Fault Codes (故障) ----
-    eval_ups("ups_bus_overvoltage_fault", u.bus_overvoltage_fault);
-    eval_ups("ups_bus_undervoltage_fault", u.bus_undervoltage_fault);
-    eval_ups("ups_bus_imbalance_fault", u.bus_imbalance_fault);
-    eval_ups("ups_bus_short_circuit", u.bus_short_circuit);
-    eval_ups("ups_inv_softstart_timeout", u.inv_softstart_timeout);
-    eval_ups("ups_inv_overvoltage_fault", u.inv_overvoltage_fault);
-    eval_ups("ups_inv_undervoltage_fault", u.inv_undervoltage_fault);
-    eval_ups("ups_output_short_circuit", u.output_short_circuit);
-    eval_ups("ups_r_inv_short_circuit", u.r_inv_short_circuit);
-    eval_ups("ups_s_inv_short_circuit", u.s_inv_short_circuit);
-    eval_ups("ups_t_inv_short_circuit", u.t_inv_short_circuit);
-    eval_ups("ups_rs_short_circuit", u.rs_short_circuit);
-    eval_ups("ups_st_short_circuit", u.st_short_circuit);
-    eval_ups("ups_tr_short_circuit", u.tr_short_circuit);
-    eval_ups("ups_reverse_power_fault", u.reverse_power_fault);
-    eval_ups("ups_r_reverse_power_fault", u.r_reverse_power_fault);
-    eval_ups("ups_s_reverse_power_fault", u.s_reverse_power_fault);
-    eval_ups("ups_t_reverse_power_fault", u.t_reverse_power_fault);
-    eval_ups("ups_total_reverse_power_fault", u.total_reverse_power_fault);
-    eval_ups("ups_current_imbalance_fault", u.current_imbalance_fault);
-    eval_ups("ups_overload_fault", u.overload_fault);
-    eval_ups("ups_overtemp_fault", u.overtemp_fault);
-    eval_ups("ups_inv_relay_fail_close", u.inv_relay_fail_close);
-    eval_ups("ups_inv_relay_stuck", u.inv_relay_stuck);
-    eval_ups("ups_mains_scr_fault", u.mains_scr_fault);
-    eval_ups("ups_battery_scr_fault", u.battery_scr_fault);
-    eval_ups("ups_bypass_scr_fault", u.bypass_scr_fault);
-    eval_ups("ups_rectifier_fault", u.rectifier_fault);
-    eval_ups("ups_input_overcurrent_fault", u.input_overcurrent_fault);
-    eval_ups("ups_wiring_error", u.wiring_error);
-    eval_ups("ups_comm_cable_disconnected", u.comm_cable_disconnected);
-    eval_ups("ups_host_cable_fault", u.host_cable_fault);
-    eval_ups("ups_can_comm_fault", u.can_comm_fault);
-    eval_ups("ups_sync_signal_fault", u.sync_signal_fault);
-    eval_ups("ups_power_supply_fault", u.power_supply_fault);
-    eval_ups("ups_all_fan_fault", u.all_fan_fault);
-    eval_ups("ups_dsp_error", u.dsp_error);
-    eval_ups("ups_charger_softstart_timeout", u.charger_softstart_timeout);
-    eval_ups("ups_all_module_fault", u.all_module_fault);
-    eval_ups("ups_mains_ntc_open_fault", u.mains_ntc_open_fault);
-    eval_ups("ups_mains_fuse_open_fault", u.mains_fuse_open_fault);
-    eval_ups("ups_output_imbalance_fault", u.output_imbalance_fault);
-    eval_ups("ups_input_mismatch_fault", u.input_mismatch_fault);
-    eval_ups("ups_eeprom_data_lost", u.eeprom_data_lost);
-    eval_ups("ups_mains_support_failed", u.mains_support_failed);
-    eval_ups("ups_power_failed", u.power_failed);
-    eval_ups("ups_system_overload_fault", u.system_overload_fault);
-    eval_ups("ups_ads7869_error", u.ads7869_error);
-    eval_ups("ups_bypass_mode_no_op", u.bypass_mode_no_op);
-    eval_ups("ups_op_breaker_off_parallel", u.op_breaker_off_parallel);
-    eval_ups("ups_r_bus_fuse_fault", u.r_bus_fuse_fault);
-    eval_ups("ups_s_bus_fuse_fault", u.s_bus_fuse_fault);
-    eval_ups("ups_t_bus_fuse_fault", u.t_bus_fuse_fault);
-    eval_ups("ups_ntc_fault", u.ntc_fault);
-    eval_ups("ups_parallel_cable_fault", u.parallel_cable_fault);
-    eval_ups("ups_battery_fault", u.battery_fault);
-    eval_ups("ups_frequent_overcurrent_fault", u.frequent_overcurrent_fault);
-    eval_ups("ups_battery_overcharge_fault", u.battery_overcharge_fault);
-    eval_ups("ups_battery_overcharge_persist", u.battery_overcharge_persist);
-    eval_ups("ups_epo_critical_fault", u.epo_critical_fault);
-}
+    /*
+     * PCU 故障急停：
+     * fault_map 中是 source=PCU:
+     *   pcu1_emergency_stop
+     *   pcu2_emergency_stop
+     *
+     * 规则：
+     *   online && estop 持续 300ms 触发；
+     *   恢复即时。
+     *
+     * 这里不用 3000ms，是因为急停属于强安全信号，不应等待 3 秒。
+     */
+    eval_confirmed("pcu0_emergency_stop", rawPcu0EmergencyStop_(ctx), 300, 0);
+    eval_confirmed("pcu1_emergency_stop", rawPcu1EmergencyStop_(ctx), 300, 0);
 
-void FaultLogicEvaluator::evaluateSmoke_(control::LogicContext& ctx, uint64_t now_ms) const
-{
-    const auto& s = ctx.smoke_faults;
-
-    {
-        const char* signal = "smoke_offline";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, rawSmokeOffline_(ctx), !rawSmokeOffline_(ctx), 3000, 0);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "smoke_alarm";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, rawSmokeAlarm_(ctx), !rawSmokeAlarm_(ctx), 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "smoke_smoke_sensor_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, s.smoke_sensor_fault, !s.smoke_sensor_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "smoke_pollution_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, s.smoke_pollution_fault, !s.smoke_pollution_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "smoke_temp_sensor_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, s.temp_sensor_fault, !s.temp_sensor_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-}
-
-void FaultLogicEvaluator::evaluateGas_(control::LogicContext& ctx, uint64_t now_ms) const
-{
-    const auto& g = ctx.gas_faults;
-
-    {
-        const char* signal = "gas_offline";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, rawGasOffline_(ctx), !rawGasOffline_(ctx), 3000, 0);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "gas_alarm";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, rawGasAlarm_(ctx), !rawGasAlarm_(ctx), 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "gas_sensor_fault";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, g.sensor_fault, !g.sensor_fault, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "gas_low_alarm";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, g.low_alarm, !g.low_alarm, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    {
-        const char* signal = "gas_high_alarm";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, g.high_alarm, !g.high_alarm, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-}
-
-void FaultLogicEvaluator::evaluateAir_(control::LogicContext& ctx, uint64_t now_ms) const
-{
-    const auto& a = ctx.air_faults;
-
-    {
-        const char* signal = "air_offline";
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, rawAirOffline_(ctx), !rawAirOffline_(ctx), 3000, 0);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    }
-
-    auto eval_air = [&](const char* signal, bool raw_now) {
-        LOG_THROTTLE_MS("air_eval_raw", 1000, LOGINFO, // 20260414
-    "[FAULT][AIR][EVAL] online=%d low_humi=%d coil_freeze=%d exhaust_high=%d",
-    ctx.air_faults.online ? 1 : 0,
-    ctx.air_faults.low_humidity_alarm ? 1 : 0,
-    ctx.air_faults.coil_freeze_protect ? 1 : 0,
-    ctx.air_faults.exhaust_high_temp_alarm ? 1 : 0);
-        const std::string key = makeSignalKey_(signal);
-        updateConfirmedWithClear_(ctx, now_ms, key, raw_now, !raw_now, 3000, 1000);
-        setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
-    };
-
-    eval_air("air_high_temp_alarm", a.high_temp_alarm);
-    eval_air("air_low_temp_alarm", a.low_temp_alarm);
-    eval_air("air_high_humidity_alarm", a.high_humidity_alarm);
-    eval_air("air_low_humidity_alarm", a.low_humidity_alarm);
-    eval_air("air_coil_freeze_protect", a.coil_freeze_protect);
-    eval_air("air_exhaust_high_temp_alarm", a.exhaust_high_temp_alarm);
-
-    eval_air("air_coil_temp_sensor_fault", a.coil_temp_sensor_fault);
-    eval_air("air_outdoor_temp_sensor_fault", a.outdoor_temp_sensor_fault);
-    eval_air("air_condenser_temp_sensor_fault", a.condenser_temp_sensor_fault);
-    eval_air("air_indoor_temp_sensor_fault", a.indoor_temp_sensor_fault);
-    eval_air("air_exhaust_temp_sensor_fault", a.exhaust_temp_sensor_fault);
-    eval_air("air_humidity_sensor_fault", a.humidity_sensor_fault);
-
-    eval_air("air_internal_fan_fault", a.internal_fan_fault);
-    eval_air("air_external_fan_fault", a.external_fan_fault);
-    eval_air("air_compressor_fault", a.compressor_fault);
-    eval_air("air_heater_fault", a.heater_fault);
-    eval_air("air_emergency_fan_fault", a.emergency_fan_fault);
-
-    eval_air("air_high_pressure_alarm", a.high_pressure_alarm);
-    eval_air("air_low_pressure_alarm", a.low_pressure_alarm);
-    eval_air("air_water_alarm", a.water_alarm);
-    eval_air("air_smoke_alarm", a.smoke_alarm);
-    eval_air("air_gating_alarm", a.gating_alarm);
-
-    eval_air("air_high_pressure_lock", a.high_pressure_lock);
-    eval_air("air_low_pressure_lock", a.low_pressure_lock);
-    eval_air("air_exhaust_lock", a.exhaust_lock);
-
-    eval_air("air_ac_over_voltage_alarm", a.ac_over_voltage_alarm);
-    eval_air("air_ac_under_voltage_alarm", a.ac_under_voltage_alarm);
-    eval_air("air_ac_power_loss", a.ac_power_loss);
-    eval_air("air_lose_phase_alarm", a.lose_phase_alarm);
-    eval_air("air_freq_fault", a.freq_fault);
-    eval_air("air_anti_phase_alarm", a.anti_phase_alarm);
-    eval_air("air_dc_over_voltage_alarm", a.dc_over_voltage_alarm);
-    eval_air("air_dc_under_voltage_alarm", a.dc_under_voltage_alarm);
+    // 面向 fault_map / HMI 的别名
+    eval_confirmed("pcu1_emergency_stop", rawPcu0EmergencyStop_(ctx), 300, 0);
+    eval_confirmed("pcu2_emergency_stop", rawPcu1EmergencyStop_(ctx), 300, 0);
 }
 
 void FaultLogicEvaluator::evaluateLogic_(control::LogicContext& ctx, uint64_t now_ms) const
@@ -608,20 +296,67 @@ void FaultLogicEvaluator::evaluateLogic_(control::LogicContext& ctx, uint64_t no
     // system / comm 类 confirmed
     // ------------------------------------------------------------
 
-    // HMI 通信故障：持续 3000ms 触发，恢复 1000ms
-    {
-        const char* signal = "hmi_comm_fault";
+    // 定义一个通用的防抖闭包：持续 3000ms 触发，持续 1000ms 恢复
+    auto eval_comm_fault = [&](const char* signal, bool raw_offline) {
         const std::string key = makeSignalKey_(signal);
-
-        updateConfirmedWithClear_(
-            ctx, now_ms, key,
-            raw_hmi_fault,
-            !raw_hmi_fault,
-            3000, 1000
-        );
-
+        updateConfirmedWithClear_(ctx, now_ms, key, raw_offline, !raw_offline, 3000, 1000);
         setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
+    };
+
+    // 1. HMI 通信故障 (0x1000)
+    eval_comm_fault("hmi_comm_fault", raw_hmi_fault);
+
+    // 2. 远程无线传输装置通信故障 (0x1009)
+    eval_comm_fault("remote_comm_fault", raw_remote_fault);
+
+    // 3. 空调通信故障 (0x1007)
+    eval_comm_fault("aircon_comm_fault", !ctx.air_faults.online);
+
+    // 4. UPS通信故障 (0x1008)
+    eval_comm_fault("ups_comm_fault", !ctx.ups_faults.online);
+
+    // 5. TSS感温感烟传感器通信故障 (0x100A)
+    eval_comm_fault("tss_comm_fault", !ctx.smoke_faults.online);
+
+    // 6. CGS可燃气体传感器通信故障 (0x100B)
+    eval_comm_fault("cgs_comm_fault", !ctx.gas_faults.online);
+
+    // 7. PCU1通信故障 (0x1005，底层对应 pcu0)
+    eval_comm_fault("pcu1_comm_fault", !ctx.pcu0_state.online);
+
+    // 8. PCU2通信故障 (0x1006，底层对应 pcu1)
+    eval_comm_fault("pcu2_comm_fault", !ctx.pcu1_state.online);
+
+    // 9~12. BMS1 ~ BMS4 通信故障 (0x1001 ~ 0x1004)
+    for (int i = 1; i <= 4; ++i) {
+        std::string bms_key = "BMS_" + std::to_string(i);
+        std::string sig = "bms" + std::to_string(i) + "_comm_fault";
+        bool is_offline = true; // 默认未收到数据即视为离线
+
+        auto it = ctx.bms_cache.items.find(bms_key);
+        if (it != ctx.bms_cache.items.end()) {
+            is_offline = !it->second.online;
+        }
+
+        eval_comm_fault(sig.c_str(), is_offline);
     }
+
+
+    // --------------------------- 原本的 confirmed ---------------------------
+    // HMI 通信故障：持续 3000ms 触发，恢复 1000ms
+    // {
+    //     const char* signal = "hmi_comm_fault";
+    //     const std::string key = makeSignalKey_(signal);
+    //
+    //     updateConfirmedWithClear_(
+    //         ctx, now_ms, key,
+    //         raw_hmi_fault,
+    //         !raw_hmi_fault,
+    //         3000, 1000
+    //     );
+    //
+    //     setConfirmed_(signal, ctx.fault_cond_engine.getConfirmed(key), ctx);
+    // }
 
     // Remote 通信故障：持续 3000ms 触发，恢复 1000ms
     {
@@ -657,10 +392,10 @@ void FaultLogicEvaluator::evaluateLogic_(control::LogicContext& ctx, uint64_t no
 void FaultLogicEvaluator::evaluateAll(control::LogicContext& ctx, uint64_t now_ms) const
 {
     evaluatePcu_(ctx, now_ms);
-    evaluateUps_(ctx, now_ms);
-    evaluateSmoke_(ctx, now_ms);
-    evaluateGas_(ctx, now_ms);
-    evaluateAir_(ctx, now_ms);
+    // evaluateUps_(ctx, now_ms);
+    // evaluateSmoke_(ctx, now_ms);
+    // evaluateGas_(ctx, now_ms);
+    // evaluateAir_(ctx, now_ms);
     evaluateLogic_(ctx, now_ms);
 }
 

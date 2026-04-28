@@ -1,7 +1,7 @@
 // services/control/control_events.h
 //
 // 工业级控制：控制事件定义（外部线程 post -> ControlLoop 单线程消费）
-// Created by ChatGPT on 2026/02/24.
+// Created by lxy on 2026/02/24.
 //
 #ifndef ENERGYSTORAGE_CONTROL_EVENTS_H
 #define ENERGYSTORAGE_CONTROL_EVENTS_H
@@ -57,7 +57,6 @@ namespace control {
             HmiHeartbeat,     // HMI 心跳事件
             IoSample,         // DI/AI 采样
             Tick,             // 控制定时
-            LinkHealth,       // 链路 up/down（可选）
             Stop,             // 用于 stop() 注入，唤醒线程退出
         };
 

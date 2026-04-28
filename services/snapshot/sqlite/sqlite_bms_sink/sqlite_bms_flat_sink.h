@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <sqlite3.h>
@@ -84,6 +85,7 @@ private:
 
     // key = "BMS_1"
     std::map<std::string, std::string> last_health_json_cache_;
+    mutable std::mutex mtx_;
 };
 
 #endif // ENERGYSTORAGE_SQLITE_BMS_FLAT_SINK_H

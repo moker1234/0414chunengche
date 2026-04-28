@@ -6,12 +6,12 @@
 #include "app_manager.h"
 
 #include "driver_manager.h"          // ✅ 必须在这里 include
+#include "../services/aggregator/data_aggregator.h"
 #include "state_machine/state_idle.h"
 #include "logger.h"
 #include <chrono>
 #include <cstring>
 
-#include "display_sink.h"
 #include "file_sink.h"
 #include "getTime.h"
 #include "uplink_sink.h"
@@ -25,6 +25,9 @@
 #include "../services/protocol/rs485/hmi/hmi_proto.h"
 #include "sqlite/sqlite_snapshot_sink/sqlite_snapshot_sink.h"
 #include "../services/snapshot/sqlite/sqlite_fault_sink/sqlite_fault_sink.h"
+
+// 本地归档 sqlite
+#include "config_loader.h"
 
 // ✅ deviceNameFromLink() 删除：命名统一由 ParserMessage.device_name 提供
 
@@ -48,23 +51,50 @@ static void mergeSchedulerHealthToAggregator(
         ctx.disconnect_count
     );
 }
-void AppManager::postSnapshotToControl_(
-        uint64_t ts_ms)
+bool AppManager::loadBmsCanIndexFromSystem_(int& out_index)
 {
-    if (!control_) return;
+    SystemConfig sys{};
+    std::string err;
+    if (!ConfigLoader::loadSystem("/home/zlg/userdata/config/system.json", sys, err)) {
+        LOG_SYS_W("[APP][BMS] load system.json failed: %s", err.c_str());
+        return false;
+    }
 
-    control::Event es;
-    es.type = control::Event::Type::Snapshot;
-    es.ts_ms = ts_ms;
-    es.snapshot.ts_ms = ts_ms;
-    es.snapshot.snap = aggregator().snapshot();
-    control_->post(std::move(es));
+    for (const auto& l : sys.can_links) {
+        if (!l.enable) continue;
+        if (l.protocol_type == "bms_table_v1") {
+            out_index = l.can_index;
+            return true;
+        }
+    }
+
+    LOG_SYS_W("[APP][BMS] no can link with protocol=bms_table_v1 found");
+    return false;
+}
+bool AppManager::loadHmiRs485IndexFromSystem_(int& out_index)
+{
+    SystemConfig sys{};
+    std::string err;
+    if (!ConfigLoader::loadSystem("/home/zlg/userdata/config/system.json", sys, err)) {
+        LOG_SYS_W("[APP][HMI] load system.json failed: %s", err.c_str());
+        return false;
+    }
+
+    for (const auto& l : sys.rs485_links) {
+        if (l.role == LinkRole::SlaveHmi) {
+            out_index = l.link_index;
+            return true;
+        }
+    }
+
+    LOG_SYS_W("[APP][HMI] no rs485 link with role=slave_hmi found");
+    return false;
 }
 
 AppManager::AppManager() = default;
 
 AppManager::~AppManager() {
-    // delete driver_mgr_;
+
 }
 
 bool AppManager::init() {
@@ -75,19 +105,35 @@ bool AppManager::init() {
      * ===================================================== */
     parser_ = std::make_unique<parser::ProtocolParserThread>();
 
-    // Parser → App
     parser_->setOnParsed(
         [this](const parser::ParserMessage& msg) {
             this->onParsed(msg);
         }
     );
-    parser_->setBmsQueue(bms_can_index_, &bms_queue_);
+
+    // 先从 system.json 解析 BMS 所在 can_index。
+    // BMS 不走普通 CAN 同步解析链路，而是：
+    //   CanDispatcher -> BmsQueue -> BmsWorker -> Aggregator/Control
+    {
+        int cfg_bms_can = bms_can_index_;
+        if (loadBmsCanIndexFromSystem_(cfg_bms_can)) {
+            bms_can_index_ = cfg_bms_can;
+            LOG_SYS_I("[APP][BMS] use bms_can_index=%d from system.json", bms_can_index_);
+        } else {
+            LOG_SYS_W("[APP][BMS] load bms_can_index from system.json failed, fallback=%d",
+                      bms_can_index_);
+        }
+
+        parser_->setBmsQueue(bms_can_index_, &bms_queue_);
+        LOG_SYS_I("[APP][BMS] bind parser BmsQueue can_index=%d q=%p",
+                  bms_can_index_, static_cast<void*>(&bms_queue_));
+    }
 
     // Parser → Driver（发送字节）
-    parser_->setSendSerial(
+      parser_->setSendSerial(
         [this](dev::LinkType t, int idx, const std::vector<uint8_t>& bytes) {
-            if (driver_mgr_) {
-                driver_mgr_->sendSerial(t, idx, bytes);
+            if (driver_manager_) {
+                driver_manager_->sendSerial(t, idx, bytes);
             }
         }
     );
@@ -98,49 +144,67 @@ bool AppManager::init() {
     /* =====================================================
      * 2. DriverManager（从 io_map.json 读取 can0/can1/can2 并启动线程）
      * ===================================================== */
-    driver_mgr_ = std::make_unique<DriverManager>(*this, *parser_);
-    driver_mgr_->init();
+    driver_manager_ = std::make_unique<DriverManager>(*this, *parser_);
+    driver_manager_->init();
 
     // ✅ Scheduler → Driver（发送 CAN）
-    scheduler_->setSendCan(
-        [this](int can_index, const can_frame& fr) {
-            if (driver_mgr_) {
-                driver_mgr_->sendCan(can_index, fr);
-            }
-        }
-    );
+    // scheduler_->setSendCan(
+    //     [this](int can_index, const can_frame& fr) {
+    //         if (driver_manager_) {
+    //             driver_manager_->sendCan(can_index, fr);
+    //         }
+    //     }
+    // );
 
     /* =====================================================
      * 2.5 ControlLoop（控制面）
      * ===================================================== */
-    if (driver_mgr_ && parser_) {
-        control_ = std::make_unique<control::ControlLoop>(*driver_mgr_, *parser_);
-    }
-    // BMS V2B_CMD 改由 control/bms 命令管理器负责，关闭 scheduler 里的旧最小发送器
-    if (scheduler_) {
-        scheduler_->setBmsTxEnabled(false);
-    }
+    if (driver_manager_ && parser_) {
+        control_ = std::make_unique<control::ControlLoop>(*driver_manager_, *parser_);
+    }    // ✅ 本地 IO（DI/AI）→ ControlLoop
 
-    j1939_mgr_ = std::make_unique<j1939::J1939Manager>();
-    // 让 DriverManager 的 CAN RX 能喂给 j1939_mgr_
-    driver_mgr_->setJ1939Manager(j1939_mgr_.get());
-    // 绑定各 CAN 通道的 TX：把 OpenSAE 发送出来的帧交给 DriverManager::sendCan
-    for (int can_index = 0; can_index < 3; ++can_index) {
-        j1939_mgr_->bindChannel(
-            can_index,
-            [this, can_index](const can_frame& fr) {
-                if (!driver_mgr_) return;
-                driver_mgr_->sendCan(can_index, fr);
+    // - di_bits: bit0->DI1, bit1->DI2, ...
+    // - ai: 第2批先只承载 ADC 电压，顺序为 [ADC1_V, ADC2_V, ...]
+    if (driver_manager_) {
+        driver_manager_->setIoSampleCallback(
+            [this](uint64_t ts_ms, uint64_t di_bits, const std::vector<double>& ai_voltages) {
+                if (!control_) return;
+
+                control::Event e;
+                e.type = control::Event::Type::IoSample;
+                e.ts_ms = ts_ms;
+                e.io_sample.ts_ms = ts_ms;
+                e.io_sample.di_bits = di_bits;
+                e.io_sample.ai = ai_voltages;
+
+                control_->post(std::move(e));
             }
         );
     }
+
+    // BMS V2B_CMD 改由 control/bms 命令管理器负责，关闭 scheduler 里的旧最小发送器
+
 
     /* =====================================================
      * 3. Aggregator + Dispatcher（解耦后的正确结构）
      * ===================================================== */
     aggregator_ = std::make_unique<agg::DataAggregator>();
     snapshot_dispatcher_ = std::make_unique<SnapshotDispatcher>();
-    snapshot_dispatcher_->setHmiMappingEnabled(false);
+
+    /*
+ * 第七批：ControlLoop -> AppManager 的 TX 镜像回写。
+ *
+ * PCU TX 镜像不是 Parser RX，不走 scheduler_->onDeviceData()；
+ * 它只进入 Aggregator，形成 items.PCU_x.data.ctrl，
+ * 然后通过 SnapshotDispatcher 进入 FileSink / SQLite / UplinkSink。
+ */
+    if (control_) {
+        control_->setTxMirrorCallback(
+            [this](const DeviceData& d) {
+                this->onControlTxMirrorDeviceData_(d);
+            }
+        );
+    }
 
     scheduler_->setOnDeviceData(
         [this](const DeviceData& d) {
@@ -148,7 +212,7 @@ bool AppManager::init() {
             aggregator_->onDeviceData(d);
         }
     );
-    scheduler_->setOnHealthChanged(  // 20260409 检查online
+    scheduler_->setOnHealthChanged(
         [this](const std::string& device_name) {
             DevicePollCtx ctx{};
             bool ok = scheduler_->getPollCtx(device_name, ctx);
@@ -163,30 +227,42 @@ bool AppManager::init() {
             //            ok ? (unsigned)ctx.disconnect_window_ms : 0u);
 
             mergeSchedulerHealthToAggregator(this, device_name);
-            snapshot_dispatcher_->dispatch(aggregator_->snapshot());
 
-            // 如果你已经补了这句，也顺便打
-            // postSnapshotToControl_(this, nowMs());
-        }
-    );
-    /* =====================================================
-     * 4. Display RS485 Session
-     * ===================================================== */
-    display_session_ = std::make_unique<DisplayRs485Session>(3);
+            auto snap = aggregator_->snapshot();
+            snapshot_dispatcher_->dispatch(snap);
 
-    display_session_->setSendSerial(
-        [this](dev::LinkType t, int idx, const std::vector<uint8_t>& bytes) {
-            if (driver_mgr_) {
-                driver_mgr_->sendSerial(t, idx, bytes);
+            // 健康状态变化也要进入控制面，
+            // 这样就不再需要 logic_refresh_thread 每100ms兜底投递 snapshot。
+            if (control_) {
+                control::Event es;
+                es.type = control::Event::Type::Snapshot;
+                es.ts_ms = nowMs();
+                es.snapshot.ts_ms = es.ts_ms;
+                es.snapshot.snap = std::move(snap);
+                control_->post(std::move(es));
             }
         }
     );
+    /* =====================================================
+     * 4. HMI RS485 索引
+     * ===================================================== */
+    {
+        int cfg_hmi_rs485_index = hmi_rs485_index_;
+        if (loadHmiRs485IndexFromSystem_(cfg_hmi_rs485_index)) {
+            hmi_rs485_index_ = cfg_hmi_rs485_index;
+            LOG_SYS_I("[APP][HMI] use hmi_rs485_index=%d from system.json", hmi_rs485_index_);
+        } else {
+            LOG_SYS_W("[APP][HMI] load hmi_rs485_index from system.json failed, fallback=%d", hmi_rs485_index_);
+        }
+    }
 
     /* =====================================================
-     * 5. 注册 Snapshot Sinks + HMI 映射绑定
+     * 5. 注册 Snapshot 持久化 / 上行 Sinks
+     *    - 不再包含 HMI 显示映射
      * ===================================================== */
-    snapshot_dispatcher_->addSink(std::make_unique<DisplaySink>(*display_session_));
+
     snapshot_dispatcher_->addSink(std::make_unique<FileSink>());
+    // tfcard sqlite 全数据
     // { // 注册 SqliteSnapshotSink,0317
     //     SqliteSnapshotSink::Config cfg;
     //     cfg.db_path = "/mnt/sqlite_tfcard/json_data.db";
@@ -195,6 +271,7 @@ bool AppManager::init() {
     //     cfg.min_interval_ms = 0;
     //     snapshot_dispatcher_->addSink(std::make_unique<SqliteSnapshotSink>(cfg));
     // }
+    // tfcard sqlite 平摊存储 全数据
     {
         SqliteSnapshotFlatSink::Config cfg;
         cfg.db_path = "/mnt/sqlite_tfcard/json_data.db";
@@ -204,7 +281,7 @@ bool AppManager::init() {
     }
     snapshot_dispatcher_->addSink(std::make_unique<UplinkSink>());
 
-    // BMS 独立落盘（大数据）
+    // 本地 jsonl BMS
     {
         BmsFileSink::Config cfg;
         cfg.base_dir = "/home/zlg/running_log/bms";
@@ -214,6 +291,7 @@ bool AppManager::init() {
         cfg.json_indent = 0;
         snapshot_dispatcher_->addBmsSink(std::make_unique<BmsFileSink>(cfg));
     }    // BMS 历史并行写 SQLite
+    // tfcard sqlite BMS
     // {
     //     SqliteBmsSink::Config cfg;
     //     cfg.db_path = "/mnt/sqlite_tfcard/json_data.db";
@@ -221,7 +299,7 @@ bool AppManager::init() {
     //     cfg.history_interval_ms = 1000;
     //     snapshot_dispatcher_->addBmsSink(std::make_unique<SqliteBmsSink>(cfg));
     // }
-    // BMS SQLite 平摊存储
+    // tfcard sqlite 平摊存储 BMS
     {
         SqliteBmsFlatSink::Config cfg;
         cfg.db_path = "/mnt/sqlite_tfcard/bms_data.db";
@@ -230,17 +308,35 @@ bool AppManager::init() {
         snapshot_dispatcher_->addBmsSink(std::make_unique<SqliteBmsFlatSink>(cfg));
     }
 
-    // 1) 先加载 mapping 文件
-    {
+
+    /*
+     * 6.1 加载 HMI 映射模型
+     *
+     * 第五批关键变化：
+     * - normal_map_logic.jsonl 只在这里加载一次
+     * - ControlLoop::loadHmiMapFile() 内部会：
+     *     1) HmiMapLoader::loadJsonl()
+     *     2) NormalHmiWriter::bindMap()
+     *     3) FaultPageManager::buildLayoutFromHmiMap()
+     *
+     * 因此后面不再调用 loadNormalMapFile()。
+     */
+    if (control_) {
         std::string err;
-        if (!snapshot_dispatcher_->loadHmiMapFile("/home/zlg/userdata/config/display_map.jsonl", &err)) {
-            LOG_SYS_W("[HMI] load display_map.jsonl failed: %s", err.c_str());
+        if (!control_->loadHmiMapFile("/home/zlg/userdata/config/normal_map_logic.jsonl", &err)) {
+            LOG_SYS_W("[HMI][MAP] load normal_map_logic.jsonl failed: %s", err.c_str());
         } else {
-            LOG_SYS_I("[HMI] display_map.jsonl loaded");
+            LOG_SYS_I("[HMI][MAP] normal_map_logic.jsonl loaded");
         }
     }
 
-    //  加载 fault_map.jsonl（由控制面管理故障页）
+    /*
+     * 6.2 加载 fault_map.jsonl
+     *
+     * 第五批后：
+     * - fault_map.jsonl 只负责 FaultCatalog + FaultRuntimeMapper
+     * - 故障页 HMI 地址布局已经由上面的 loadHmiMapFile() 建立
+     */
     if (control_) {
         std::string err;
         if (!control_->loadFaultMapFile("/home/zlg/userdata/config/fault_map.jsonl", &err)) {
@@ -249,6 +345,15 @@ bool AppManager::init() {
             LOG_SYS_I("[FAULT] fault_map.jsonl loaded");
         }
     }
+
+    /*
+     * 6.3 打开故障数据库，并恢复历史故障
+     *
+     * 这里放在 loadHmiMapFile() 和 loadFaultMapFile() 之后：
+     * - FaultCatalog 已经可用于 code/name/level 等目录信息；
+     * - FaultPageManager 已经知道历史页每页行数；
+     * - restoreFaultHistory() 后历史页缓存可以按正确 page_size 工作。
+     */
     if (control_) {
         fault_db_ = std::make_unique<SqliteFaultSink>(
             SqliteFaultSink::Config{
@@ -274,14 +379,18 @@ bool AppManager::init() {
             }
         }
     }
-    // 2) 再绑定 hmi（serial_index=3 对应 ttyRS485-4）
-    if (parser_) {
-        auto* hmi = parser_->getHmiProto(3);
-        LOGD("[APP][HMI] getHmiProto(3)=%p", (void*)hmi);
 
-        if (hmi) {
-            hmi->setCompatMode(true); // 兼容空实现也没问题
-        }
+    /*
+     * 6.4 绑定控制面 HMI
+     *
+     * 注意：
+     * - HMI 映射文件不在这里加载；
+     * - 这里只拿 HMIProto 指针、设置写入回调、bindHmi；
+     * - 普通变量输出和故障页输出都已经通过 ControlLoop 内部共享 HmiMapModel。
+     */
+    if (parser_) {
+        auto* hmi = parser_->getHmiProto(hmi_rs485_index_);
+        LOGD("[APP][HMI] getHmiProto(%d)=%p", hmi_rs485_index_, (void*)hmi);
 
         if (hmi) {
             // ✅ HMI 写入（FC05/06/0F/10）进入 ControlLoop（写入是控制入口）
@@ -292,14 +401,14 @@ bool AppManager::init() {
                 e.type  = control::Event::Type::HmiWrite;
                 e.ts_ms = nowMs();
 
-                e.hmi_write.rs485_index = 3;                 // HMI 在 RS485#3（ttyRS485-4）
+                e.hmi_write.rs485_index = hmi_rs485_index_;
                 e.hmi_write.slave_addr  = hmi ? hmi->slaveAddr() : 0;
                 e.hmi_write.func        = 0;                 // 如需 func，可在 HMIProto 扩展
                 e.hmi_write.start_addr  = ev.addr;           // ✅ 屏幕地址
                 e.hmi_write.ts_ms       = e.ts_ms;
 
                 if (ev.is_bool) {
-                    e.hmi_write.bits = { (uint8_t)(ev.value_u16 ? 1 : 0) };
+                    e.hmi_write.bits = { static_cast<uint8_t>(ev.value_u16 ? 1 : 0) };
                 } else {
                     e.hmi_write.regs = { ev.value_u16 };
                 }
@@ -307,32 +416,10 @@ bool AppManager::init() {
                 control_->post(std::move(e));
             });
         }
-        // 渐进式迁移：加载普通变量旁路映射（jsonl）
-        if (control_) {
-            std::string err;
-            if (!control_->loadNormalMapFile("/home/zlg/userdata/config/normal_map_logic.jsonl", &err)) {
-                LOG_SYS_W("[NORMAL] load normal_map_logic.jsonl failed: %s", err.c_str());
-            } else {
-                LOG_SYS_I("[NORMAL] normal_map_logic.jsonl loaded");
-            }
-        }
 
         if (control_) {
             control_->bindHmi(hmi);
         }
-
-        // 故障页 int_read 地址段由控制面独占：
-        // - 当前页：0x411B ~ 0x4136
-        // - 历史页：0x4141 ~ 0x418F
-        //
-        // 说明：
-        // 1) fault_hmi_layout.jsonl 虽按更大页面能力设计，
-        //    但本项目一阶段程序侧只按前5行故障页工作。
-        // 2) FaultCenter::flushToHmi() 是这些地址的唯一写入入口。
-        snapshot_dispatcher_->blockHmiIntReadRange(0x411B, 0x4136);
-        snapshot_dispatcher_->blockHmiIntReadRange(0x4141, 0x418F);
-        LOG_SYS_I("[HMI] block int_read ranges 0x411B..0x4136 and 0x4141..0x418F (owned by logic fault pages, stage1 uses first 5 rows)");
-        snapshot_dispatcher_->bindHmi(hmi);
     }
 
     /* =====================================================
@@ -384,31 +471,29 @@ void AppManager::start() {
         bms_worker_->start();
     }
 
-    driver_mgr_->start();
+    driver_manager_->start();
 
     // ✅ 轮询节奏/退避由 Scheduler 内部 pollTick() 控制
     scheduler_->start();
 
-    // if (!app_tick_timer_) {
-    //     app_tick_timer_ = std::make_unique<SchedulerTimer>();
-    //     app_tick_timer_->addPeriodic(500, [this] {
-    //         Event e;
-    //         e.type = Event::Type::Tick;
-    //         this->post(e);
-    //     });
-    // }
-    // app_tick_timer_->start();
-    if (j1939_mgr_) j1939_mgr_->start();
-
-    if (!logic_refresh_running_.exchange(true)) {
-        logic_refresh_thread_ = std::thread(&AppManager::logicRefreshThreadMain_, this);
+    if (!app_tick_timer_) {
+        app_tick_timer_ = std::make_unique<SchedulerTimer>();
+        app_tick_timer_->addPeriodic(100, [this] {
+            Event e;
+            e.type = Event::Type::Tick;
+            this->post(e);
+        });
     }
+    app_tick_timer_->start();
 
     if (!fault_refresh_running_.exchange(true)) {
         fault_refresh_thread_ = std::thread(&AppManager::faultRefreshThreadMain_, this);
     }
 
-    post(Event{.type = Event::Type::Boot});
+    if (!bms_health_sync_running_.exchange(true)) {
+        bms_health_sync_thread_ = std::thread(&AppManager::bmsHealthSyncThreadMain_, this);
+    }
+
     post(Event{.type = Event::Type::CmdStart});
 
     LOG_SYS_I("APP start");
@@ -416,32 +501,32 @@ void AppManager::start() {
 
 void AppManager::stop() {
     running_ = false;
-    logic_refresh_running_.store(false);
-    if (logic_refresh_thread_.joinable()) {
-        logic_refresh_thread_.join();
-    }
+
     if (fault_refresh_running_.exchange(false)) {
         if (fault_refresh_thread_.joinable()) {
             fault_refresh_thread_.join();
         }
     }
+    if (bms_health_sync_running_.exchange(false)) {
+        if (bms_health_sync_thread_.joinable()) {
+            bms_health_sync_thread_.join();
+        }
+    }
+
     // ✅ 工业级：先停控制面，避免继续下发命令时底层已关闭
     if (control_) control_->stop();
-    if (scheduler_)  scheduler_->stop();
-    // if (app_tick_timer_) {
-    //     app_tick_timer_->stop();
-    // }
-    if (j1939_mgr_)  j1939_mgr_->stop();
+    if (scheduler_) scheduler_->stop();
+    if (app_tick_timer_) {
+        app_tick_timer_->stop();
+    }
     if (bms_worker_) {
         bms_worker_->stop();
         bms_worker_.reset();
     }
     bms_queue_.clear();
 
-    if (parser_)     parser_->stop();
-    if (driver_mgr_) driver_mgr_->stop();
-
-
+    if (parser_) parser_->stop();
+    if (driver_manager_) driver_manager_->stop();
 
     LOG_SYS_I("APP stop");
 }
@@ -476,7 +561,7 @@ void AppManager::pumpOnce() {
             ce.type = control::Event::Type::Tick;
             ce.ts_ms = nowMs();
             ce.tick.ts_ms = ce.ts_ms;
-            ce.tick.period_ms = 500;   // 这里填你 TimerThread addTimer 的 interval（例如 500ms）
+            ce.tick.period_ms = 100;   // 这里填你 TimerThread addTimer 的 interval（例如 500ms）
             control_->post(std::move(ce));
         }
     }
@@ -489,38 +574,80 @@ void AppManager::transitionTo(std::unique_ptr<StateBase> next) {
     state_->onEnter(*this);
 }
 
-// 归一化 PCU 设备名：PCU -> PCU_0/PCU_1；PCU_CTRL -> PCU_0_CTRL/PCU_1_CTRL
-static std::string normalizePcuDeviceName_(const std::string& device_name, dev::LinkType link_type,int link_index)
+// PCU 配置实例号 -> 程序内部设备名
+// pcu_instance=1 -> PCU_0
+// pcu_instance=2 -> PCU_1
+static std::string pcuRuntimeNameFromInstance_(int pcu_instance)
 {
-    if (link_type != dev::LinkType::CAN) return device_name;
-
-    if (device_name == "PCU") {
-        if (link_index == 0) return "PCU_0";
-        if (link_index == 1) return "PCU_1";
-    }
-
-    if (device_name == "PCU_CTRL") {
-        if (link_index == 0) return "PCU_0_CTRL";
-        if (link_index == 1) return "PCU_1_CTRL";
-    }
-
-    return device_name;
+    if (pcu_instance == 1) return "PCU_0";
+    if (pcu_instance == 2) return "PCU_1";
+    return {};
 }
-// 归一化 PCU 设备数据：PCU -> PCU_0/PCU_1；PCU_CTRL -> PCU_0_CTRL/PCU_1_CTRL
+
+static int pcuInstanceFromDeviceData_(const DeviceData& d)
+{
+    if (auto it = d.value.find("__pcu.instance"); it != d.value.end()) {
+        const int inst = static_cast<int>(it->second);
+        if (inst >= 1 && inst <= 2) return inst;
+    }
+
+    if (auto it = d.value.find("pcu_instance"); it != d.value.end()) {
+        const int inst = static_cast<int>(it->second);
+        if (inst >= 1 && inst <= 2) return inst;
+    }
+
+    return 0;
+}
+
+// 归一化 PCU 设备数据：
+//   PCU      + pcu_instance=1 -> PCU_0
+//   PCU      + pcu_instance=2 -> PCU_1
+//   PCU_CTRL + pcu_instance=1 -> PCU_0_CTRL
+//   PCU_CTRL + pcu_instance=2 -> PCU_1_CTRL
+//
+// 注意：
+//   不再使用 link_index==0/1 作为主判断依据。
+//   link_index 只是物理 CAN 口，不代表 PCU 实例。
 static DeviceData normalizePcuDeviceData_(const parser::ParserMessage& msg)
 {
     DeviceData d = msg.device_data;
 
-    const std::string new_name =
-        normalizePcuDeviceName_(d.device_name, msg.link_type, msg.link_index);
-
-    if (new_name != d.device_name) {
-        d.device_name = new_name;
-
-        // 给 filesink / snapshot 留一点实例元信息，后面排查方便
-        d.value["__can_index"] = msg.link_index;
-        d.str["__inst_name"] = new_name;
+    if (msg.link_type != dev::LinkType::CAN) {
+        return d;
     }
+
+    if (d.device_name != "PCU" && d.device_name != "PCU_CTRL") {
+        return d;
+    }
+
+    const int inst = pcuInstanceFromDeviceData_(d);
+    const std::string base_name = pcuRuntimeNameFromInstance_(inst);
+
+    if (base_name.empty()) {
+        LOG_THROTTLE_MS("pcu_normalize_no_instance", 1000, LOG_COMM_W,
+                        "[APP][PCU] cannot normalize device=%s can_index=%d: missing __pcu.instance",
+                        d.device_name.c_str(),
+                        msg.link_index);
+
+        // 不做错误归一化，避免把 can_index=1 误认为 PCU_1。
+        // 这里保留原名，让问题暴露在 snapshot/log 中。
+        d.value["__can_index"] = msg.link_index;
+        return d;
+    }
+
+    const std::string new_name =
+        (d.device_name == "PCU_CTRL") ? (base_name + "_CTRL") : base_name;
+
+    d.device_name = new_name;
+
+    // 给 FileSink / Snapshot / Logic 留实例元信息
+    d.value["__can_index"] = msg.link_index;
+    d.value["__pcu.instance"] = inst;
+    d.value["__pcu.runtime_index"] = inst - 1;
+
+    d.str["__inst_name"] = new_name;
+    d.str["__pcu.instance_name"] = base_name;
+    d.str["__pcu.display_name"] = "PCU" + std::to_string(inst);
 
     return d;
 }
@@ -536,6 +663,8 @@ void AppManager::onParsed(const parser::ParserMessage& msg) {
             default:                   return "UNKNOWN";
         }
     };
+
+    // ===== HMI 心跳 =====
     if (msg.type == ParsedType::HmiHeartbeat) {
         if (control_) {
             control::Event e;
@@ -548,147 +677,53 @@ void AppManager::onParsed(const parser::ParserMessage& msg) {
 
     // ===== 成功数据 =====
     if (msg.type == ParsedType::DeviceData) {
-        // ✅ BMS 不从这里走：BmsWorker 专用线程已经解析并喂给 aggregator/control，
-        // 这里丢弃可避免刷屏和重复处理。
+        // BMS 不从 AppManager::onParsed() 这条普通 Parser 链路走。
+        // 正确链路是：
+        //   CAN -> CanDispatcher::handle() -> BmsQueue -> BmsWorker
+        //      -> aggregator_->onDeviceData()
+        //      -> control_->post(DeviceData)
+        //
+        // 如果这里还能看到 BMS，说明某处同步 BMS 解析路径还没有删干净。
+        // 为避免重复聚合 / 重复故障 / 重复控制，直接丢弃。
         if (msg.device_data.device_name == "BMS") {
-            // printf("BMS into Appmanager::onParse\n"); // 如需可打开
-
-            if (msg.type == parser::ParsedType::DeviceData &&   // 20260410
-    msg.device_data.device_name == "BMS") {
-                LOG_THROTTLE_MS("trace_bms_onParsed", 200, LOG_COMM_D,
-                    "[TRACE][BMS][onParsed] link=%d idx=%d rx_ts=%llu dev=%s",
-                    (int)msg.link_type,
-                    msg.link_index,
-                    (unsigned long long)msg.rx_ts_ms,
-                    msg.device_data.device_name.c_str());
-    }
+            LOG_THROTTLE_MS("bms_unexpected_onParsed", 1000, LOG_COMM_D,
+                            "[APP][BMS] drop unexpected normal Parser BMS DeviceData link=%d idx=%d",
+                            static_cast<int>(msg.link_type),
+                            msg.link_index);
             return;
         }
 
-
-        // 0207 - AirConditioner 的 T1 打印（你原样保留）
-        if (msg.device_data.device_name == "AirConditioner") {
-            // const uint64_t now = nowMs();
-            // const uint32_t ts  = msg.device_data.timestamp;
-
-            const auto& num = msg.device_data.num;
-            const auto& val = msg.device_data.value;
-            const auto& st  = msg.device_data.status;
-
-            auto get_num = [&](const char* key, double defv = 0.0) -> double {
-                auto it = num.find(key);
-                return (it == num.end()) ? defv : it->second;
-            };
-            auto get_i32 = [&](const char* key, int32_t defv = 0) -> int32_t {
-                auto it = val.find(key);
-                return (it == val.end()) ? defv : it->second;
-            };
-            auto get_u32 = [&](const char* key, uint32_t defv = 0u) -> uint32_t {
-                auto it = st.find(key);
-                return (it == st.end()) ? defv : it->second;
-            };
-
-            (void)get_i32; (void)get_u32;
-
-            const int32_t version = (int32_t)(get_num("version", 0.0) + 0.5);
-
-            auto get_run01 = [&](const char* key) -> uint32_t {
-                auto it = st.find(key);
-                if (it != st.end()) return (it->second != 0u);
-                auto it2 = val.find(key);
-                if (it2 != val.end()) return (it2->second != 0);
-                return 0u;
-            };
-
-            const uint32_t run_overall   = get_run01("run.overall");
-            const uint32_t run_inner_fan = get_run01("run.inner_fan");
-            const uint32_t run_outer_fan = get_run01("run.outer_fan");
-            const uint32_t run_comp      = get_run01("run.compressor");
-            const uint32_t run_heater    = get_run01("run.heater");
-            const uint32_t run_em_fan    = get_run01("run.em_fan");
-
-            auto round_x10 = [&](const char* key) -> int32_t {
-                double v = get_num(key, 0.0);
-                return (int32_t)(v * 10.0 + (v >= 0 ? 0.5 : -0.5));
-            };
-
-            const int32_t t_coil_x10     = round_x10("temp.coil_c");
-            const int32_t t_outdoor_x10  = round_x10("temp.outdoor_c");
-            const int32_t t_cond_x10     = round_x10("temp.condense_c");
-            const int32_t t_indoor_x10   = round_x10("temp.indoor_c");
-            const int32_t hum_pct        = (int32_t)(get_num("humidity_percent", 0.0) + 0.5);
-            const int32_t t_exhaust_x10  = round_x10("temp.exhaust_c");
-
-            const double cur_a = get_num("current_a", 0.0);
-            const int32_t current_x10    = (int32_t)(cur_a * 10.0 + (cur_a >= 0 ? 0.5 : -0.5));
-            const int32_t ac_v           = (int32_t)(get_num("ac_voltage_v", 0.0) + 0.5);
-            const int32_t dc_v           = (int32_t)(get_num("dc_voltage_v", 0.0) + 0.5);
-
-            struct Snap {
-                int32_t  version;
-                uint32_t ro, rif, rof, rc, rh, ref;
-                int32_t  tc, to, tcond, tind, hum, tex;
-                int32_t  ia, acv, dcv;
-            };
-
-            static Snap last = {
-                -1,
-                0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,0xFFFFFFFFu,
-                0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,
-                0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF
-            };
-
-            const Snap cur = {
-                version,
-                run_overall, run_inner_fan, run_outer_fan, run_comp, run_heater, run_em_fan,
-                t_coil_x10, t_outdoor_x10, t_cond_x10, t_indoor_x10, hum_pct, t_exhaust_x10,
-                current_x10, ac_v, dc_v
-            };
-
-            if (std::memcmp(&cur, &last, sizeof(Snap)) != 0) {
-                // LOGD("[AC_LAT][T1_RX] now=%llu dev_ts=%u ver=%d "
-                //      "run{o=%u in=%u out=%u comp=%u heat=%u em=%u} "
-                //      "t{x10 coil=%d out=%d cond=%d in=%d exh=%d} hum=%d "
-                //      "elec{I_x10=%d acV=%d dcV=%d}",
-                //      (unsigned long long)now, ts, cur.version,
-                //      cur.ro, cur.rif, cur.rof, cur.rc, cur.rh, cur.ref,
-                //      cur.tc, cur.to, cur.tcond, cur.tind, cur.tex, cur.hum,
-                //      cur.ia, cur.acv, cur.dcv);
-                last = cur;
-            }
-        }
         DeviceData normalized = normalizePcuDeviceData_(msg);
 
+        scheduler_->onDeviceData(normalized);
+        mergeSchedulerHealthToAggregator(this, normalized.device_name);
 
-        scheduler_->onDeviceData(normalized);                          // 通知状态机
-        mergeSchedulerHealthToAggregator(this, normalized.device_name); //msg.device_data.device_name); // 合并状态机状态
-        snapshot_dispatcher_->dispatch(aggregator_->snapshot());            // 通知 HMI 和其他 sink
+        auto snap = aggregator_->snapshot();
+        snapshot_dispatcher_->dispatch(snap);
 
-        // ===== 控制面：零散 DeviceData 进入 ControlLoop（不影响通信线程）=====
+        // ===== 控制面：零散 DeviceData 进入 ControlLoop =====
         if (control_) {
             control::Event e;
             e.type = control::Event::Type::DeviceData;
             e.ts_ms = nowMs();
-            e.device_data = normalized;//msg.device_data;
+            e.device_data = normalized;
             control_->post(std::move(e));
         }
 
-        //  新链路B：把 snapshot 送到 logic（渐进式迁移普通变量表）
+        // ===== 控制面：普通设备 snapshot 进入 Logic =====
         if (control_) {
             control::Event es;
             es.type = control::Event::Type::Snapshot;
             es.ts_ms = nowMs();
             es.snapshot.ts_ms = es.ts_ms;
-            es.snapshot.snap = aggregator_->snapshot();   // copy（后续可优化成 shared_ptr）
+            es.snapshot.snap = std::move(snap);
             control_->post(std::move(es));
         }
+
         return;
-    }// ===== 2. 真正的第三步：翻译并透传 HMI 心跳事件 =====
-
-
+    }
 
     // ===== 其他解析错误 =====
-    // 注意：这里可能来自 CAN / RS485 / RS232，必须正确打印 link_type
     LOG_THROTTLE_MS("app_parse_error", 500, LOG_COMM_D,
         "PARSE_FAIL %s#%d text=%s",
         linkTypeStr(msg.link_type),
@@ -696,41 +731,47 @@ void AppManager::onParsed(const parser::ParserMessage& msg) {
         msg.error_text.c_str());
 }
 
-bool AppManager::sendRs485(int index, const std::vector<uint8_t>& bytes) {
-    if (!driver_mgr_) return false;
-    return driver_mgr_->sendSerial(dev::LinkType::RS485, index, bytes);
-}
-
-void AppManager::logicRefreshThreadMain_()
+void AppManager::onControlTxMirrorDeviceData_(const DeviceData& d)
 {
-    LOG_SYS_I("[APP][REFRESH] latest snapshot refresh thread start interval=100ms");
-
-    while (logic_refresh_running_.load()) {
-        try {
-            if (control_ && aggregator_) {
-                const uint64_t ts = nowMs();
-                auto snap = aggregator_->snapshot();
-
-                control::Event es;
-                es.type = control::Event::Type::Snapshot;
-                es.ts_ms = ts;
-                es.snapshot.ts_ms = ts;
-                es.snapshot.snap = std::move(snap);
-
-                control_->post(std::move(es));
-            }
-
-        } catch (const std::exception& e) {
-            LOG_COMM_D("[APP][REFRESH] exception: %s", e.what());
-        } catch (...) {
-            LOG_COMM_D("[APP][REFRESH] unknown exception");
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (!aggregator_) {
+        return;
     }
 
-    LOG_SYS_I("[APP][REFRESH] latest snapshot refresh thread exit");
+    /*
+     * PCU TX mirror 只更新 Aggregator 内存快照。
+     *
+     * 重要：
+     *   这里不再立即 snapshot_dispatcher_->dispatch(snap)；
+     *   这里不再 control_->post(Snapshot)；
+     *
+     * 原因：
+     *   PCU TX mirror 频率较高，若每次都触发完整快照分发，
+     *   会带动 FileSink / SQLite / UplinkSink / ControlLoop Snapshot，
+     *   进而挤占 HMI 按键事件和普通数据反馈。
+     *
+     * 语义：
+     *   TX mirror 只是“本机尝试发送过什么”的记录；
+     *   不能证明 PCU 在线；
+     *   不应驱动 HMI 逻辑刷新；
+     *   不应进入 Scheduler health；
+     *   不应作为 ControlLoop DeviceData。
+     */
+    aggregator_->onDeviceData(d);
+
+    const std::string log_key =
+        "pcu_tx_mirror_app_" + d.device_name;
+
+    // LOG_THROTTLE_MS(log_key.c_str(), 1000, LOG_COMM_D,
+    //                 "[APP][PCU_TX_MIRROR] dev=%s msg=%s",
+    //                 d.device_name.c_str(),
+    //                 d.str.count("__pcu.msg") ? d.str.at("__pcu.msg").c_str() : "");
 }
+
+bool AppManager::sendRs485(int index, const std::vector<uint8_t>& bytes) {
+    if (!driver_manager_) return false;
+    return driver_manager_->sendSerial(dev::LinkType::RS485, index, bytes);
+}
+
 
 void AppManager::faultRefreshThreadMain_()
 {
@@ -752,4 +793,42 @@ void AppManager::faultRefreshThreadMain_()
     }
 
     LOG_SYS_I("[APP][FAULT_REFRESH] fault refresh thread exit");
+}
+
+// ===== BMS runtime health 低频回写线程 =====
+void AppManager::bmsHealthSyncThreadMain_()
+{
+    LOG_SYS_I("[APP][BMS_HEALTH_SYNC] thread start interval=500ms");
+
+    uint64_t last_dispatch_ms = 0;
+
+    while (bms_health_sync_running_.load()) {
+        try {
+            if (control_ && aggregator_) {
+                auto updates = control_->latestBmsRuntimeHealth();
+
+                if (!updates.empty()) {
+                    const bool changed = aggregator_->updateBmsRuntimeHealth(updates);
+
+                    // health 变化时低频分发 BMS 专用快照。
+                    // 不在 ControlLoop 线程里 dispatch，避免拖住 HMI / fault page。
+                    const uint64_t now = nowMs();
+                    if (changed && snapshot_dispatcher_ &&
+                        (last_dispatch_ms == 0 || now - last_dispatch_ms >= 1000))
+                    {
+                        last_dispatch_ms = now;
+                        snapshot_dispatcher_->dispatchBms(aggregator_->bmsSnapshot());
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            LOG_COMM_D("[APP][BMS_HEALTH_SYNC] exception: %s", e.what());
+        } catch (...) {
+            LOG_COMM_D("[APP][BMS_HEALTH_SYNC] unknown exception");
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    LOG_SYS_I("[APP][BMS_HEALTH_SYNC] thread exit");
 }

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "password": 123456,
+  "box_id": 0,
+  "ups_shutdown_time": 0,
+  "aircon_set_temp": 25,
+  "aircon_set_humidity": 60
+}

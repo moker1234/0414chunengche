@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/28.
+// Created by lxy on 2025/12/28.
 //
 
 #ifndef ENERGYSTORAGE_CAN_PROTOCOL_BASE_H

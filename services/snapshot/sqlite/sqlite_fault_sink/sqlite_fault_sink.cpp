@@ -4,6 +4,8 @@
 
 #include "sqlite_fault_sink.h"
 
+#include <algorithm>
+#include <utility>
 
 SqliteFaultSink::SqliteFaultSink(Config cfg)
     : cfg_(std::move(cfg)) {}
@@ -99,6 +101,7 @@ bool SqliteFaultSink::initSchema_()
 
 bool SqliteFaultSink::insertHistoryBegin(const FaultHistoryDbRecord& rec, int64_t& out_row_id)
 {
+    out_row_id = 0;
     if (!opened_ || !db_) return false;
 
     const char* sql =
@@ -156,6 +159,56 @@ bool SqliteFaultSink::markHistoryCleared(uint16_t code, uint64_t clear_ms)
     return rc == SQLITE_DONE;
 }
 
+bool SqliteFaultSink::markHistoryClearedById(int64_t row_id, uint64_t clear_ms)
+{
+    if (!opened_ || !db_ || row_id <= 0) return false;
+
+    const char* sql =
+        "UPDATE fault_history "
+        "SET clear_ms = ?, state = 0 "
+        "WHERE id = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(clear_ms));
+    sqlite3_bind_int64(stmt, 2, static_cast<sqlite3_int64>(row_id));
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE;
+}
+
+bool SqliteFaultSink::bindRowsFromStmt_(sqlite3_stmt* stmt,
+                                        std::vector<FaultHistoryDbRecord>& out)
+{
+    out.clear();
+    if (!stmt) return false;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        FaultHistoryDbRecord rec;
+        rec.id = sqlite3_column_int64(stmt, 0);
+        rec.code = static_cast<uint16_t>(sqlite3_column_int(stmt, 1));
+        rec.first_on_ms = static_cast<uint64_t>(sqlite3_column_int64(stmt, 2));
+        rec.clear_ms = static_cast<uint64_t>(sqlite3_column_int64(stmt, 3));
+        rec.seq_no = static_cast<uint16_t>(sqlite3_column_int(stmt, 4));
+        rec.state = static_cast<uint16_t>(sqlite3_column_int(stmt, 5));
+
+        const unsigned char* s6 = sqlite3_column_text(stmt, 6);
+        const unsigned char* s7 = sqlite3_column_text(stmt, 7);
+        rec.name = s6 ? reinterpret_cast<const char*>(s6) : "";
+        rec.classification = s7 ? reinterpret_cast<const char*>(s7) : "";
+        rec.priority_rank = sqlite3_column_int(stmt, 8);
+
+        out.push_back(std::move(rec));
+    }
+
+    return true;
+}
+
 bool SqliteFaultSink::loadRecentHistory(std::vector<FaultHistoryDbRecord>& out)
 {
     out.clear();
@@ -173,53 +226,127 @@ bool SqliteFaultSink::loadRecentHistory(std::vector<FaultHistoryDbRecord>& out)
 
     sqlite3_bind_int(stmt, 1, static_cast<int>(cfg_.load_limit));
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        FaultHistoryDbRecord rec;
-        rec.id = sqlite3_column_int64(stmt, 0);
-        rec.code = static_cast<uint16_t>(sqlite3_column_int(stmt, 1));
-        rec.first_on_ms = static_cast<uint64_t>(sqlite3_column_int64(stmt, 2));
-        rec.clear_ms = static_cast<uint64_t>(sqlite3_column_int64(stmt, 3));
-        rec.seq_no = static_cast<uint16_t>(sqlite3_column_int(stmt, 4));
-        rec.state = static_cast<uint16_t>(sqlite3_column_int(stmt, 5));
-
-        const unsigned char* s6 = sqlite3_column_text(stmt, 6);
-        const unsigned char* s7 = sqlite3_column_text(stmt, 7);
-        rec.name = s6 ? reinterpret_cast<const char*>(s6) : "";
-        rec.classification = s7 ? reinterpret_cast<const char*>(s7) : "";
-        rec.priority_rank = sqlite3_column_int(stmt, 8);
-
-        out.push_back(rec);
-    }
-
+    const bool ok = bindRowsFromStmt_(stmt, out);
     sqlite3_finalize(stmt);
+
+    if (!ok) return false;
 
     std::reverse(out.begin(), out.end());
     return true;
 }
 
+bool SqliteFaultSink::countHistoryRows(uint32_t& out_total_rows, bool only_cleared)
+{
+    out_total_rows = 0;
+    if (!opened_ || !db_) return false;
 
+    const char* sql_all =
+        "SELECT COUNT(*) FROM fault_history;";
+    const char* sql_cleared =
+        "SELECT COUNT(*) FROM fault_history WHERE clear_ms != 0;";
 
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_,
+                           only_cleared ? sql_cleared : sql_all,
+                           -1,
+                           &stmt,
+                           nullptr) != SQLITE_OK) {
+        return false;
+    }
 
+    bool ok = false;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        out_total_rows = static_cast<uint32_t>(sqlite3_column_int64(stmt, 0));
+        ok = true;
+    }
 
+    sqlite3_finalize(stmt);
+    return ok;
+}
 
+bool SqliteFaultSink::loadLatestHistory(uint32_t limit,
+                                        std::vector<FaultHistoryDbRecord>& out,
+                                        bool only_cleared)
+{
+    out.clear();
+    if (!opened_ || !db_) return false;
 
+    const char* sql_all =
+        "SELECT id, code, first_on_ms, clear_ms, seq_no, state, name, classification, priority_rank "
+        "FROM fault_history "
+        "ORDER BY id DESC LIMIT ?;";
 
+    const char* sql_cleared =
+        "SELECT id, code, first_on_ms, clear_ms, seq_no, state, name, classification, priority_rank "
+        "FROM fault_history "
+        "WHERE clear_ms != 0 "
+        "ORDER BY id DESC LIMIT ?;";
 
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_,
+                           only_cleared ? sql_cleared : sql_all,
+                           -1,
+                           &stmt,
+                           nullptr) != SQLITE_OK) {
+        return false;
+    }
 
+    sqlite3_bind_int(stmt, 1, static_cast<int>(limit));
 
+    const bool ok = bindRowsFromStmt_(stmt, out);
+    sqlite3_finalize(stmt);
+    return ok;
+}
 
+bool SqliteFaultSink::loadHistoryPage(uint32_t page_no,
+                                      uint32_t page_size,
+                                      std::vector<FaultHistoryDbRecord>& out,
+                                      bool only_cleared)
+{
+    if (page_no == 0 || page_size == 0) {
+        out.clear();
+        return false;
+    }
 
+    const uint32_t offset = (page_no - 1U) * page_size;
+    return loadHistoryRange(offset, page_size, out, only_cleared);
+}
 
+bool SqliteFaultSink::loadHistoryRange(uint32_t offset,
+                                       uint32_t limit,
+                                       std::vector<FaultHistoryDbRecord>& out,
+                                       bool only_cleared)
+{
+    out.clear();
+    if (!opened_ || !db_) return false;
+    if (limit == 0) return true;
 
+    const char* sql_all =
+        "SELECT id, code, first_on_ms, clear_ms, seq_no, state, name, classification, priority_rank "
+        "FROM fault_history "
+        "ORDER BY id DESC "
+        "LIMIT ? OFFSET ?;";
 
+    const char* sql_cleared =
+        "SELECT id, code, first_on_ms, clear_ms, seq_no, state, name, classification, priority_rank "
+        "FROM fault_history "
+        "WHERE clear_ms != 0 "
+        "ORDER BY id DESC "
+        "LIMIT ? OFFSET ?;";
 
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_,
+                           only_cleared ? sql_cleared : sql_all,
+                           -1,
+                           &stmt,
+                           nullptr) != SQLITE_OK) {
+        return false;
+    }
 
+    sqlite3_bind_int(stmt, 1, static_cast<int>(limit));
+    sqlite3_bind_int(stmt, 2, static_cast<int>(offset));
 
-
-
-
-
-
-
-
-
+    const bool ok = bindRowsFromStmt_(stmt, out);
+    sqlite3_finalize(stmt);
+    return ok;
+}

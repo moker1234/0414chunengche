@@ -24,6 +24,7 @@
 struct GasChannelState
 {
     bool valid{false};
+
     double value{0.0};
 
     uint16_t raw{0};
@@ -31,6 +32,11 @@ struct GasChannelState
     uint16_t decimal_code{0};
     uint16_t unit_code{0};
     uint16_t type_code{0};
+
+    bool fault_any{false};
+    bool low_alarm{false};
+    bool high_alarm{false};
+    bool alarm_any{false};
 
     uint64_t ts_ms{0};
 };
@@ -76,6 +82,19 @@ struct PcuGroupData
     std::map<std::string, double> num;
     std::map<std::string, int32_t> value;
     std::map<std::string, uint32_t> status;
+
+    // 保存 PCU 接收解析增强中加入的元信息：
+    //   __pcu.msg
+    //   __pcu.raw_hex
+    //   __can.raw_hex
+    //   __pcu.instance_name
+    //   __pcu.display_name
+    //   pcu_state_text
+    //
+    // 之前 PcuGroupData 没有 str，导致这些字段虽然在 DeviceData 中存在，
+    // 但进入 SystemSnapshot JSON 时会被丢弃。
+    std::map<std::string, std::string> str;
+
     uint64_t ts_ms{0};
 };
 

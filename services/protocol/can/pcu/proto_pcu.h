@@ -42,10 +42,8 @@ namespace proto::pcu {
     // 协议对象：当前只解析 PCU→EMU
     class ProtoPCU : public proto::CanProtocolBase {
     public:
-        ProtoPCU(uint32_t id_pcu_status, uint32_t id_emu_ctrl, uint32_t id_emu_status)
-            : id_pcu_status_(id_pcu_status),
-              id_emu_ctrl_(id_emu_ctrl),
-              id_emu_status_(id_emu_status) {}
+        explicit ProtoPCU(uint32_t id_pcu_status)
+            : id_pcu_status_(id_pcu_status) {}
 
         std::string name() const override { return "emu_pcu_v1"; }
 
@@ -55,8 +53,6 @@ namespace proto::pcu {
 
     private:
         uint32_t id_pcu_status_{0};
-        uint32_t id_emu_ctrl_{0};
-        uint32_t id_emu_status_{0};
     };
 
 } // namespace proto::pcu

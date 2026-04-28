@@ -234,6 +234,49 @@ bool ConfigLoader::loadSystem(const std::string& path, SystemConfig& out, std::s
     }
 
     // ===================== CAN (NEW) =====================
+    auto parsePcuInstance = [&](const json& proto,
+                                const std::string& name,
+                                int can_index) -> uint8_t
+    {
+        (void)can_index;
+
+        uint32_t inst = parseU32HexOrDec(proto.value("pcu_instance", json()), 0u);
+        if (inst == 0) {
+            inst = parseU32HexOrDec(proto.value("instance", json()), 0u);
+        }
+
+        if (inst >= 1 && inst <= 2) {
+            return static_cast<uint8_t>(inst);
+        }
+
+        /*
+         * 兼容旧配置：
+         * 如果暂时没写 pcu_instance，则允许从 name 推断。
+         * 但推荐长期显式配置 pcu_instance。
+         */
+        if (name.find("pcu1") != std::string::npos ||
+            name.find("PCU1") != std::string::npos) {
+            return 1;
+        }
+
+        if (name.find("pcu2") != std::string::npos ||
+            name.find("PCU2") != std::string::npos) {
+            return 2;
+        }
+
+        /*
+         * 兼容旧命名：
+         * can0_pcu -> PCU1
+         * can1_pcu -> PCU2
+         *
+         * 注意：这只是过渡兜底，最终以 pcu_instance 为准。
+         */
+        if (name == "can0_pcu") return 1;
+        if (name == "can1_pcu") return 2;
+
+        return 0;
+    };
+
     auto can = j.value("can", json::object());
     for (auto& it : can.value("links", json::array())) {
         CanLinkCfg c;
@@ -245,10 +288,16 @@ bool ConfigLoader::loadSystem(const std::string& path, SystemConfig& out, std::s
         auto proto = it.value("protocol", json::object());
         c.protocol_type = proto.value("type", "");
 
+        c.pcu_instance = 0;
+        if (c.protocol_type == "emu_pcu_v1") {
+            c.pcu_instance = parsePcuInstance(proto, c.name, c.can_index);
+        }
+
         auto ids = proto.value("ids", json::object());
         c.id_emu_ctrl   = parseU32HexOrDec(ids.value("emu_ctrl", json()), 0u);
         c.id_emu_status = parseU32HexOrDec(ids.value("emu_status", json()), 0u);
         c.id_pcu_status = parseU32HexOrDec(ids.value("pcu_status", json()), 0u);
+        c.id_v2b_cmd    = parseU32HexOrDec(ids.value("v2b_cmd", json()), 0u);
 
         auto tx = it.value("tx", json::object());
         c.tx_enable  = tx.value("enable", true);
@@ -275,6 +324,7 @@ bool ConfigLoader::loadSystem(const std::string& path, SystemConfig& out, std::s
     }
 
     return true;
+
 }
 
 

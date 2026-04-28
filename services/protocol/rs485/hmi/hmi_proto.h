@@ -22,10 +22,6 @@ public:
     bool parse(const std::vector<uint8_t>& rx, DeviceData& out) override { (void)rx; (void)out; return false; }
     std::vector<uint8_t> buildReadCmd() override { return {}; }
 
-    // ✅ 不再支持 compat / 映射
-    void setCompatMode(bool) {}          // 兼容旧接口：空实现
-    bool compatMode() const { return false; }
-
     // ====== 控制器侧“写表”接口（给 SnapshotMapper 用）======
     // read区（屏幕只能读：02/04）
     void setBoolRead(uint16_t addr, bool v)      { table_.setBoolRead(addr, v); }

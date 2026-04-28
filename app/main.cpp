@@ -24,8 +24,6 @@ int main() {
     LOGINFO("[MAIN] app.start done");
 
 
-    app.post(Event{Event::Type::CmdStart});
-
     LOGINFO("[MAIN] before main loop / pause");
     while (!g_stop.load()) {
         app.pumpOnce();     // 主线程“抽水”：取事件 -> 分发

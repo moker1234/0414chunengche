@@ -79,8 +79,6 @@ add_executable(energyStorage
         utils/logger/logger.h
         utils/queue/msg_queue.cpp
         utils/queue/msg_queue.h
-        utils/thread/thread_base.cpp
-        utils/thread/thread_base.h
         utils/timer/timer_thread.cpp
         utils/timer/timer_thread.h
         third_party/paho_mqtt.c
@@ -89,22 +87,15 @@ add_executable(energyStorage
         driver/serial/serial_thread.h
         driver/common/serial_config.h
         driver/serial/serial_event.h
-        UNUSED/board/board.h
         driver/driver_manager.cpp
         driver/driver_manager.h
         app/state_machine/state_error.h
         app/state_machine/state_run.h
         app/state_machine/state_idle.h
         app/event.h
-        driver/timer/timer_thread.cpp
-        driver/timer/timer_thread.h
         services/protocol/can/can_protocol_base.h
         services/protocol/can/can_dispatcher.cpp
         services/protocol/can/can_dispatcher.h
-        services/protocol/can/proto_bms.cpp
-        services/protocol/can/proto_bms.h
-        services/protocol/can/proto_custom.cpp
-        services/protocol/can/proto_custom.h
         services/protocol/rs485/modbusProtocol.h
         services/protocol/modbus/modbus_rtu.cpp
         services/protocol/modbus/modbus_rtu.h
@@ -120,23 +111,16 @@ add_executable(energyStorage
         services/protocol/protocol_factory.h
         services/protocol/rs485/rs485_session.cpp
         services/protocol/rs485/rs485_session.h
-        app/app_context.h
         driver/net/eth_driver.cpp
         driver/net/eth_driver.h
         driver/net/eth_thread.cpp
         driver/net/eth_thread.h
-        services/output/uplink_eth.cpp
-        services/output/uplink_eth.h
         services/device/device_base.h
         services/device/device_types.h
         app/scheduler/scheduler_timer.cpp
         app/scheduler/scheduler_timer.h
         app/scheduler/device_scheduler.cpp
         app/scheduler/device_scheduler.h
-        services/display/display_data_map.cpp
-        services/display/display_data_map.h
-        services/output/display_rs485_session.cpp
-        services/output/display_rs485_session.h
         services/aggregator/system_snapshot.h
         services/aggregator/data_aggregator.cpp
         services/aggregator/data_aggregator.h
@@ -161,8 +145,6 @@ add_executable(energyStorage
         services/snapshot/uplink_sink.cpp
         services/snapshot/file_sink.h
         services/snapshot/file_sink.cpp
-        services/snapshot/display_sink.h
-        services/snapshot/display_sink.cpp
         services/parser/request_context.h
         services/protocol/rs485/hmi/hmi_proto.cpp
         services/protocol/rs485/hmi/hmi_proto.h
@@ -174,8 +156,6 @@ add_executable(energyStorage
         services/protocol/rs485/hmi/hmi_address_table.h
         services/snapshot/display/hmi_display_map.cpp
         services/snapshot/display/hmi_display_map.h
-        services/snapshot/display/hmi_snapshot_mapper.cpp
-        services/snapshot/display/hmi_snapshot_mapper.h
         utils/time/getTime.h
         services/protocol/j1939/opensae_port.cpp
         services/protocol/j1939/opensae_port.h
@@ -252,12 +232,9 @@ add_executable(energyStorage
         services/control/logic/logic_snapshot.cpp
         services/control/logic/logic_hmi_input.cpp
         services/control/logic/logic_tick.cpp
-        services/control/logic/logic_link.cpp
         services/control/logic/logic_io.cpp
         services/control/logic/logic_view_builder.cpp
         services/control/logic/logic_hmi_output.cpp
-        services/control/logic/logic_helpers.cpp
-        services/control/logic/logic_helpers.h
         services/control/logic/logic_context.h
         services/snapshot/sqlite/sqlite_fault_sink/sqlite_fault_sink.cpp
         services/snapshot/sqlite/sqlite_fault_sink/sqlite_fault_sink.h
@@ -274,6 +251,30 @@ add_executable(energyStorage
         services/control/bms/bms_fault_evaluator.h
         services/control/fault/fault_logic_evaluator.cpp
         services/control/fault/fault_logic_evaluator.h
+        services/control/fault/fault_history_cache.cpp
+        services/control/fault/fault_history_cache.h
+        services/snapshot/sqlite_local/local_sqlite_common.cpp
+        services/snapshot/sqlite_local/local_sqlite_common.h
+        services/snapshot/sqlite_local/local_sqlite_bms_archive_sink.cpp
+        services/snapshot/sqlite_local/local_sqlite_bms_archive_sink.h
+        driver/common/io_channel_map.h
+        driver/gpio/GPIODriver.cpp
+        driver/gpio/di.h
+        driver/gpio/do.h
+        driver/io/io_thread.cpp
+        driver/io/io_thread.h
+        services/control/business/business_engine.cpp
+        services/control/business/business_engine.h
+        services/control/business/business_case.txt
+        services/control/logic/logic_factor.h
+        services/normal/hmi_map_model.h
+        services/normal/hmi_map_loader.cpp
+        services/normal/hmi_map_loader.h
+        services/control/maintain/maintain_context.h
+        services/control/maintain/maintain_service.cpp
+        services/control/maintain/maintain_service.h
+        services/control/maintain/maintain_storage.cpp
+        services/control/maintain/maintain_storage.h
 
 )
 
@@ -298,7 +299,6 @@ target_include_directories(${PROJECT_NAME}
         PRIVATE
         ${PROJECT_SOURCE_DIR}/app
         ${PROJECT_SOURCE_DIR}/app/state_machine
-        UNUSED/board
         ${PROJECT_SOURCE_DIR}/driver
         ${PROJECT_SOURCE_DIR}/driver/adc
         ${PROJECT_SOURCE_DIR}/driver/can

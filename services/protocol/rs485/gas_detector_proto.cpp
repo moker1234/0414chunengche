@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/31.
+// Created by lxy on 2025/12/31.
 //
 /*
  * 气体检测器协议实现
@@ -14,6 +14,47 @@
 #include <cmath>
 
 #include "hex_dump.h"
+
+namespace {
+
+    static double applyGasDecimal_(uint16_t raw, uint16_t decimal_code)
+    {
+        switch (decimal_code) {
+        case 0: return static_cast<double>(raw);
+        case 1: return static_cast<double>(raw) / 10.0;
+        case 2: return static_cast<double>(raw) / 100.0;
+        default:
+            // 协议只定义 0/1/2，异常时按无小数处理，避免错误放大
+            return static_cast<double>(raw);
+        }
+    }
+
+    static const char* gasTypeName_(uint16_t type_code)
+    {
+        switch (type_code) {
+        case 0: return "combustible";
+        case 1: return "CO";
+        case 2: return "O2";
+        case 3: return "temperature";
+        case 4: return "humidity";
+        case 5: return "CO2";
+        default: return "unknown";
+        }
+    }
+
+    static const char* gasUnitName_(uint16_t unit_code)
+    {
+        switch (unit_code) {
+        case 0: return "%LEL";
+        case 1: return "ppm";
+        case 2: return "%VOL";
+        case 3: return "C";
+        case 4: return "%RH";
+        default: return "unknown";
+        }
+    }
+
+} // namespace
 
 // 寄存器：40001~40005
 // Modbus Holding Register 通常 PDU 地址从 0 开始（即 40001 -> 0x0000）
@@ -35,55 +76,80 @@ std::vector<uint8_t> GasDetectorProto::buildReadCmd() {
  * @param out 解析结果
  * @return 是否解析成功
  */
-bool GasDetectorProto::parse(const std::vector<uint8_t>& rx, DeviceData& out) {
-    // LOG_COMM_HEX("RX dev=GasDetector ...", rx.data(), rx.size());
-
+bool GasDetectorProto::parse(const std::vector<uint8_t>& rx, DeviceData& out)
+{
     std::vector<uint16_t> regs;
-    if (!parseHoldingRegs03(rx, addr_, regs)) return false; // 校验寄存器数
-    if (regs.size() < 5) return false;
-    LOGTRACE("[GAS][PARSE] size=%zu", rx.size());
-    LOGTRACE("[GAS][PARSE] data=");
-    for (auto b : rx) LOGTRACE("%02X ", b);
 
-    const uint16_t gas_raw      = regs[0]; // 40001
-    const uint16_t status       = regs[1]; // 40002
-    const uint16_t decimal_code = regs[2]; // 40003
-    const uint16_t unit_code    = regs[3]; // 40004
-    const uint16_t type_code    = regs[4]; // 40005
-
-    const double gas_value = applyDecimal(gas_raw, decimal_code);
-
-    out.device_name = "GasDetector";
-
-    /* ===== 强语义 Gas 数据 ===== */
-    out.gas.valid        = true;
-    out.gas.type_code   = type_code;
-    out.gas.raw         = gas_raw;
-    out.gas.status      = status;
-    out.gas.decimal_code= decimal_code;
-    out.gas.unit_code   = unit_code;
-    out.gas.value       = gas_value;
-
-    switch (type_code) {
-        case 0x0000: out.gas.type = GasType::Combustible; break;
-        case 0x0001: out.gas.type = GasType::CO; break;
-        case 0x0002: out.gas.type = GasType::O2; break;
-        case 0x0003: out.gas.type = GasType::Temperature; break;
-        case 0x0004: out.gas.type = GasType::Humidity; break;
-        case 0x0005: out.gas.type = GasType::CO2; break;
-        default:     out.gas.type = GasType::Unknown; break;
+    // 期望响应：
+    // addr + 0x03 + byte_count(10) + 5 个寄存器 + CRC_H + CRC_L
+    if (!parseHoldingRegs03(rx, addr_, regs)) {
+        return false;
     }
 
+    if (regs.size() < 5) {
+        return false;
+    }
+
+    const uint16_t gas_raw      = regs[0]; // 40001 探测器气体浓度
+    const uint16_t status_raw   = regs[1]; // 40002 探测器状态
+    const uint16_t decimal_code = regs[2]; // 40003 小数点位
+    const uint16_t unit_code    = regs[3]; // 40004 气体单位
+    const uint16_t type_code    = regs[4]; // 40005 气体种类
+
+    if (type_code > 5) {
+        return false;
+    }
+
+    const double gas_value = applyGasDecimal_(gas_raw, decimal_code);
+
+    const bool fault_any  = (status_raw & 0x0001u) != 0;
+    const bool low_alarm  = (status_raw & 0x0002u) != 0;
+    const bool high_alarm = (status_raw & 0x0004u) != 0;
+    const bool alarm_any  = low_alarm || high_alarm;
+
+    out = DeviceData{};
+    out.device_name = "GasDetector";
+
+    // ===== 兼容 Aggregator 的数值输入，但语义已经统一 =====
     out.num["gas_raw"]   = static_cast<double>(gas_raw);
     out.num["gas_value"] = gas_value;
-    out.num["status"]    = static_cast<double>(status);
+    out.num["status"]    = static_cast<double>(status_raw);
     out.num["decimal"]   = static_cast<double>(decimal_code);
     out.num["unit_code"] = static_cast<double>(unit_code);
     out.num["type_code"] = static_cast<double>(type_code);
 
-    out.str["status_text"] = statusToString(status);
-    out.str["unit"]        = unitToString(unit_code);
-    out.str["gas_type"]    = gasTypeToString(type_code);
+    // ===== 强语义 GasReading =====
+    out.gas.valid        = true;
+    out.gas.type_code    = type_code;
+    out.gas.raw          = gas_raw;
+    out.gas.status       = status_raw;
+    out.gas.decimal_code = decimal_code;
+    out.gas.unit_code    = unit_code;
+    out.gas.value        = gas_value;
+
+    switch (type_code) {
+        case 0: out.gas.type = GasType::Combustible; break;
+        case 1: out.gas.type = GasType::CO;          break;
+        case 2: out.gas.type = GasType::O2;          break;
+        case 3: out.gas.type = GasType::Temperature; break;
+        case 4: out.gas.type = GasType::Humidity;    break;
+        case 5: out.gas.type = GasType::CO2;         break;
+        default: out.gas.type = GasType::Unknown;    break;
+    }
+
+    // ===== 故障/报警真源 =====
+    out.status["fault_any"]  = fault_any  ? 1u : 0u;
+    out.status["low_alarm"]  = low_alarm  ? 1u : 0u;
+    out.status["high_alarm"] = high_alarm ? 1u : 0u;
+    out.status["alarm_any"]  = alarm_any  ? 1u : 0u;
+
+    // ===== 调试/落盘可读性 =====
+    out.value["status_raw"] = static_cast<int32_t>(status_raw);
+    out.value["type_code"]  = static_cast<int32_t>(type_code);
+    out.value["unit_code"]  = static_cast<int32_t>(unit_code);
+
+    out.str["gas_type"] = gasTypeName_(type_code);
+    out.str["gas_unit"] = gasUnitName_(unit_code);
 
     return true;
 }

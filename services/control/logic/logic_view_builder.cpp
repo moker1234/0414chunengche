@@ -9,6 +9,7 @@
 #include <ctime>
 #include <vector>
 #include <string>
+#include "logic_factor.h"
 
 #include "../utils/logger/logger.h"
 
@@ -26,65 +27,84 @@ namespace control {
         // constexpr uint32_t PCU_RX_TIMEOUT_MS = 1500;
         // constexpr uint32_t PCU_HB_STALE_MS   = 3000;
 
-        static double readGasChannelValueOr(const nlohmann::json& snap, int ch, double defv)
-        {
-            if (!snap.is_object()) return defv;
+static const nlohmann::json* findGasChannel_(const nlohmann::json& snap, int ch)
+{
+    if (!snap.is_object()) return nullptr;
 
-            auto it_items = snap.find("items");
-            if (it_items == snap.end() || !it_items->is_object()) return defv;
+    auto it_items = snap.find("items");
+    if (it_items == snap.end() || !it_items->is_object()) return nullptr;
 
-            auto it_gas = it_items->find("GasDetector");
-            if (it_gas == it_items->end() || !it_gas->is_object()) return defv;
+    auto it_gas = it_items->find("GasDetector");
+    if (it_gas == it_items->end() || !it_gas->is_object()) return nullptr;
 
-            auto it_channels = it_gas->find("gas_channels");
-            if (it_channels == it_gas->end() || !it_channels->is_object()) return defv;
+    auto it_channels = it_gas->find("gas_channels");
+    if (it_channels == it_gas->end() || !it_channels->is_object()) return nullptr;
 
-            const std::string key = std::to_string(ch);
-            auto it_ch = it_channels->find(key);
-            if (it_ch == it_channels->end() || !it_ch->is_object()) return defv;
+    const std::string key = std::to_string(ch);
+    auto it_ch = it_channels->find(key);
+    if (it_ch == it_channels->end() || !it_ch->is_object()) return nullptr;
 
-            auto it_valid = it_ch->find("valid");
-            if (it_valid != it_ch->end())
-            {
-                bool valid = false;
-                if (it_valid->is_boolean()) valid = it_valid->get<bool>();
-                else if (it_valid->is_number()) valid = (it_valid->get<double>() != 0.0);
-                if (!valid) return defv;
-            }
-
-            auto it_val = it_ch->find("value");
-            if (it_val == it_ch->end()) return defv;
-
-            if (it_val->is_number()) return it_val->get<double>();
-            if (it_val->is_boolean()) return it_val->get<bool>() ? 1.0 : 0.0;
-            return defv;
+    auto it_valid = it_ch->find("valid");
+    if (it_valid != it_ch->end()) {
+        bool valid = false;
+        if (it_valid->is_boolean()) {
+            valid = it_valid->get<bool>();
+        } else if (it_valid->is_number()) {
+            valid = (it_valid->get<double>() != 0.0);
         }
+        if (!valid) return nullptr;
+    }
 
-        static int readGasChannelStatusOr(const nlohmann::json& snap, int ch, int defv)
-        {
-            if (!snap.is_object()) return defv;
+    return &(*it_ch);
+}
 
-            auto it_items = snap.find("items");
-            if (it_items == snap.end() || !it_items->is_object()) return defv;
+static double readGasChannelValueOr(const nlohmann::json& snap, int ch, double defv)
+{
+    const nlohmann::json* jc = findGasChannel_(snap, ch);
+    if (!jc) return defv;
 
-            auto it_gas = it_items->find("GasDetector");
-            if (it_gas == it_items->end() || !it_gas->is_object()) return defv;
+    auto it_val = jc->find("value");
+    if (it_val == jc->end()) return defv;
 
-            auto it_channels = it_gas->find("gas_channels");
-            if (it_channels == it_gas->end() || !it_channels->is_object()) return defv;
+    if (it_val->is_number()) return it_val->get<double>();
+    if (it_val->is_boolean()) return it_val->get<bool>() ? 1.0 : 0.0;
 
-            const std::string key = std::to_string(ch);
-            auto it_ch = it_channels->find(key);
-            if (it_ch == it_channels->end() || !it_ch->is_object()) return defv;
+    return defv;
+}
 
-            auto it_status = it_ch->find("status");
-            if (it_status == it_ch->end()) return defv;
+static int readGasChannelStatusOr(const nlohmann::json& snap, int ch, int defv)
+{
+    const nlohmann::json* jc = findGasChannel_(snap, ch);
+    if (!jc) return defv;
 
-            if (it_status->is_number_integer()) return it_status->get<int>();
-            if (it_status->is_number()) return static_cast<int>(it_status->get<double>());
-            if (it_status->is_boolean()) return it_status->get<bool>() ? 1 : 0;
-            return defv;
-        }
+    auto it_status = jc->find("status");
+    if (it_status == jc->end()) return defv;
+
+    if (it_status->is_number_integer()) return it_status->get<int>();
+    if (it_status->is_number()) return static_cast<int>(it_status->get<double>());
+    if (it_status->is_boolean()) return it_status->get<bool>() ? 1 : 0;
+
+    return defv;
+}
+
+static bool readGasChannelBoolOr(const nlohmann::json& snap,
+                                 int ch,
+                                 const char* key,
+                                 bool defv)
+{
+    const nlohmann::json* jc = findGasChannel_(snap, ch);
+    if (!jc || !key || !*key) return defv;
+
+    auto it = jc->find(key);
+    if (it == jc->end()) return defv;
+
+    if (it->is_boolean()) return it->get<bool>();
+    if (it->is_number_integer()) return it->get<int>() != 0;
+    if (it->is_number_unsigned()) return it->get<unsigned>() != 0;
+    if (it->is_number_float()) return it->get<double>() != 0.0;
+
+    return defv;
+}
 
         static const nlohmann::json* resolvePathCompatLocal(const nlohmann::json& root, const char* path)
         {
@@ -163,6 +183,24 @@ namespace control {
             if (node->is_number()) return node->get<double>() != 0.0;
             return defv;
         }
+                static int16_t roundScaledToI16_(double v, double factor)
+        {
+            if (!std::isfinite(v)) {
+                return 0;
+            }
+
+            const double y = v * factor;
+
+            if (y > static_cast<double>(std::numeric_limits<int16_t>::max())) {
+                return std::numeric_limits<int16_t>::max();
+            }
+
+            if (y < static_cast<double>(std::numeric_limits<int16_t>::min())) {
+                return std::numeric_limits<int16_t>::min();
+            }
+
+            return static_cast<int16_t>(std::llround(y));
+        }
 
         static uint32_t currentUnixSeconds32_()
         {
@@ -204,6 +242,160 @@ namespace control {
             v[prefix + "_last_offline_ms"] = static_cast<double>(item->last_offline_ms);
             v[prefix + "_disconnect_count"] = static_cast<int>(item->disconnect_count);
         }
+                static void copyLogicViewKeyIfMissing_(nlohmann::json& v,
+                                               const char* dst,
+                                               const char* src)
+        {
+            if (!dst || !*dst || !src || !*src) return;
+            if (!v.is_object()) return;
+
+            if (v.find(dst) != v.end()) return;
+
+            auto it = v.find(src);
+            if (it == v.end()) return;
+
+            v[dst] = *it;
+        }
+
+        static int jsonIntOr_(const nlohmann::json& v,
+                              const char* key,
+                              int defv)
+        {
+            if (!v.is_object() || !key || !*key) return defv;
+
+            auto it = v.find(key);
+            if (it == v.end()) return defv;
+
+            if (it->is_number_integer()) return it->get<int>();
+            if (it->is_number_unsigned()) return static_cast<int>(it->get<unsigned>());
+            if (it->is_number_float()) return static_cast<int>(it->get<double>());
+            if (it->is_boolean()) return it->get<bool>() ? 1 : 0;
+
+            return defv;
+        }
+
+        static void addNormalMapCompatibilityAliases_(nlohmann::json& v)
+        {
+            if (!v.is_object()) return;
+
+            /*
+             * AirConditioner：
+             * 旧字段 ac_* 保留，新 jsonl 推荐 aircon_*。
+             */
+            copyLogicViewKeyIfMissing_(v, "aircon_run_overall", "ac_overall_state");
+            copyLogicViewKeyIfMissing_(v, "aircon_inner_fan", "ac_inner_fan");
+            copyLogicViewKeyIfMissing_(v, "aircon_outer_fan", "ac_outer_fan");
+            copyLogicViewKeyIfMissing_(v, "aircon_compressor", "ac_compressor");
+            copyLogicViewKeyIfMissing_(v, "aircon_heater", "ac_heater");
+            copyLogicViewKeyIfMissing_(v, "aircon_em_fan", "ac_em_fan");
+
+            copyLogicViewKeyIfMissing_(v, "aircon_coil_temp", "ac_coil_temp");
+            copyLogicViewKeyIfMissing_(v, "aircon_outdoor_temp", "ac_outdoor_temp");
+            copyLogicViewKeyIfMissing_(v, "aircon_condense_temp", "ac_condense_temp");
+            copyLogicViewKeyIfMissing_(v, "aircon_indoor_temp", "ac_indoor_temp");
+            copyLogicViewKeyIfMissing_(v, "aircon_humidity", "ac_humidity");
+            copyLogicViewKeyIfMissing_(v, "aircon_exhaust_temp", "ac_exhaust_temp");
+            copyLogicViewKeyIfMissing_(v, "aircon_current", "ac_current");
+            copyLogicViewKeyIfMissing_(v, "aircon_ac_voltage", "ac_ac_voltage");
+            copyLogicViewKeyIfMissing_(v, "aircon_dc_voltage", "ac_dc_voltage");
+
+            copyLogicViewKeyIfMissing_(v, "aircon_coil_temp_eng", "ac_coil_temp_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_outdoor_temp_eng", "ac_outdoor_temp_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_condense_temp_eng", "ac_condense_temp_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_indoor_temp_eng", "ac_indoor_temp_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_humidity_eng", "ac_humidity_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_exhaust_temp_eng", "ac_exhaust_temp_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_current_eng", "ac_current_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_ac_voltage_eng", "ac_ac_voltage_eng");
+            copyLogicViewKeyIfMissing_(v, "aircon_dc_voltage_eng", "ac_dc_voltage_eng");
+
+            /*
+             * UPS：
+             * 保留 hi/lo，同时补一个完整秒数，方便后续 HMI 或调试页读取。
+             */
+            if (v.find("ups_battery_remain_sec") == v.end())
+            {
+                const int hi = jsonIntOr_(v, "ups_battery_remain_sec_hi", 0);
+                const int lo = jsonIntOr_(v, "ups_battery_remain_sec_lo", 0);
+
+                const uint32_t sec =
+                    (static_cast<uint32_t>(hi & 0xFFFF) << 16) |
+                    static_cast<uint32_t>(lo & 0xFFFF);
+
+                v["ups_battery_remain_sec"] = static_cast<double>(sec);
+            }
+
+            /*
+             * BMS online / health 兼容：
+             * 旧逻辑里同时存在 bms1_online 和 bms_1_online。
+             * 新 jsonl 统一推荐 bms_1_online。
+             */
+            for (int idx = 1; idx <= 4; ++idx)
+            {
+                const std::string n = std::to_string(idx);
+
+                const std::string old_prefix = "bms" + n;
+                const std::string new_prefix = "bms_" + n;
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_online").c_str(),
+                    (old_prefix + "_online").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_last_ok_ms").c_str(),
+                    (old_prefix + "_last_ok_ms").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_last_offline_ms").c_str(),
+                    (old_prefix + "_last_offline_ms").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_disconnect_count").c_str(),
+                    (old_prefix + "_disconnect_count").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_offline_reason_code").c_str(),
+                    (old_prefix + "_offline_reason_code").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_offline_reason_text").c_str(),
+                    (old_prefix + "_offline_reason_text").c_str());
+
+                /*
+                 * BMS 首页别名：
+                 * 有些 HMI 点位用“电压/电流/SOC”这种概览名，
+                 * 这里补 alias，不改变 bms_adapter_ 的原始字段。
+                 */
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_pack_voltage").c_str(),
+                    (new_prefix + "_st2_pack_v").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_pack_current").c_str(),
+                    (new_prefix + "_st2_pack_i").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_pack_soc").c_str(),
+                    (new_prefix + "_st2_soc").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_pack_soh").c_str(),
+                    (new_prefix + "_st2_soh").c_str());
+
+                /*
+                 * TMS / Fire 语义别名：
+                 * bms_adapter_ 第四批已经输出这些字段；
+                 * 这里不额外计算，只保证 normal_map 可以稳定引用。
+                 */
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_tms_status").c_str(),
+                    (new_prefix + "_tms_work_state").c_str());
+
+                copyLogicViewKeyIfMissing_(v,
+                    (new_prefix + "_fire_alarm_level").c_str(),
+                    (new_prefix + "_fire_value_alarm_level").c_str());
+            }
+        }
     } // namespace
 
     void LogicEngine::rebuildLogicView_(LogicContext& ctx)
@@ -227,11 +419,11 @@ namespace control {
 
         // 3) GasDetector
         const double gas_combustible_raw = readGasChannelValueOr(snap, 0, 0.0);
-        const double gas_co_raw = readGasChannelValueOr(snap, 1, 0.0);
-        const double gas_o2_raw = readGasChannelValueOr(snap, 2, 0.0);
+        const double gas_co_raw          = readGasChannelValueOr(snap, 1, 0.0);
+        const double gas_o2_raw          = readGasChannelValueOr(snap, 2, 0.0);
         const double gas_temperature_raw = readGasChannelValueOr(snap, 3, 0.0);
-        const double gas_humidity_raw = readGasChannelValueOr(snap, 4, 0.0);
-        const double gas_co2_raw = readGasChannelValueOr(snap, 5, 0.0);
+        const double gas_humidity_raw    = readGasChannelValueOr(snap, 4, 0.0);
+        const double gas_co2_raw         = readGasChannelValueOr(snap, 5, 0.0);
 
         const int gas_ch0_status = readGasChannelStatusOr(snap, 0, 0);
         const int gas_ch1_status = readGasChannelStatusOr(snap, 1, 0);
@@ -240,9 +432,44 @@ namespace control {
         const int gas_ch4_status = readGasChannelStatusOr(snap, 4, 0);
         const int gas_ch5_status = readGasChannelStatusOr(snap, 5, 0);
 
-        const int gas_detector_state = static_cast<int>(
-            readJsonNumberOr(snap, "items.GasDetector.health.state", 0.0));
+        const uint16_t gas_status_all =
+            static_cast<uint16_t>(
+                gas_ch0_status |
+                gas_ch1_status |
+                gas_ch2_status |
+                gas_ch3_status |
+                gas_ch4_status |
+                gas_ch5_status
+            );
 
+        const bool gas_fault_any_raw =
+            readGasChannelBoolOr(snap, 0, "fault_any",  (gas_ch0_status & 0x0001) != 0) ||
+            readGasChannelBoolOr(snap, 1, "fault_any",  (gas_ch1_status & 0x0001) != 0) ||
+            readGasChannelBoolOr(snap, 2, "fault_any",  (gas_ch2_status & 0x0001) != 0) ||
+            readGasChannelBoolOr(snap, 3, "fault_any",  (gas_ch3_status & 0x0001) != 0) ||
+            readGasChannelBoolOr(snap, 4, "fault_any",  (gas_ch4_status & 0x0001) != 0) ||
+            readGasChannelBoolOr(snap, 5, "fault_any",  (gas_ch5_status & 0x0001) != 0);
+
+        const bool gas_low_alarm_raw =
+            readGasChannelBoolOr(snap, 0, "low_alarm",  (gas_ch0_status & 0x0002) != 0) ||
+            readGasChannelBoolOr(snap, 1, "low_alarm",  (gas_ch1_status & 0x0002) != 0) ||
+            readGasChannelBoolOr(snap, 2, "low_alarm",  (gas_ch2_status & 0x0002) != 0) ||
+            readGasChannelBoolOr(snap, 3, "low_alarm",  (gas_ch3_status & 0x0002) != 0) ||
+            readGasChannelBoolOr(snap, 4, "low_alarm",  (gas_ch4_status & 0x0002) != 0) ||
+            readGasChannelBoolOr(snap, 5, "low_alarm",  (gas_ch5_status & 0x0002) != 0);
+
+        const bool gas_high_alarm_raw =
+            readGasChannelBoolOr(snap, 0, "high_alarm", (gas_ch0_status & 0x0004) != 0) ||
+            readGasChannelBoolOr(snap, 1, "high_alarm", (gas_ch1_status & 0x0004) != 0) ||
+            readGasChannelBoolOr(snap, 2, "high_alarm", (gas_ch2_status & 0x0004) != 0) ||
+            readGasChannelBoolOr(snap, 3, "high_alarm", (gas_ch3_status & 0x0004) != 0) ||
+            readGasChannelBoolOr(snap, 4, "high_alarm", (gas_ch4_status & 0x0004) != 0) ||
+            readGasChannelBoolOr(snap, 5, "high_alarm", (gas_ch5_status & 0x0004) != 0);
+
+        const bool gas_alarm_any_raw =
+            gas_low_alarm_raw || gas_high_alarm_raw;
+
+        const int gas_detector_state = static_cast<int>(gas_status_all);
         // 4) AirConditioner
         const double ac_overall_state_raw = readJsonNumberOr(
             snap, "items.AirConditioner.data.run_state.fields.run.overall", 0.0);
@@ -305,22 +532,44 @@ namespace control {
         const double pack_v_disp = std::max(0.0, pack_v_raw);
         const double pack_i_disp = pack_i_raw;
 
-        const double gas_combustible_disp = std::max(0.0, gas_combustible_raw);
-        const double gas_co_disp = std::max(0.0, gas_co_raw);
-        const double gas_o2_disp = std::max(0.0, gas_o2_raw);
-        const double gas_temperature_disp = gas_temperature_raw;
-        const double gas_humidity_disp = std::clamp(gas_humidity_raw, 0.0, 100.0);
-        const double gas_co2_disp = std::max(0.0, gas_co2_raw);
+        const int gas_combustible_disp = roundScaledToI16_(std::max(0.0, gas_combustible_raw), gas_factor.combustible);
+        const int gas_co_disp = roundScaledToI16_(std::max(0.0, gas_co_raw), gas_factor.co);
+        const int gas_o2_disp = roundScaledToI16_(std::max(0.0, gas_o2_raw), gas_factor.o2);
+        const int gas_temperature_disp = roundScaledToI16_(gas_temperature_raw, gas_factor.temperature);
+        const int gas_humidity_disp =  roundScaledToI16_(std::clamp(gas_humidity_raw, 0.0, 100.0), gas_factor.humidity);
+        const int gas_co2_disp = roundScaledToI16_(std::max(0.0, gas_co2_raw), gas_factor.co2);
 
-        const double ac_coil_temp_disp = ac_coil_temp_raw;
-        const double ac_outdoor_temp_disp = ac_outdoor_temp_raw;
-        const double ac_condense_temp_disp = ac_condense_temp_raw;
-        const double ac_indoor_temp_disp = ac_indoor_temp_raw;
-        const double ac_humidity_disp = std::clamp(ac_humidity_raw, 0.0, 100.0);
-        const double ac_exhaust_temp_disp = ac_exhaust_temp_raw;
-        const double ac_current_disp = std::max(0.0, ac_current_raw);
-        const double ac_ac_voltage_disp = std::max(0.0, ac_ac_voltage_raw);
-        const double ac_dc_voltage_disp = std::max(0.0, ac_dc_voltage_raw);
+        // AirConditioner：
+        // - *_eng 保留工程值，供调试 / 模型导出 / 后续业务查看；
+        // - 原 HMI 使用字段 ac_* 输出整数缩放值，避免依赖 normal_map_logic.jsonl 的 scale。
+
+        //  AirConditioner 传感器值处理
+        const bool ac_coil_temp_invalid =    ctx.air_faults.coil_temp_sensor_fault || (ac_coil_temp_raw >= 199.9);
+        const bool ac_outdoor_temp_invalid = ctx.air_faults.outdoor_temp_sensor_fault || (ac_outdoor_temp_raw >= 199.9);
+        const bool ac_condense_temp_invalid =ctx.air_faults.condenser_temp_sensor_fault || (ac_condense_temp_raw >= 199.9);
+        const bool ac_indoor_temp_invalid = ctx.air_faults.indoor_temp_sensor_fault || (ac_indoor_temp_raw >= 199.9);
+        const bool ac_exhaust_temp_invalid =ctx.air_faults.exhaust_temp_sensor_fault || (ac_exhaust_temp_raw >= 199.9);
+        const bool ac_humidity_invalid =    ctx.air_faults.humidity_sensor_fault || (ac_humidity_raw == 120.0) ||  (ac_humidity_raw >= 32767.0);
+        const double ac_coil_temp_eng =  ac_coil_temp_invalid ? 0.0 : ac_coil_temp_raw;
+        const double ac_outdoor_temp_eng = ac_outdoor_temp_invalid ? 0.0 : ac_outdoor_temp_raw;
+        const double ac_condense_temp_eng = ac_condense_temp_invalid ? 0.0 : ac_condense_temp_raw;
+        const double ac_indoor_temp_eng = ac_indoor_temp_invalid ? 0.0 : ac_indoor_temp_raw;
+        const double ac_humidity_eng =  ac_humidity_invalid ? 0.0 : std::clamp(ac_humidity_raw, 0.0, 100.0);
+        const double ac_exhaust_temp_eng = ac_exhaust_temp_invalid ? 0.0 : ac_exhaust_temp_raw;
+
+        const double ac_current_eng = std::max(0.0, ac_current_raw);
+        const double ac_ac_voltage_eng = std::max(0.0, ac_ac_voltage_raw);
+        const double ac_dc_voltage_eng = std::max(0.0, ac_dc_voltage_raw);
+        /*采用 normal_map_logic.jsonl 的“缩放”后，logic_view 输出工程值，不再提前转 HMI 整数。*/
+        const double ac_coil_temp_hmi = ac_coil_temp_eng;
+        const double ac_outdoor_temp_hmi = ac_outdoor_temp_eng;
+        const double ac_condense_temp_hmi = ac_condense_temp_eng;
+        const double ac_indoor_temp_hmi = ac_indoor_temp_eng;
+        const double ac_humidity_hmi = ac_humidity_eng;
+        const double ac_exhaust_temp_hmi = ac_exhaust_temp_eng;
+        const double ac_current_hmi = ac_current_eng;
+        const double ac_ac_voltage_hmi = ac_ac_voltage_eng;
+        const double ac_dc_voltage_hmi = ac_dc_voltage_eng;
 
         const double smoke_alarm_num_disp = std::max(0.0, smoke_alarm_num_raw);
         const double smoke_fault_disp = std::max(0.0, smoke_fault_raw);
@@ -328,19 +577,44 @@ namespace control {
         const double smoke_percent_disp = std::max(0.0, smoke_percent_raw);
         const double smoke_temperature_disp = smoke_temperature_raw;
 
-        const double ups_system_mode_disp = std::max(0.0, ups_system_mode_raw);
-        const double ups_battery_capacity_disp = std::clamp(ups_battery_capacity_raw, 0.0, 100.0);
-        const double ups_fault_bits_disp = std::max(0.0, ups_fault_bits_raw);
-        const double ups_warning_bits_disp = std::max(0.0, ups_warning_bits_raw);
+        const double ups_system_mode_disp =
+            std::max(0.0, ups_system_mode_raw);
+
+        const double ups_battery_capacity_disp =
+            std::clamp(ups_battery_capacity_raw, 0.0, 100.0);
+
+        const double ups_fault_bits_disp =
+            std::max(0.0, ups_fault_bits_raw);
+
+        const double ups_warning_bits_disp =
+            std::max(0.0, ups_warning_bits_raw);
 
         const uint32_t ups_battery_remain_sec_u32 =
             static_cast<uint32_t>(std::max(0.0, ups_battery_remain_sec_raw));
 
         const uint16_t ups_battery_remain_sec_hi =
             static_cast<uint16_t>((ups_battery_remain_sec_u32 >> 16) & 0xFFFFu);
+
         const uint16_t ups_battery_remain_sec_lo =
             static_cast<uint16_t>(ups_battery_remain_sec_u32 & 0xFFFFu);
 
+        const uint32_t ups_fault_bits_u32 =
+            static_cast<uint32_t>(std::max(0.0, ups_fault_bits_disp));
+
+        const uint16_t ups_fault_bits_hi =
+            static_cast<uint16_t>((ups_fault_bits_u32 >> 16) & 0xFFFFu);
+
+        const uint16_t ups_fault_bits_lo =
+            static_cast<uint16_t>(ups_fault_bits_u32 & 0xFFFFu);
+
+        const uint32_t ups_warning_bits_u32 =
+            static_cast<uint32_t>(std::max(0.0, ups_warning_bits_disp));
+
+        const uint16_t ups_warning_bits_hi =
+            static_cast<uint16_t>((ups_warning_bits_u32 >> 16) & 0xFFFFu);
+
+        const uint16_t ups_warning_bits_lo =
+            static_cast<uint16_t>(ups_warning_bits_u32 & 0xFFFFu);
         // 8) 系统类
         v["soc"] = soc_disp;
         v["pack_voltage"] = pack_v_disp;
@@ -354,47 +628,127 @@ namespace control {
         v["ac_heater"] = static_cast<int>(ac_heater_raw);
         v["ac_em_fan"] = static_cast<int>(ac_em_fan_raw);
 
-        v["ac_coil_temp"] = ac_coil_temp_disp;
-        v["ac_outdoor_temp"] = ac_outdoor_temp_disp;
-        v["ac_condense_temp"] = ac_condense_temp_disp;
-        v["ac_indoor_temp"] = ac_indoor_temp_disp;
-        v["ac_humidity"] = ac_humidity_disp;
-        v["ac_exhaust_temp"] = ac_exhaust_temp_disp;
-        v["ac_current"] = ac_current_disp;
-        v["ac_ac_voltage"] = ac_ac_voltage_disp;
-        v["ac_dc_voltage"] = ac_dc_voltage_disp;
+        // HMI 使用字段：工程值。
+        // NormalHmiWriter 根据 normal_map_logic.jsonl 的“缩放”反算 HMI 整数。
+        v["ac_coil_temp"] = ac_coil_temp_hmi;
+        v["ac_outdoor_temp"] = ac_outdoor_temp_hmi;
+        v["ac_condense_temp"] = ac_condense_temp_hmi;
+        v["ac_indoor_temp"] = ac_indoor_temp_hmi;
+        v["ac_humidity"] = ac_humidity_hmi;
+        v["ac_exhaust_temp"] = ac_exhaust_temp_hmi;
+        v["ac_current"] = ac_current_hmi;
+        v["ac_ac_voltage"] = ac_ac_voltage_hmi;
+        v["ac_dc_voltage"] = ac_dc_voltage_hmi;
+
+        // 工程值保留字段：不接 HMI 主显示，只供调试 / 导出 / 后续业务使用。
+        v["ac_coil_temp_eng"] = ac_coil_temp_eng;
+        v["ac_outdoor_temp_eng"] = ac_outdoor_temp_eng;
+        v["ac_condense_temp_eng"] = ac_condense_temp_eng;
+        v["ac_indoor_temp_eng"] = ac_indoor_temp_eng;
+        v["ac_humidity_eng"] = ac_humidity_eng;
+        v["ac_exhaust_temp_eng"] = ac_exhaust_temp_eng;
+        v["ac_current_eng"] = ac_current_eng;
+        v["ac_ac_voltage_eng"] = ac_ac_voltage_eng;
+        v["ac_dc_voltage_eng"] = ac_dc_voltage_eng;
 
         // 10) Smoke
-        v["smoke_alarm"] = static_cast<int>(smoke_alarm_num_disp);
-        v["smoke_fault"] = static_cast<int>(smoke_fault_disp);
-        v["smoke_warn_level"] = static_cast<int>(smoke_warn_level_disp);
-        v["smoke_percent"] = smoke_percent_disp;
-        v["smoke_temperature"] = smoke_temperature_disp;
+        {
+            const int smoke_alarm_raw_i =
+                static_cast<int>(smoke_alarm_num_disp);
+
+            const int smoke_fault_raw_i =
+                static_cast<int>(smoke_fault_disp);
+
+            const bool smoke_alarm_on =
+                ctx.smoke_faults.smoke_alarm ||
+                (smoke_alarm_raw_i != 0);
+
+            const bool smoke_sensor_fault_on =
+                ctx.smoke_faults.smoke_sensor_fault ||
+                ((smoke_fault_raw_i & 0x01) != 0);
+
+            const bool smoke_pollution_fault_on =
+                ctx.smoke_faults.smoke_pollution_fault ||
+                ((smoke_fault_raw_i & 0x02) != 0);
+
+            const bool smoke_temp_sensor_fault_on =
+                ctx.smoke_faults.temp_sensor_fault ||
+                ((smoke_fault_raw_i & 0x04) != 0);
+
+            const bool smoke_fault_any_on =
+                smoke_sensor_fault_on ||
+                smoke_pollution_fault_on ||
+                smoke_temp_sensor_fault_on;
+
+            v["smoke_online"] = ctx.smoke_faults.online ? 1 : 0;
+            v["smoke_offline"] = ctx.smoke_faults.online ? 0 : 1;
+
+            // 原始寄存器显示
+            v["smoke_alarm"] = smoke_alarm_on ? 1 : 0;
+            v["smoke_fault"] = smoke_fault_raw_i;
+            v["smoke_warn_level"] = static_cast<int>(smoke_warn_level_disp);
+            v["smoke_percent"] = smoke_percent_disp;
+            v["smoke_temperature"] = smoke_temperature_disp;
+
+            // 语义化故障真源，供 HMI / 调试 / 后续 normal_map_logic 使用
+            v["smoke_fault_any"] = smoke_fault_any_on ? 1 : 0;
+            v["smoke_sensor_fault"] = smoke_sensor_fault_on ? 1 : 0;
+            v["smoke_pollution_fault"] = smoke_pollution_fault_on ? 1 : 0;
+            v["smoke_temp_sensor_fault"] = smoke_temp_sensor_fault_on ? 1 : 0;
+
+            // 探测器状态：0=正常；非0=协议 fault bitfield。
+            // 通信状态单独看 smoke_online/smoke_offline。
+            v["smoke_detector_state"] = smoke_fault_raw_i;
+        }
 
         // 11) Gas
         v["gas_detector_state"] = gas_detector_state;
+
         v["gas_combustible"] = gas_combustible_disp;
-        v["gas_co"] = gas_co_disp;
-        v["gas_o2"] = gas_o2_disp;
+        v["gas_co"]          = gas_co_disp;
+        v["gas_o2"]          = gas_o2_disp;
         v["gas_temperature"] = gas_temperature_disp;
-        v["gas_humidity"] = gas_humidity_disp;
-        v["gas_co2"] = gas_co2_disp;
+        v["gas_humidity"]    = gas_humidity_disp;
+        v["gas_co2"]         = gas_co2_disp;
 
         v["gas_combustible_status"] = gas_ch0_status;
-        v["gas_co_status"] = gas_ch1_status;
-        v["gas_o2_status"] = gas_ch2_status;
+        v["gas_co_status"]          = gas_ch1_status;
+        v["gas_o2_status"]          = gas_ch2_status;
         v["gas_temperature_status"] = gas_ch3_status;
-        v["gas_humidity_status"] = gas_ch4_status;
-        v["gas_co2_status"] = gas_ch5_status;
+        v["gas_humidity_status"]    = gas_ch4_status;
+        v["gas_co2_status"]         = gas_ch5_status;
+
+        // Gas 故障真源，供 HMI / 调试 / 后续 confirmed_faults 使用
+        v["gas_fault_any"]  = gas_fault_any_raw ? 1 : 0;
+        v["gas_low_alarm"]  = gas_low_alarm_raw ? 1 : 0;
+        v["gas_high_alarm"] = gas_high_alarm_raw ? 1 : 0;
+        v["gas_alarm_any"]  = gas_alarm_any_raw ? 1 : 0;
 
         // 12) UPS
         v["ups_system_mode"] = static_cast<int>(ups_system_mode_disp);
+
+        // 完整 32 位秒数，供 words=2 的 HMI map 直接绑定。
+        v["ups_battery_remain_sec"] =
+            static_cast<double>(ups_battery_remain_sec_u32);
+
+        // 兼容旧 normal_map_logic.jsonl 里 xxx_hi + xxx_lo 的写法。
         v["ups_battery_remain_sec_hi"] = ups_battery_remain_sec_hi;
         v["ups_battery_remain_sec_lo"] = ups_battery_remain_sec_lo;
-        v["ups_battery_capacity"] = static_cast<int>(ups_battery_capacity_disp);
-        v["ups_fault_bits"] = static_cast<int>(ups_fault_bits_disp);
-        v["ups_warning_bits"] = static_cast<int>(ups_warning_bits_disp);
 
+        v["ups_battery_capacity"] = static_cast<int>(ups_battery_capacity_disp);
+
+        // 完整 32 位容器。
+        v["ups_fault_bits"] =
+            static_cast<double>(ups_fault_bits_u32);
+
+        v["ups_warning_bits"] =
+            static_cast<double>(ups_warning_bits_u32);
+
+        // 16 位拆分，供 HMI 分两个寄存器显示完整故障/告警容器。
+        v["ups_fault_bits_hi"] = ups_fault_bits_hi;
+        v["ups_fault_bits_lo"] = ups_fault_bits_lo;
+        v["ups_warning_bits_hi"] = ups_warning_bits_hi;
+        v["ups_warning_bits_lo"] = ups_warning_bits_lo;
         // 12.5) BMS 4 路概览
         {
             const nlohmann::json jbms = bms_adapter_.buildLogicView(ctx.bms_cache);
@@ -778,35 +1132,83 @@ namespace control {
                 x.offline_reason_text.empty() ? "None" : x.offline_reason_text;
         }
 
-        // 注意映射关系：can0 -> PCU_0 -> pcu1_online，can1 -> PCU_1 -> pcu2_online
-        v["pcu1_online"] = ctx.pcu0_state.online ? 1 : 0;
-        v["pcu2_online"] = ctx.pcu1_state.online ? 1 : 0;
+        /// ============================================================
+// PCU runtime 真源投影
+//
+// 内部命名：
+//   PCU_0 -> HMI/故障表 PCU1
+//   PCU_1 -> HMI/故障表 PCU2
+//
+// 注意：
+//   不从 snapshot item.online 读取 PCU 在线状态。
+//   PCU online 只来自 ctx.pcu0_state / ctx.pcu1_state。
+// ============================================================
+auto write_pcu_runtime = [&](const char* prefix, const PcuOnlineState& s)
+{
+    v[std::string(prefix) + "_online"] = s.online ? 1 : 0;
 
-        v["pcu1_rx_alive"] = ctx.pcu0_state.rx_alive ? 1 : 0;
-        v["pcu1_hb_alive"] = ctx.pcu0_state.hb_alive ? 1 : 0;
-        v["pcu1_last_rx_ms"] = static_cast<double>(ctx.pcu0_state.last_rx_ms);
-        v["pcu1_last_hb_change_ms"] = static_cast<double>(ctx.pcu0_state.last_hb_change_ms);
-        v["pcu1_heartbeat"] = static_cast<int>(ctx.pcu0_state.last_heartbeat);
-        v["pcu1_hb_repeat_count"] = static_cast<int>(ctx.pcu0_state.hb_repeat_count);
-        v["pcu1_hb_jump_err_count"] = static_cast<int>(ctx.pcu0_state.hb_jump_err_count);
-        v["pcu1_online_reason_code"] = static_cast<int>(ctx.pcu0_state.offline_reason_code);
-        v["pcu1_online_reason_text"] = pcuOfflineReasonText_(ctx.pcu0_state.offline_reason_code);
-        v["pcu1_last_rx_age_ms"] = ctx.pcu0_state.last_rx_age_ms;
-        v["pcu1_last_hb_change_age_ms"] = ctx.pcu0_state.last_hb_change_age_ms;
-        v["pcu1_last_hb_delta"] = static_cast<int>(ctx.pcu0_state.last_hb_delta);
+    v[std::string(prefix) + "_rx_alive"] = s.rx_alive ? 1 : 0;
+    v[std::string(prefix) + "_hb_alive"] = s.hb_alive ? 1 : 0;
 
-        v["pcu2_rx_alive"] = ctx.pcu1_state.rx_alive ? 1 : 0;
-        v["pcu2_hb_alive"] = ctx.pcu1_state.hb_alive ? 1 : 0;
-        v["pcu2_last_rx_ms"] = static_cast<double>(ctx.pcu1_state.last_rx_ms);
-        v["pcu2_last_hb_change_ms"] = static_cast<double>(ctx.pcu1_state.last_hb_change_ms);
-        v["pcu2_heartbeat"] = static_cast<int>(ctx.pcu1_state.last_heartbeat);
-        v["pcu2_hb_repeat_count"] = static_cast<int>(ctx.pcu1_state.hb_repeat_count);
-        v["pcu2_hb_jump_err_count"] = static_cast<int>(ctx.pcu1_state.hb_jump_err_count);
-        v["pcu2_online_reason_code"] = static_cast<int>(ctx.pcu1_state.offline_reason_code);
-        v["pcu2_online_reason_text"] = pcuOfflineReasonText_(ctx.pcu1_state.offline_reason_code);
-        v["pcu2_last_rx_age_ms"] = ctx.pcu1_state.last_rx_age_ms;
-        v["pcu2_last_hb_change_age_ms"] = ctx.pcu1_state.last_hb_change_age_ms;
-        v["pcu2_last_hb_delta"] = static_cast<int>(ctx.pcu1_state.last_hb_delta);
+    v[std::string(prefix) + "_seen_once"] = s.seen_once ? 1 : 0;
+
+    v[std::string(prefix) + "_last_rx_ms"] =
+        static_cast<double>(s.last_rx_ms);
+
+    v[std::string(prefix) + "_last_hb_change_ms"] =
+        static_cast<double>(s.last_hb_change_ms);
+
+    v[std::string(prefix) + "_last_rx_age_ms"] =
+        s.last_rx_age_ms;
+
+    v[std::string(prefix) + "_last_hb_change_age_ms"] =
+        s.last_hb_change_age_ms;
+
+    v[std::string(prefix) + "_heartbeat"] =
+        static_cast<int>(s.last_heartbeat);
+
+    v[std::string(prefix) + "_hb_repeat_count"] =
+        static_cast<int>(s.hb_repeat_count);
+
+    v[std::string(prefix) + "_hb_jump_err_count"] =
+        static_cast<int>(s.hb_jump_err_count);
+
+    v[std::string(prefix) + "_last_hb_delta"] =
+        static_cast<int>(s.last_hb_delta);
+
+    v[std::string(prefix) + "_online_reason_code"] =
+        static_cast<int>(s.offline_reason_code);
+
+    v[std::string(prefix) + "_online_reason_text"] =
+        pcuOfflineReasonText_(s.offline_reason_code);
+
+    v[std::string(prefix) + "_last_offline_ms"] =
+        static_cast<double>(s.last_offline_ms);
+
+    v[std::string(prefix) + "_disconnect_count"] =
+        static_cast<int>(s.disconnect_count);
+
+    v[std::string(prefix) + "_cabinet_id"] =
+        static_cast<int>(s.cabinet_id);
+
+    v[std::string(prefix) + "_pcu_state"] =
+        s.pcu_state_valid ? static_cast<int>(s.pcu_state) : 0;
+
+    /*
+     * estop_raw 保留最后观测值。
+     * estop 只在 online 时作为有效急停状态输出。
+     * 后续第五批故障映射也应该按 online && estop 触发 PCU急停，
+     * 避免 PCU 离线后保留旧急停位。
+     */
+    v[std::string(prefix) + "_estop_raw"] =
+        s.estop ? 1 : 0;
+
+    v[std::string(prefix) + "_estop"] =
+        (s.online && s.estop) ? 1 : 0;
+};
+
+write_pcu_runtime("pcu1", ctx.pcu0_state);
+write_pcu_runtime("pcu2", ctx.pcu1_state);
 
         // ============================================================
         // 统一设备断连诊断字段（供 HMI / 日志 / 后续诊断页使用）
@@ -833,9 +1235,86 @@ namespace control {
             v["pcu2_last_offline_ms"] = static_cast<double>(ctx.pcu1_state.last_offline_ms);
             v["pcu2_disconnect_count"] = static_cast<int>(ctx.pcu1_state.disconnect_count);
         }
-        // 15) 预留执行状态
-        v["run_state"] = 0;
-        v["cmd_result"] = 0;
+        // ============================================================
+        // 15) IO / 急停 / 插枪投影（第4批）
+        //
+        // 约定：
+        // - di_bits: bit0 -> DI1, bit12 -> DI13, ... bit17 -> DI18
+        // - ctx.ai:  ai[0] = ADC1_V, ai[1] = ADC2_V
+        // - DI 低电平有效已在 driver / logic_io 阶段折算为“逻辑 ON”
+        // ============================================================
+        {
+            auto test_di = [&](int channel_id) -> int {
+                if (channel_id < 1 || channel_id > 64) return 0;
+                const int bit = channel_id - 1;
+                return (((ctx.di_bits >> bit) & 0x1ULL) != 0ULL) ? 1 : 0;
+            };
+
+            auto read_ai_v = [&](int adc_index) -> double {
+                if (adc_index < 1) return 0.0;
+                const std::size_t idx = static_cast<std::size_t>(adc_index - 1);
+                if (idx >= ctx.ai.size()) return 0.0;
+                const double v_ai = ctx.ai[idx];
+                return std::isfinite(v_ai) ? v_ai : 0.0;
+            };
+            auto adc_plug = [&](int adc_index) -> int {
+                const double vv = read_ai_v(adc_index);
+                return (std::isfinite(vv) && vv < 8.0) ? 1 : 0;
+            };
+
+            const int di1_estop = test_di(1);
+
+            const int di13_plug = test_di(13);
+            const int di14_plug = test_di(14);
+            const int di15_plug = test_di(15);
+            const int di16_plug = test_di(16);
+            const int di17_plug = test_di(17);
+            const int di18_plug = test_di(18);
+
+            const int plug_di_any =
+                di13_plug || di14_plug || di15_plug ||
+                di16_plug || di17_plug || di18_plug;
+            const double adc1_v = read_ai_v(1);
+            const double adc2_v = read_ai_v(2);
+
+            const int adc1_plug_detected = adc_plug(1);
+            const int adc2_plug_detected = adc_plug(2);
+
+            const int plug_any =
+                plug_di_any || adc1_plug_detected || adc2_plug_detected;
+
+            // ---- 原始 IO ----
+            v["io_last_ts_ms"] = static_cast<double>(ctx.last_io_ts);
+            v["io_di_bits"] = static_cast<double>(ctx.di_bits);
+            // ---- DI ----
+            v["di1_estop"] = di1_estop;
+            v["di13_plug"] = di13_plug;
+            v["di14_plug"] = di14_plug;
+            v["di15_plug"] = di15_plug;
+            v["di16_plug"] = di16_plug;
+            v["di17_plug"] = di17_plug;
+            v["di18_plug"] = di18_plug;
+
+            // ---- ADC ----
+            v["adc1_voltage_v"] = adc1_v;
+            v["adc2_voltage_v"] = adc2_v;
+            v["adc1_plug_detected"] = adc1_plug_detected;
+            v["adc2_plug_detected"] = adc2_plug_detected;
+            // ---- 业务汇总 ----
+            v["system_estop"] = ctx.logic_faults.system_estop ? 1 : 0;
+            v["plug_di_any"] = plug_di_any;
+            v["plug_any"] = plug_any;
+
+            // ---- 指示灯期望态（不是 GPIO 回读）----
+            v["lamp_do1_estop"] = ctx.logic_faults.system_estop ? 1 : 0;
+            v["lamp_do2_plug_any"] = plug_any;
+            v["lamp_do3_plug_di_any"] = plug_di_any;
+            v["lamp_do4_adc1_plug"] = adc1_plug_detected;
+            v["lamp_do5_adc2_plug"] = adc2_plug_detected;
+            v["lamp_do6_io_alive"] = (ctx.last_io_ts != 0) ? 1 : 0;
+            v["lamp_do7_any_fault"] = ctx.logic_faults.any_fault ? 1 : 0;
+        }
+
 
         // 16) 时间戳（秒级）
         const uint32_t ts32 = currentUnixSeconds32_();
@@ -892,6 +1371,17 @@ namespace control {
         //     v.value("bms4_online", 0),
         //     v.value("bms_count_online", 0)
         // );
+
+        /*
+         * 补齐 normal_map_logic.v4.with_path.jsonl 所需的兼容别名。
+         *
+         * 注意：
+         * - 这里只补 logic_view 别名，不直接写 HMI；
+         * - HMI 实际写入仍由 NormalHmiWriter 根据 jsonl 的 path 完成；
+         * - 旧字段不删除，避免影响已有调试页和业务逻辑。
+         */
+        addNormalMapCompatibilityAliases_(v);
+
         ctx.logic_view = std::move(v);
     }
 

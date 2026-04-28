@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/31.
+// Created by lxy on 2025/12/31.
 //
 /*
  * 烟雾传感器协议实现
@@ -131,36 +131,58 @@ bool SmokeSensorProto::parseHoldingRegs03(
 }
 
 /* ======================= 解析入口 ======================= */
-
 bool SmokeSensorProto::parse(
     const std::vector<uint8_t>& rx,
-    DeviceData& out) {
-
-    // LOG_COMM_HEX("RX dev=SmokeSensor ...", rx.data(), rx.size());
-
-
+    DeviceData& out)
+{
     std::vector<uint16_t> regs;
     if (!parseHoldingRegs03(rx, addr_, regs)) return false;
     if (regs.size() < 5) return false;
 
-    uint16_t alarm = regs[0];
-    uint16_t fault = regs[1];
-    uint16_t warn_level = regs[2];
-    uint16_t smoke = regs[3];
-    uint16_t tempw = regs[4];
+    const uint16_t alarm      = regs[0]; // 0x0000 ALARM
+    const uint16_t fault      = regs[1]; // 0x0001 FAULT bitfield
+    const uint16_t warn_level = regs[2]; // 0x0002 LEVEL
+    const uint16_t smoke      = regs[3]; // 0x0003 SMOKE
+    const uint16_t tempw      = regs[4]; // 0x0004 TEMPE
 
-    int16_t temp_c = applyTemperature(tempw);
+    const int16_t temp_c = applyTemperature(tempw);
+
+    const uint16_t alarm_lo = static_cast<uint16_t>(alarm & 0x00FFu);
+    const uint16_t fault_lo = static_cast<uint16_t>(fault & 0x00FFu);
+
+    const bool tss_smoke_alarm =
+        (alarm_lo == 0x01u);
+
+    const bool tss_ss_alarm =
+        (fault_lo & 0x01u) != 0;
+
+    const bool tss_spollution_alarm =
+        (fault_lo & 0x02u) != 0;
+
+    const bool tss_temp_fault =
+        (fault_lo & 0x04u) != 0;
 
     out.device_name = "SmokeSensor";
 
-    // ===== 数值 =====
-    out.num["alarm"]         = double(alarm);
-    out.num["fault"]         = double(fault);
-    out.num["warn_level"]    = double(warn_level);
-    out.num["smoke_percent"] = double(smoke);   // 0~255 (%)
-    out.num["temp"]   = double(temp_c);
+    // ===== 原始协议寄存器 =====
+    out.num["alarm"]         = static_cast<double>(alarm);
+    out.num["fault"]         = static_cast<double>(fault);
+    out.num["warn_level"]    = static_cast<double>(warn_level);
+    out.num["smoke_percent"] = static_cast<double>(smoke);
+    out.num["temp"]          = static_cast<double>(temp_c);
 
-    // ===== 文本 =====
+    // ===== 故障表语义位：TSS_temp_alarm 是自定判断，不在协议层生成 =====
+    out.status["TSS_smoke_alarm"]      = tss_smoke_alarm ? 1u : 0u;
+    out.status["TSS_SS_alarm"]         = tss_ss_alarm ? 1u : 0u;
+    out.status["TSS_SPollution_alarm"] = tss_spollution_alarm ? 1u : 0u;
+    out.status["TSS_temp_fault"]       = tss_temp_fault ? 1u : 0u;
+
+    // ===== 调试/落盘辅助 =====
+    out.value["alarm_raw"]      = static_cast<int32_t>(alarm);
+    out.value["fault_raw"]      = static_cast<int32_t>(fault);
+    out.value["warn_level_raw"] = static_cast<int32_t>(warn_level);
+    out.value["temp_c"]         = static_cast<int32_t>(temp_c);
+
     out.str["alarm_text"]      = alarmToString(alarm);
     out.str["fault_text"]      = faultToString(fault);
     out.str["warn_level_text"] = levelToString(warn_level);
@@ -190,14 +212,38 @@ std::string SmokeSensorProto::alarmToString(uint16_t v) {
     }
 }
 
-std::string SmokeSensorProto::faultToString(uint16_t v) {
-    switch (v & 0x00FF) {
-        case 0x00: return "无故障";
-        case 0x01: return "烟雾传感器故障";
-        case 0x02: return "检测室污染";
-        case 0x04: return "温度传感器故障";
-        default:   return "未知故障";
+std::string SmokeSensorProto::faultToString(uint16_t v)
+{
+    const uint16_t f = static_cast<uint16_t>(v & 0x00FFu);
+
+    if (f == 0) {
+        return "无故障";
     }
+
+    std::string out;
+
+    auto append = [&](const char* s) {
+        if (!out.empty()) out += "|";
+        out += s;
+    };
+
+    if ((f & 0x01u) != 0) {
+        append("烟雾传感器故障");
+    }
+
+    if ((f & 0x02u) != 0) {
+        append("烟雾检测室污染故障");
+    }
+
+    if ((f & 0x04u) != 0) {
+        append("温度传感器故障");
+    }
+
+    if ((f & ~0x07u) != 0) {
+        append("未知故障位");
+    }
+
+    return out.empty() ? "未知故障" : out;
 }
 
 std::string SmokeSensorProto::levelToString(uint16_t v) {

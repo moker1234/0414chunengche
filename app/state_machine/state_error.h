@@ -1,10 +1,10 @@
 //
-// Created by forlinx on 2025/12/25.
+// Created by lxy on 2025/12/25.
 //
 
 #ifndef ENERGYSTORAGE_STATE_ERROR_H
 #define ENERGYSTORAGE_STATE_ERROR_H
-// state_error.h
+
 #pragma once
 #include "state_base.h"
 #include <string>

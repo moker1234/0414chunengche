@@ -1,0 +1,158 @@
+#include "business_engine.h"
+
+#include <cmath>
+
+#include "../logic/logic_context.h"
+#include "../bms/bms_command_manager.h"
+#include "../../aggregator/system_snapshot.h"
+
+namespace control::business {
+
+namespace {
+
+static std::string makeBmsName_(uint32_t idx)
+{
+    return "BMS_" + std::to_string(idx);
+}
+
+} // namespace
+
+bool BusinessEngine::testDi(const LogicContext& ctx, int channel_id)
+{
+    if (channel_id < 1 || channel_id > 64) return false;
+    const int bit = channel_id - 1;
+    return (((ctx.di_bits >> bit) & 0x1ULL) != 0ULL);
+}
+
+double BusinessEngine::readAiVoltage(const LogicContext& ctx, int adc_channel)
+{
+    if (adc_channel < 1) return std::nan("");
+    const std::size_t idx = static_cast<std::size_t>(adc_channel - 1);
+    if (idx >= ctx.ai.size()) return std::nan("");
+    return ctx.ai[idx];
+}
+
+bms::BmsPerInstanceCache* BusinessEngine::getBms(LogicContext& ctx, uint32_t instance_index)
+{
+    const std::string key = makeBmsName_(instance_index);
+    auto it = ctx.bms_cache.items.find(key);
+    if (it == ctx.bms_cache.items.end()) return nullptr;
+    return &it->second;
+}
+
+const bms::BmsPerInstanceCache* BusinessEngine::getBms(const LogicContext& ctx, uint32_t instance_index)
+{
+    const std::string key = makeBmsName_(instance_index);
+    auto it = ctx.bms_cache.items.find(key);
+    if (it == ctx.bms_cache.items.end()) return nullptr;
+    return &it->second;
+}
+
+const SnapshotItem* BusinessEngine::findSnapshotItem(const LogicContext& ctx, const std::string& device_name)
+{
+    auto it = ctx.latest_snapshot.items.find(device_name);
+    if (it == ctx.latest_snapshot.items.end()) return nullptr;
+    return &it->second;
+}
+
+bool BusinessEngine::isSnapshotOnline(const LogicContext& ctx, const std::string& device_name)
+{
+    const auto* item = findSnapshotItem(ctx, device_name);
+    return item ? item->online : false;
+}
+
+void BusinessEngine::emitWriteDo(std::vector<Command>& out_cmds,
+                                 int channel_id,
+                                 bool on)
+{
+    Command c;
+    c.type = Command::Type::WriteDo;
+    c.write_do.channel_id = channel_id;
+    c.write_do.value = on;
+    out_cmds.push_back(std::move(c));
+}
+
+void BusinessEngine::evaluate(LogicContext& ctx,
+                              uint64_t ts_ms,
+                              bms::BmsCommandManager& bms_mgr,
+                              std::vector<Command>& out_cmds)
+{
+    (void)ts_ms;
+
+    // =========================================================
+    // 这里给你放“示例骨架”，你后续主要改这里
+    // =========================================================
+
+    // ---------- 1) 读取本地 IO ----------
+    const bool estop_pressed = testDi(ctx, 1);   // DI1：急停
+    const bool plug_di_13    = testDi(ctx, 13);  // DI13
+    const double adc1_v      = readAiVoltage(ctx, 1); // ADC1
+    const double adc2_v      = readAiVoltage(ctx, 2); // ADC2
+
+    // ---------- 2) 读取其他设备状态 ----------
+    const bool smoke_online = ctx.smoke_faults.online;
+    const bool smoke_alarm  = ctx.smoke_faults.alarm_any || ctx.latest_snapshot.smoke_alarm;
+
+    // ---------- 3) 读取 BMS 状态 ----------
+    const auto* bms1 = getBms(ctx, 1);
+    (void)bms1;
+    // 你后续可直接读取：
+    // bms1->online
+    // bms1->soc_valid / bms1->soc
+    // bms1->pack_v_valid / bms1->pack_v
+    // bms1->pack_i_valid / bms1->pack_i
+    // bms1->fault_level / fire_fault_level / tms_fault_level
+    // bms1->st1_main_pos_relay_st / st1_main_neg_relay_st / ...
+
+    // ---------- 4) 计算一些示例状态 ----------
+    const bool plug_any =
+        plug_di_13 ||
+        (std::isfinite(adc1_v) && adc1_v < 8.0) ||
+        (std::isfinite(adc2_v) && adc2_v < 8.0);
+
+    // =========================================================
+    // 5) 示例：DO 输出
+    //    这里只是样例，后续你可改成自己的灯定义
+    // =========================================================
+    emitWriteDo(out_cmds, 1, estop_pressed); // DO1：急停灯
+    emitWriteDo(out_cmds, 2, smoke_alarm);   // DO2：烟感告警灯
+    emitWriteDo(out_cmds, 3, plug_any);      // DO3：插枪灯
+
+    // =========================================================
+    // 6) 示例：修改默认 V2B_CMD（当前先写成注释，避免你直接跑偏）
+    // =========================================================
+    //
+    // 示例 A：急停或烟感告警时，强制所有 BMS 下发 PowerOff
+    //
+    // if (estop_pressed || smoke_alarm) {
+    //     for (uint32_t idx = 1; idx <= 4; ++idx) {
+    //         auto* cmd = bms_mgr.mutableDesired(idx, "business");
+    //         if (!cmd) continue;
+    //         cmd->hv_onoff = 2; // PowerOff
+    //     }
+    // }
+    //
+    // 示例 B：对单台 BMS1 定制命令
+    //
+    // auto* cmd1 = bms_mgr.mutableDesired(1, "business");
+    // if (cmd1) {
+    //     // 按你的业务逻辑改写最终命令位
+    //     cmd1->hv_onoff = 1;     // PowerOn
+    //     cmd1->aux1_onoff = 1;
+    //     cmd1->vehicle_speed = 0;
+    // }
+    //
+    // 示例 C：如果你想基于 BMS 状态决定是否允许上高压
+    //
+    // if (bms1 && bms1->online && bms1->soc_valid && bms1->soc > 30.0 && !estop_pressed && !smoke_alarm) {
+    //     auto* cmd1 = bms_mgr.mutableDesired(1, "business");
+    //     if (cmd1) {
+    //         cmd1->hv_onoff = 1; // PowerOn
+    //     }
+    // }
+
+    // 保守示例：如果烟感设备本身掉线，也可以在这里做保守策略
+    (void)smoke_online;
+}
+
+} // namespace control::business

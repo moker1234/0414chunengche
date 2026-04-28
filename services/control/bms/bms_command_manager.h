@@ -52,16 +52,27 @@ namespace control::bms {
     };
 
     // 命令来源
+    // 命令来源 / 阻断原因
     enum class BmsCmdReason : uint8_t {
         Init = 0,
         NoData = 1,
         Offline = 2,
+
         RqHvPowerOff = 3,
         FaultLevelBlock = 4,
         FireFaultBlock = 5,
         TmsFaultBlock = 6,
+
         AllowClose = 7,
-        FallbackPowerOff = 8,
+        FallbackPowerOff = 8, // 回退到 PowerOff 状态
+
+        // 第一批新增：BMS runtime 新鲜度 / 关键组完整性阻断
+        RuntimeStale = 9,
+        St2Stale = 10,
+        Fault1Stale = 11,
+        Fault2Stale = 12,
+        CurrentLimitStale = 13,
+        NotReady = 14,
     };
 
     /**
@@ -95,15 +106,29 @@ namespace control::bms {
     public:
         BmsCommandManager() = default;
 
-        bool init(DriverManager& drv_mgr, int default_can_index = 2);
+        bool init(DriverManager& drv_mgr,
+                  int default_can_index = 2,
+                  uint32_t v2b_cmd_id29 = 0x1802F3EF);
 
         void setDefaultCanIndex(int can_index) { default_can_index_ = can_index; }
 
         void rebuildDesiredFromCache(const BmsLogicCache& cache, uint64_t ts_ms);
 
+        // 业务层可能通过 mutableDesired() 修改本周期命令。
+        // 因此在 business_engine_.evaluate() 之后，发送前必须再用 BMS runtime 真源做一次安全钳制。
+        void enforceSafetyFromCache(const BmsLogicCache& cache, uint64_t ts_ms);
+
+
         void emitPeriodicCommands(uint64_t ts_ms,
                                   std::vector<control::Command>& out_cmds,
                                   uint32_t period_ms = 100);
+
+        // 业务层直接修改“本周期待发送命令”的入口
+        proto::bms::V2bCmdFields* mutableDesired(uint32_t instance_index,
+                                                 const char* source = "business");
+
+        // 只读查看当前 desired
+        const proto::bms::V2bCmdFields* desired(uint32_t instance_index) const;
 
         std::map<uint32_t, BmsCommandView> buildCommandView(uint64_t now_ms,
                                                    uint32_t alive_timeout_ms = 500) const;
@@ -112,10 +137,14 @@ namespace control::bms {
         BmsCommandState& ensureState_(uint32_t instance_index);
         static std::string makeName_(uint32_t instance_index);
 
+        static BmsCmdReason safetyBlockReason_(const BmsPerInstanceCache& x);
+
         static const char* reasonText_(BmsCmdReason r);
         static const char* hvText_(uint32_t hv_onoff);
         static std::string canIdHex_(uint32_t can_id);
         static std::string frameHex_(const can_frame& fr);
+
+        uint32_t v2b_cmd_id29_{0x1802F3EF};
 
     private:
         proto::bms::BmsTx tx_;

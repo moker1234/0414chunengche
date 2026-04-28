@@ -84,16 +84,29 @@ struct IoMapConfig {
 struct CanLinkCfg {
     int can_index{0};
     std::string name;
-    std::string role;       // 先字符串即可，如 "periodic_tx_rx"
+    std::string role;       // 如 "periodic_tx_rx" / "rx_only"
     bool enable{false};
 
     // protocol
-    std::string protocol_type; // "emu_pcu_v1"
+    std::string protocol_type; // "emu_pcu_v1" / "bms_table_v1"
+
+    /*
+     * PCU 实例号：
+     *   0 = 未配置 / 不适用
+     *   1 = PCU1，对应程序内部 PCU_0
+     *   2 = PCU2，对应程序内部 PCU_1
+     *
+     * 注意：
+     *   这是“设备实例号”，不是 can_index。
+     *   can_index 只表示物理 CAN 口数组下标。
+     */
+    uint8_t pcu_instance{0};
 
     // IDs (29-bit, not including CAN_EFF_FLAG)
     uint32_t id_emu_ctrl{0};
     uint32_t id_emu_status{0};
     uint32_t id_pcu_status{0};
+    uint32_t id_v2b_cmd{0};
 
     // tx
     bool tx_enable{false};
@@ -108,7 +121,7 @@ struct CanLinkCfg {
     uint8_t batt1_estop_default{0};
     uint8_t batt2_estop_default{0};
 
-    // rx (可选扩展)
+    // rx
     bool rx_enable{true};
     uint32_t rx_timeout_ms{1000};
     bool require_heartbeat_increment{false};

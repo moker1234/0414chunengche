@@ -62,6 +62,9 @@ namespace control::fault {
     static constexpr uint16_t COIL_HIS_NEXT      = 0x1008;
     static constexpr uint16_t COIL_HIS_PREV      = 0x1009;
 
+    static constexpr uint16_t COIL_CUR_FIRST_PAGE = 0x1010; // 第一页
+    static constexpr uint16_t COIL_HIS_FIRST_PAGE = 0x1011; // 第一页
+
 } // namespace control::fault
 
 #endif // ENERGYSTORAGE_FAULT_ADDR_LAYOUT_H

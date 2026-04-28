@@ -46,11 +46,6 @@ private:
                              const std::string& device_name,
                              const SnapshotItem& item);
 
-    bool insertGasPollEvent_(int64_t snapshot_id,
-                             uint64_t ts_ms,
-                             const std::string& device_name,
-                             const SnapshotItem& item);
-
     bool insertGasChannelDelta_(int64_t snapshot_id,
                                 uint64_t ts_ms,
                                 const std::string& device_name,
@@ -75,6 +70,11 @@ private:
                          uint64_t ts_ms,
                          const std::string& device_name,
                          const SnapshotItem& item);
+
+    bool insertPcuTxState_(int64_t snapshot_id,
+                       uint64_t ts_ms,
+                       const std::string& device_name,
+                       const SnapshotItem& item);
 
     bool insertAirconState_(int64_t snapshot_id,
                             uint64_t ts_ms,

@@ -4,11 +4,7 @@
 #include "logger.h"
 #include "../../services/parser/protocol_parser_thread.h"
 #include "config_loader.h"
-#include "../../services/protocol/can/pcu/proto_pcu.h"
-#include <cstring>   // memset/memcpy
-#include <linux/can.h> // CAN_EFF_FLAG
 
-#include "hex_dump.h"
 
 
 
@@ -58,13 +54,9 @@ void DeviceScheduler::start() {
                     poll_ctx_[t.device_name] = ctx;
                 };
 
-                // addTask(dev::LinkType::RS485, 0, "GasDetector",    200, 200, 1000, 300, 2);
-                // addTask(dev::LinkType::RS485, 1, "SmokeSensor",    200, 200, 1000, 300, 2);
-                // addTask(dev::LinkType::RS485, 2, "AirConditioner", 200, 200, 1200, 300, 2);
-                // addTask(dev::LinkType::RS232, 0, "UPS",            200, 200, 1000, 300, 2);
-                addTask(dev::LinkType::RS485, 0, "GasDetector",    200, 1500);
-                addTask(dev::LinkType::RS485, 1, "SmokeSensor",    200, 1500);
-                addTask(dev::LinkType::RS485, 2, "AirConditioner", 200, 1500);
+                addTask(dev::LinkType::RS485, 3, "GasDetector",    200, 1500);
+                addTask(dev::LinkType::RS485, 2, "SmokeSensor",    200, 1500);
+                addTask(dev::LinkType::RS485, 1, "AirConditioner", 200, 1500);
                 addTask(dev::LinkType::RS232, 0, "UPS",            200, 2000);
 
             } else {
@@ -161,62 +153,41 @@ void DeviceScheduler::start() {
                     LOG_SYS_I("[SCHED][RS232] ADD after  tasks=%zu", tasks_.size());
                 }
 
-                // ---- CAN ----
-                // system.json: sys.can_links（你需要在 ConfigLoader/SystemConfig 增加）
-                // 这里先只支持协议 type="emu_pcu_v1"
+                // PCU 业务帧发送迁移到 ControlLoop / LogicEngine。
+                //
+                // Scheduler 不再发送：
+                //   0x1801A0E0 EMU->PCU 控制帧
+                //   0x1802A0E0 EMU->PCU 状态帧
+                //
+                // 原因：
+                //   Scheduler 只能做固定周期调度，无法可靠读取 IO / BMS / Business 真源；
+                //   PCU 发送内容应由控制面统一生成，并通过 CommandDispatcher 串行下发。
                 for (const auto& l : sys.can_links) {
                     if (!l.enable) continue;
 
-                    // 先只做 can0 测试：你也可以通过配置 enable/disable 控制
-                    // if (l.can_index != 0) continue;
-
-                    if (l.protocol_type != "emu_pcu_v1") {
-                        LOGERR("[SCHED][CAN] unknown protocol_type=%s on can_index=%d",
-                               l.protocol_type.c_str(), l.can_index);
+                    if (l.protocol_type == "emu_pcu_v1") {
+                        LOG_SYS_I("[SCHED][CAN] skip PCU TX can_index=%d name=%s: moved to ControlLoop",
+                                  l.can_index,
+                                  l.name.c_str());
                         continue;
                     }
 
-                    CanTask t;
-                    t.can_index = l.can_index;
-                    t.name = !l.name.empty() ? l.name : ("can" + std::to_string(l.can_index));
-                    t.period_ms = (l.interval_ms == 0) ? 200 : l.interval_ms;
-                    t.next_due_ms = 0;
+                    // BMS 也不走 Scheduler 旧最小发送器。
+                    if (l.protocol_type == "bms_table_v1") {
+                        LOG_SYS_I("[SCHED][CAN] skip BMS TX can_index=%d name=%s: managed by control/bms",
+                                  l.can_index,
+                                  l.name.c_str());
+                        continue;
+                    }
 
-                    t.id_emu_ctrl   = l.id_emu_ctrl;
-                    t.id_emu_status = l.id_emu_status;
-                    t.id_pcu_status = l.id_pcu_status;
-
-                    t.send_ctrl   = l.send_ctrl;
-                    t.send_status = l.send_status;
-
-                    t.ctrl_enable_default = l.ctrl_enable_default;
-                    t.plug_default        = l.plug_default;
-                    t.estop_default       = l.estop_default;
-                    t.batt1_estop_default = l.batt1_estop_default;
-                    t.batt2_estop_default = l.batt2_estop_default;
-
-                    can_tasks_.push_back(t);
-
-                    LOG_SYS_I("[SCHED][CAN] add can_index=%d period=%u id_ctrl=0x%08X id_st=0x%08X",
-                              t.can_index, t.period_ms, t.id_emu_ctrl, t.id_emu_status);
+                    LOG_SYS_W("[SCHED][CAN] ignored protocol_type=%s can_index=%d",
+                              l.protocol_type.c_str(),
+                              l.can_index);
                 }
 
                 LOG_SYS_I("[SCHED] tasks loaded from system.json, count=%zu", tasks_.size());
             }
         }
-    }
-
-    // DeviceScheduler::start() 中初始化 bms_tx_
-    {
-        std::lock_guard<std::mutex> lk(mtx_);
-        // BMS V2B_CMD 默认：can2，100ms
-        bms_tx_.can_index = 2;
-        bms_tx_.period_ms = 100;
-        bms_tx_.id_v2b_cmd = 0x1802F3EF;
-        bms_tx_.next_due_ms = 0;
-        bms_tx_.life = 0;
-        bms_tx_.hv_onoff = 0;
-        bms_tx_.enable = 1;
     }
 
 
@@ -227,10 +198,6 @@ void DeviceScheduler::start() {
     timer_.start();
     LOG_SYS_I("SCHED started tick=%ums", SCHED_TICK_MS);
 }
-
-
-
-
 
 void DeviceScheduler::stop() {
     if (!running_.exchange(false)) return;
@@ -327,18 +294,6 @@ void DeviceScheduler::pollTick() {
                 (ctx.last_ok_ms != 0) &&
                 (now >= ctx.last_ok_ms) &&
                 ((now - ctx.last_ok_ms) <= ctx.disconnect_window_ms);
-            if (old_online != new_online) {  // 20260409 检查online
-                // LOG_COMM_D("[SCHED][AGING] dev=%s old=%d new=%d now=%llu last_ok=%llu win=%u off=%llu dc=%u",
-                //            device_name.c_str(),
-                //            old_online ? 1 : 0,
-                //            new_online ? 1 : 0,
-                //            (unsigned long long)now,
-                //            (unsigned long long)ctx.last_ok_ms,
-                //            (unsigned)ctx.disconnect_window_ms,
-                //            (unsigned long long)ctx.last_offline_ms,
-                //            (unsigned)ctx.disconnect_count);
-                health_changed_devices.push_back(device_name);
-            }
             ctx.online = new_online;
             ctx.state = new_online ? PollState::ONLINE : PollState::OFFLINE;
 
@@ -399,114 +354,16 @@ void DeviceScheduler::pollTick() {
         }
     }
 
-        // ===== CAN periodic TX (emu_pcu_v1) =====
-    {
-        std::function<void(int, const can_frame&)> sendCan;
-        std::vector<CanTask> local_tasks;
-
-        {
-            std::lock_guard<std::mutex> lk(mtx_);
-            sendCan = send_can_;
-            local_tasks = can_tasks_;
-        }
-
-        if (sendCan) {
-            const uint64_t now = SchedulerTimer::nowMs();
-            bool changed = false;
-
-            for (auto& t : local_tasks) {
-                if (t.next_due_ms == 0) t.next_due_ms = now; // 启动即发
-                if (now < t.next_due_ms) continue;
-
-                // 组帧并发送
-                if (t.send_ctrl) {
-                    can_frame fr{};
-                    proto::pcu::buildEmuCtrl(fr,
-                                            t.id_emu_ctrl,
-                                            t.hb,
-                                            t.plug_default,
-                                            t.estop_default,
-                                            t.batt1_estop_default,
-                                            t.batt2_estop_default,
-                                            t.ctrl_enable_default);
-                    sendCan(t.can_index, fr);
-                    t.hb = uint8_t(t.hb + 1);
-                }
-
-                if (t.send_status) {
-                    can_frame fr{};
-                    // 这里先用默认 0；后续你可以从 snapshot/控制策略取值
-                    proto::pcu::buildEmuStatus(fr, t.id_emu_status,
-                                              /*batt1_kw_x10*/0,
-                                              /*batt2_kw_x10*/0,
-                                              /*batt1_branches*/2,
-                                              /*batt2_branches*/2);
-                    sendCan(t.can_index, fr);
-                }
-
-                t.next_due_ms = now + t.period_ms;
-                changed = true;
-            }
-
-            if (changed) {
-                std::lock_guard<std::mutex> lk(mtx_);
-                can_tasks_ = std::move(local_tasks);
-            }
-        }
-    }
-
-    // ===== CAN periodic TX (bms_v2: V2B_CMD) =====
-    {
-        std::function<void(int, const can_frame&)> sendCan;
-        BmsTxTask t{};
-        bool enable = false;
-
-        {
-            std::lock_guard<std::mutex> lk(mtx_);
-            sendCan = send_can_;
-            t = bms_tx_;
-            enable = bms_tx_enable_;
-        }
-
-        if (enable && sendCan) {
-            const uint64_t now = SchedulerTimer::nowMs();
-            if (t.next_due_ms == 0) t.next_due_ms = now; // 启动即发
-            if (now >= t.next_due_ms) {
-
-                // 组帧：V2B_CMD (0x1802F3EF), DLC=8, 扩展帧
-                can_frame fr{};
-                fr.can_id  = CAN_EFF_FLAG | t.id_v2b_cmd;
-                fr.can_dlc = 8;
-                std::memset(fr.data, 0, sizeof(fr.data));
-
-                // 最小实现：只发 LifeSignal（Byte0）
-                fr.data[0] = t.life;
-                t.life = uint8_t(t.life + 1);
-
-                // 如果你要顺带发 HV_OnOff / enable（但你还没确认其 startbit/定义）
-                // 可以先按“整字节字段”写在固定 byte 上；更推荐后续用 generated 表的 startbit 来 pack
-                // fr.data[?] = t.hv_onoff;
-                // fr.data[?] = t.enable;
-
-                sendCan(t.can_index, fr);
-
-                std::vector<uint8_t> v(fr.data, fr.data + fr.can_dlc);
-                // LOG_THROTTLE_MS("bms_v2b_cmd_tx", 1000, LOG_SYS_I,
-                //     "[BMS][TX] can%d id=0x%08X life=%u data=%s",
-                //     t.can_index, t.id_v2b_cmd, (unsigned)t.life, hexDump(v));
-
-
-                t.next_due_ms = now + t.period_ms;
-
-                // 写回状态
-                {
-                    std::lock_guard<std::mutex> lk(mtx_);
-                    bms_tx_.life = t.life;
-                    bms_tx_.next_due_ms = t.next_due_ms;
-                }
-            }
-        }
-    }
+    // ===== CAN periodic TX (emu_pcu_v1) =====
+    //
+    // PCU TX 已迁移到 ControlLoop / LogicEngine。
+    // 这里故意不再发送 PCU 控制帧 / 状态帧，避免双发送。
+    //
+    // PCU 发送新链路：
+    //   LogicEngine::emitPcuPeriodicCommands_()
+    //      -> Command::Type::SendCan
+    //      -> CommandDispatcher
+    //      -> DriverManager::sendCan()
 
 }
 
@@ -524,20 +381,10 @@ const PollTask* DeviceScheduler::findTaskLocked(const std::string& device_name) 
     return nullptr;
 }
 
-void DeviceScheduler::setSendCan(std::function<void(int, const can_frame&)> cb) {
-    std::lock_guard<std::mutex> lk(mtx_);
-    send_can_ = std::move(cb);
-}
-
-void DeviceScheduler::setBmsTxEnabled(bool en) {
-    std::lock_guard<std::mutex> lk(mtx_);
-    bms_tx_enable_ = en;
-}
-
-bool DeviceScheduler::bmsTxEnabled() const {
-    std::lock_guard<std::mutex> lk(mtx_);
-    return bms_tx_enable_;
-}
+// void DeviceScheduler::setSendCan(std::function<void(int, const can_frame&)> cb) {
+//     std::lock_guard<std::mutex> lk(mtx_);
+//     send_can_ = std::move(cb);
+// }
 
 
 

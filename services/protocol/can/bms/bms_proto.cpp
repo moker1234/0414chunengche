@@ -93,6 +93,11 @@ bool BmsProto::parse(const can_frame& fr, DeviceData& out)
     const char* proto_msg_name = (msg->name && msg->name[0]) ? msg->name : "UNKNOWN";
     const std::string msg_name = BmsNameMap::canonicalMsgName(proto_msg_name);
 
+    // 20260419
+    if (msg->name[4] == 'F' && msg->name[8] == '2') {
+        LOG_COMM_HEX("Fault2:", fr.data, fr.can_dlc);
+    }
+
     // ===== 内部字段：给 Aggregator / Snapshot / 后续 Logic 使用 =====
     out.str["__bms.instance"] = instance_name;
     out.value["__bms.instance_index"] = static_cast<int32_t>(bms_index);

@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/18.
+// Created by lxy on 2025/12/18.
 //
 
 #ifndef ENERGYSTORAGE_CAN_THREAD_H

@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2026/1/1.
+// Created by lxy on 2026/1/1.
 //
 
 #ifndef ENERGYSTORAGE_RS485_SESSION_H

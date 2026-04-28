@@ -4,6 +4,8 @@
 #include <condition_variable>
 #include <deque>
 #include <memory>
+#include <thread>
+#include <atomic>
 
 #include "event.h"
 #include "scheduler/device_scheduler.h"
@@ -11,7 +13,8 @@
 
 #include "../services/parser/protocol_parser_thread.h"
 #include "../services/snapshot/snapshot_dispatcher.h"
-#include "j1939/j1939_manager.h"
+
+#include "../services/protocol/protocol_base.h"
 #include "../services/protocol/can/bms/bms_thread/bms_queue.h"
 #include "../services/protocol/can/bms/bms_thread/bms_worker.h"
 #include "../services/protocol/can/bms/bms_proto.h"
@@ -23,7 +26,6 @@ namespace agg
     class DataAggregator;
 }
 
-class DisplayRs485Session;
 class DriverManager;   // 前置声明
 class SqliteFaultSink;
 
@@ -55,11 +57,10 @@ public:
     agg::DataAggregator& aggregator() { return *aggregator_; }
     const agg::DataAggregator& aggregator() const { return *aggregator_; }
 
-    void postSnapshotToControl_(
-        uint64_t ts_ms);
-
 private:
-    void onLogicDeviceData(const DeviceData& d);
+    bool loadBmsCanIndexFromSystem_(int& out_index);
+    bool loadHmiRs485IndexFromSystem_(int& out_index);
+    void onControlTxMirrorDeviceData_(const DeviceData& d);
 
 private:
     bool running_{false};
@@ -73,24 +74,20 @@ private:
     std::unique_ptr<parser::ProtocolParserThread> parser_;
     std::unique_ptr<DriverManager> driver_manager_;
 
-    // ❌ 不再暴露 DriverManager 的存储方式
-    // DriverManager* driver_mgr_{nullptr};   // 仅声明指针
-    std::unique_ptr<DriverManager> driver_mgr_;
-
 
     std::unique_ptr<SnapshotDispatcher> snapshot_dispatcher_;
     std::unique_ptr<agg::DataAggregator> aggregator_;
-    std::unique_ptr<DisplayRs485Session> display_session_;
 
-
-    std::unique_ptr<j1939::J1939Manager> j1939_mgr_;
 
     // ===== BMS async pipeline =====
     proto::bms::BmsQueue bms_queue_;
     std::unique_ptr<proto::bms::BmsWorker> bms_worker_;
-    int bms_can_index_{2}; // 当前 BMS 走 can2，后续也可从 system.json 读
+    int bms_can_index_{0}; // 当前 BMS 走 can2，后续也可从 system.json 读
 
     proto::bms::BmsProto bms_proto_{"BMS"};
+
+    // ===== HMI RS485 index =====
+    int hmi_rs485_index_{0};
 
 
     std::unique_ptr<control::ControlLoop> control_;
@@ -100,12 +97,15 @@ private:
     std::unique_ptr<SqliteFaultSink> fault_db_;
 
 
-    // ===== latest snapshot 100ms 刷新线程 =====
-    std::thread logic_refresh_thread_;
-    std::atomic<bool> logic_refresh_running_{false};
-    void logicRefreshThreadMain_();
-
+    // ===== 故障页周期刷新线程 =====
     std::thread fault_refresh_thread_;
     std::atomic<bool> fault_refresh_running_{false};
     void faultRefreshThreadMain_();
+
+
+    // ===== BMS runtime health 低频回写线程 =====
+    // 注意：不在 ControlLoop 线程中回写 Aggregator，避免卡住 HMI / Fault 翻页。
+    std::thread bms_health_sync_thread_;
+    std::atomic<bool> bms_health_sync_running_{false};
+    void bmsHealthSyncThreadMain_();
 };

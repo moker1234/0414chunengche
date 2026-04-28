@@ -1,70 +1,98 @@
-//
-// Created by lxy on 2026/3/4.
-//
+// services/normal/normal_hmi_writer.h
+#pragma once
 
 #ifndef ENERGYSTORAGE_NORMAL_HMI_WRITER_H
 #define ENERGYSTORAGE_NORMAL_HMI_WRITER_H
 
-// services/normal/normal_hmi_writer.h
-#pragma once
-
-#include <string>
-#include <optional>
 #include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
+
 #include <nlohmann/json.hpp>
 
 #include "../aggregator/system_snapshot.h"
-#include "../snapshot/display/hmi_display_map.h"
+#include "../snapshot/display/hmi_display_map.h"   // 保留 HmiValType，兼容 logic_hmi_input.cpp
+#include "hmi_map_model.h"
 
 class HMIProto;
 
 namespace normal {
 
-    class NormalHmiWriter {
-    public:
-        NormalHmiWriter() = default;
+class NormalHmiWriter {
+public:
+    NormalHmiWriter() = default;
 
-        bool loadMapFile(const std::string& path, std::string* err = nullptr);
+    /*
+     * 第六批后唯一装配入口：
+     * HmiMapModel 由 ControlLoop::loadHmiMapFile() 统一加载。
+     */
+    bool bindMap(std::shared_ptr<const HmiMapModel> model,
+                 std::string* err = nullptr);
 
-        void flushFromSnapshot(const agg::SystemSnapshot& snap, HMIProto& hmi) const;
 
-        // 新接口：snapshot + logic_view 覆盖
-        void flushFromModel(const agg::SystemSnapshot& snap,
-                            const nlohmann::json& logic_view,
-                            HMIProto& hmi) const;
+    // snapshot + logic_view -> HMIProto 地址表
+    void flushFromModel(const agg::SystemSnapshot& snap,
+                        const nlohmann::json& logic_view,
+                        HMIProto& hmi) const;
 
-        bool loaded() const { return loaded_; }
+    bool loaded() const
+    {
+        return loaded_ && static_cast<bool>(hmi_map_);
+    }
 
-    private:
-        static const nlohmann::json* resolvePathCompat(const nlohmann::json& root, const std::string& path);
+    const std::shared_ptr<const HmiMapModel>& mapModel() const
+    {
+        return hmi_map_;
+    }
 
-        static bool toNumber(const nlohmann::json& v, double& out);
-        static bool toBool(const nlohmann::json& v, bool& out);
+    static bool isRwType(HmiValType t);
 
-        static uint16_t clampU16(int64_t v);
-        static uint16_t packS16(int32_t v);
+    /*
+     * 注意：
+     * 这个函数被 normal_hmi_writer.cpp 匿名 namespace 里的自检辅助函数调用，
+     * 因此必须是 public。
+     */
+    static HmiValType toLegacyType_(HmiMapType t);
 
-        static double pickOpt(const std::optional<double>& item, const std::optional<double>& blk, double defv);
+private:
+    static const nlohmann::json* resolvePathCompat(const nlohmann::json& root,
+                                                   const std::string& path);
 
-        static bool evalCompare(double x, const HmiPathItem& it, bool& out);
+    static bool toNumber(const nlohmann::json& v, double& out);
+    static bool toBool(const nlohmann::json& v, bool& out);
 
-        static bool isBoolType(HmiValType t);
-        static bool isIntType(HmiValType t);
-        static bool isRwType(HmiValType t);
+    static uint16_t clampU16(int64_t v);
+    static uint16_t packS16(int32_t v);
 
-        // ✅ 注入派生字段（不改 snapshot 本体）
-        // - system.alarm_bits：bit0..bit3
-        // - system.normal_seq：每次 flush++（心跳/版本）
-        void injectDerivedFields(nlohmann::json& j) const;
+    static double pickOpt(const std::optional<double>& item,
+                          const std::optional<double>& blk,
+                          double defv);
 
-    private:
-        bool loaded_{false};
-        HmiDisplayMapLoader loader_;
-        HmiDisplayMap map_;
+    static bool evalCompare(double x, const HmiMapItem& it, bool& out);
 
-        // ✅ 心跳序号：在 ControlLoop 单线程里递增即可，不需要 atomic
-        mutable uint32_t seq_{0};
-    };
+    static bool isBoolType(HmiValType t);
+    static bool isIntType(HmiValType t);
+
+    // 注入派生字段，不改 snapshot 本体
+    void injectDerivedFields(nlohmann::json& j) const;
+
+private:
+    bool loaded_{false};
+
+    // 第六批后只消费共享 HmiMapModel，不再自己解析 normal_map_logic.jsonl。
+    std::shared_ptr<const HmiMapModel> hmi_map_;
+
+    // 心跳序号：在 ControlLoop 单线程里递增即可
+    mutable uint32_t seq_{0};
+
+    /*
+     * 第一次 flushFromModel() 做 path 真源自检。
+     * flushFromModel() 是 const 函数，所以这里必须 mutable。
+     */
+    mutable bool first_flush_path_check_done_{false};
+};
 
 } // namespace normal
-#endif //ENERGYSTORAGE_NORMAL_HMI_WRITER_H
+
+#endif // ENERGYSTORAGE_NORMAL_HMI_WRITER_H

@@ -1,5 +1,5 @@
 //
-// Created by ChatGPT on 2026/4/8.
+// Created by lxy on 2026/4/8.
 //
 
 #ifndef ENERGYSTORAGE_FAULT_RUNTIME_MAPPER_H
@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "../bms/bms_logic_types.h"
@@ -24,7 +25,8 @@ namespace control
      * 职责：
      * 1. 从 fault_map.jsonl 中读取运行态映射规则（source / signal / instance）
      * 2. 根据 LogicContext 中已经整理好的 runtime 真源判断某条故障是否 active
-     * 3. 调用 FaultCenter::setActive(code, on)
+     * 3. 对 UPS / AIR / Smoke / Gas 的 direct runtime 规则做统一防抖
+     * 4. 调用 FaultCenter::setActive(code, on)
      *
      * 不负责：
      * - 不负责 HMI 输出
@@ -48,7 +50,7 @@ namespace control
             bool show_hmi_history{false};
 
             // 增量适配：预归一化字段，减少运行期重复处理
-            std::string source_norm; // bms / pcu / ups / smoke / gas / air / logic
+            std::string source_norm; // pcu / ups / smoke / gas / air / logic
             std::string signal_norm; // 统一 token
         };
 
@@ -75,7 +77,23 @@ namespace control
 
         // 主入口：统一消费 LogicContext 中的故障真源
         void applyAll(const LogicContext& ctx,
-                      control::FaultCenter& faults) const;
+                      control::FaultCenter& faults,
+                      uint64_t now_ms) const;
+
+    private:
+        struct DebouncePolicy {
+            bool enable{false};
+            uint32_t trigger_ms{0};
+            uint32_t clear_ms{0};
+        };
+
+        struct DebounceState {
+            bool initialized{false};
+            bool last_raw{false};
+            bool output{false};
+            uint64_t raw_since_ms{0};
+        };
+
     private:
         static bool parseBoolLoose_(const std::string& s, bool defv = false);
         static std::string trim_(const std::string& s);
@@ -84,8 +102,8 @@ namespace control
         static std::string normalizeSignal_(const std::string& s);
         static bool tryParseInstanceFromSignal_(const std::string& signal, uint32_t& out_inst);
 
-        static bool evalBmsSignal_(const control::bms::BmsPerInstanceCache& x,
-                                   const std::string& signal);
+        // static bool evalBmsSignal_(const control::bms::BmsPerInstanceCache& x,
+        //                            const std::string& signal);
 
         static bool evalPcuSignal_(const PcuOnlineState& x,
                                    const std::string& signal);
@@ -109,9 +127,21 @@ namespace control
         static bool isKnownSignalForSource_(const std::string& source_norm,
                                             const std::string& signal_norm);
 
+        static bool isRuntimeDebounceSource_(const std::string& source_norm);
+        static bool isOfflineSignal_(const Rule& rule);
+        static DebouncePolicy policyForRule_(const Rule& rule);
+        static std::string makeDebounceKey_(const Rule& rule);
+
+        bool debounceRule_(const Rule& rule,
+                           bool raw_active,
+                           uint64_t now_ms) const;
+
     private:
         std::vector<Rule> rules_;
         LoadStats stats_{};
+
+        // applyAll() 保持 const，因此防抖状态表用 mutable。
+        mutable std::unordered_map<std::string, DebounceState> debounce_states_;
     };
 }
 

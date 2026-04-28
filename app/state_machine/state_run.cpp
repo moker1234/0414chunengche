@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/17.
+// Created by lxy on 2025/12/17.
 //
 
 // state_run.cpp
@@ -27,10 +27,6 @@ inline void StateRun::onEvent(AppManager& app, const Event& e) {
                 // e.link_index);
         return;
 
-    case Event::Type::SerialUp:
-        // LOGINFO("[STATE][Run] Serial link recovered idx=%d",
-                // e.link_index);
-        return;
 
     case Event::Type::Error:
         app.transitionTo(std::make_unique<StateError>(e.code, e.text));

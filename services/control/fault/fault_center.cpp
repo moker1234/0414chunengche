@@ -10,7 +10,7 @@
 #include <ctime>
 #include <string>
 
-#include "./fault_addr_layout.h"
+// #include "./fault_addr_layout.h"
 #include "fault_catalog.h"
 #include "getTime.h"
 #include "logger.h"
@@ -20,14 +20,38 @@
 
 namespace control
 {
+    namespace
+    {
+        // 当前项目故障页一阶段仍按 5 行组织。
+        // 注意：这里不是 HMI 地址定义，只是当前页内行数。
+        // HMI 地址已经迁移到 fault_hmi_layout.jsonl。
+        static constexpr uint16_t kFaultPageRows = 5;
+    }
+    bool FaultCenter::shouldRecordToDb_(uint16_t code) const
+    {
+        // 没有目录时，保守策略：不写库
+        if (!cat_) return false;
+
+        const FaultMeta* meta = cat_->metaOf(code);
+        if (!meta) return false;
+
+        return meta->record_db;
+    }
+
     void FaultCenter::bindFaultDb(SqliteFaultSink* db)
     {
         fault_db_ = db;
+
+        // DB 绑定变化后，后续历史缓存层应至少刷新一次
+        history_dirty_ = true;
+        ++history_version_;
     }
 
     void FaultCenter::restoreHistoryFromDb(const std::vector<FaultHistoryDbRecord>& rows)
     {
         history_.clear();
+        active_db_rowid_by_code_.clear();
+        active_begin_ms_by_code_.clear();
         next_hist_seq_ = 1;
 
         for (const auto& r : rows)
@@ -45,39 +69,78 @@ namespace control
             {
                 next_hist_seq_ = static_cast<uint16_t>(rec.seq_no + 1);
             }
+
+            // 第十一批：
+            // 启动恢复时，把“仍未清除”的那条记录 row_id 也恢复进映射。
+            // 若同码出现多条未清除（理论上不该发生），保留最后一条。
+            if (r.clear_ms == 0) {
+                active_db_rowid_by_code_[r.code] = r.id;
+                active_begin_ms_by_code_[r.code] = r.first_on_ms;
+            }
         }
 
         clampPages_();
+        // 20240418
+        LOGINFO("[FAULT][HISTORY][RESTORE] rows=%zu next_seq=%u active_rowids=%zu",
+        rows.size(),
+        (unsigned)next_hist_seq_,
+        active_db_rowid_by_code_.size());
+        for (const auto& r : rows)
+        {
+            LOG_THROTTLE_MS("fault_history_restore_rows", 1000, LOGINFO,
+                            "[FAULT][HISTORY][RESTORE_ROW] id=%lld code=0x%04X on_ms=%llu clear_ms=%llu seq=%u state=%u",
+                            (long long)r.id,
+                            (unsigned)r.code,
+                            (unsigned long long)r.first_on_ms,
+                            (unsigned long long)r.clear_ms,
+                            (unsigned)r.seq_no,
+                            (unsigned)r.state);
+        }
+
+        // 第二批已有：恢复后通知历史缓存刷新
+        history_dirty_ = true;
+        ++history_version_;
     }
 
-    void FaultCenter::setActive(uint16_t code, bool on)
+void FaultCenter::setActive(uint16_t code, bool on)
+{
+    if (code == 0x2002 || code == 0x2102 || code == 0x2202 || code == 0x2302) {
+        LOGINFO("[DEBUG_CENTER] Receive setActive -> code: 0x%X | on: %d", code, on);
+    }
+    if (on)
     {
-        // 20260415
-        if (code == 0x1073 || code == 0x10AE) {
-            LOGINFO("[DEBUG_CENTER] Receive setActive -> code: 0x%X | on: %d", code, on);
-        }
-        if (on)
-        {
-            LOGINFO("[FAULT][CENTER] code=0x%04X active=%d", // 故障结构十批输出
-                    (unsigned)code,
-                    on ? 1 : 0);
-        }
-        const bool was_on = (active_.find(code) != active_.end());
-        if (code == 0x102B || code == 0x103C) { // 20260414
-            LOGINFO("[TRACE][FAULT_EDGE] code=0x%04X old=%d new=%d",
-                    (unsigned)code,
-                    was_on ? 1 : 0,
-                    on ? 1 : 0);
-        }
+        LOGINFO("[FAULT][CENTER] code=0x%04X active=%d",
+                (unsigned)code,
+                on ? 1 : 0);
+    }
 
-        if (on)
-        {
-            active_.insert(code);
+    const bool was_on = (active_.find(code) != active_.end());
+    if (code == 0x102B || code == 0x103C) {
+        LOGINFO("[TRACE][FAULT_EDGE] code=0x%04X old=%d new=%d",
+                (unsigned)code,
+                was_on ? 1 : 0,
+                on ? 1 : 0);
+    }
 
-            if (!was_on)
+    const bool record_db = shouldRecordToDb_(code);
+    bool history_changed = false;
+
+    if (on)
+    {
+        active_.insert(code);
+
+        if (!was_on)
+        {
+            const uint64_t ts = unixNowMs();
+
+            // 第十五批：
+            // 现存故障页时间不再依赖 history_，
+            // 所有新激活故障都要记录本次开始时间。
+            active_begin_ms_by_code_[code] = ts;
+
+            // 只有 record_db=true 的故障，才进入内存 history_ / SQLite
+            if (record_db)
             {
-                const uint64_t ts = unixNowMs();
-
                 FaultCenterHistRecord rec;
                 rec.code = code;
                 rec.first_on_ms = ts;
@@ -86,6 +149,8 @@ namespace control
                 rec.state = 1;
                 history_.push_back(rec);
                 trimHistoryIfNeeded_();
+
+                int64_t saved_row_id = 0;
 
                 if (fault_db_)
                 {
@@ -106,21 +171,42 @@ namespace control
                         }
                     }
 
-                    int64_t row_id = 0;
-                    fault_db_->insertHistoryBegin(dbrec, row_id);
-                    // LOGINFO("[FAULT][HISTORY] begin code=0x%04X ts=%llu", // 故障结构十批输出
-                    //         (unsigned)code,
-                    //         (unsigned long long)ts);
+                    if (fault_db_->insertHistoryBegin(dbrec, saved_row_id))
+                    {
+                        if (saved_row_id > 0) {
+                            active_db_rowid_by_code_[code] = saved_row_id;
+                        }
+                    }
                 }
+
+                LOGINFO("[FAULT][HISTORY][BEGIN] code=0x%04X on_ms=%llu seq=%u row_id=%lld record_db=%d active_rowids=%zu",
+                        (unsigned)code,
+                        (unsigned long long)ts,
+                        (unsigned)rec.seq_no,
+                        (long long)saved_row_id,
+                        record_db ? 1 : 0,
+                        active_db_rowid_by_code_.size());
+
+                history_changed = true;
+            }
+            else
+            {
+                LOGINFO("[FAULT][HISTORY][SKIP_BEGIN] code=0x%04X reason=record_db_false",
+                        (unsigned)code);
             }
         }
-        else
-        {
-            active_.erase(code);
+    }
+    else
+    {
+        active_.erase(code);
 
-            if (was_on)
+        if (was_on)
+        {
+            if (record_db)
             {
                 const uint64_t ts = unixNowMs();
+                int64_t cleared_row_id = 0;
+                bool used_row_id = false;
 
                 for (auto it = history_.rbegin(); it != history_.rend(); ++it)
                 {
@@ -134,17 +220,68 @@ namespace control
 
                 if (fault_db_)
                 {
-                    fault_db_->markHistoryCleared(code, ts);
-                    // LOGINFO("[FAULT][HISTORY] clear code=0x%04X ts=%llu", // 故障结构十批输出
-                    //         (unsigned)code,
-                    //         (unsigned long long)ts);
+                    auto it_row = active_db_rowid_by_code_.find(code);
+                    if (it_row != active_db_rowid_by_code_.end() && it_row->second > 0)
+                    {
+                        cleared_row_id = it_row->second;
+                        used_row_id = true;
+                        fault_db_->markHistoryClearedById(it_row->second, ts);
+                        active_db_rowid_by_code_.erase(it_row);
+                    }
+                    else
+                    {
+                        fault_db_->markHistoryCleared(code, ts);
+                    }
                 }
-            }
-        }
 
-        clampPages_();
+                LOGINFO("[FAULT][HISTORY][CLEAR] code=0x%04X clear_ms=%llu row_id=%lld used_row_id=%d active_rowids=%zu",
+                        (unsigned)code,
+                        (unsigned long long)ts,
+                        (long long)cleared_row_id,
+                        used_row_id ? 1 : 0,
+                        active_db_rowid_by_code_.size());
+
+                history_changed = true;
+            }
+            else
+            {
+                LOGINFO("[FAULT][HISTORY][SKIP_CLEAR] code=0x%04X reason=record_db_false",
+                        (unsigned)code);
+            }
+
+            // 第十五批：
+            // 故障结束后，无论是否 record_db，都要清掉“当前激活开始时间”
+            active_begin_ms_by_code_.erase(code);
+
+            // 原有 row_id 清理逻辑继续保留
+            active_db_rowid_by_code_.erase(code);
+        }
     }
 
+    clampPages_();
+
+    if (history_changed)
+    {
+        history_dirty_ = true;
+        ++history_version_;
+
+        LOGINFO("[FAULT][HISTORY][DIRTY] version=%llu history_size=%zu cur_total=%u his_total=%u",
+                (unsigned long long)history_version_,
+                history_.size(),
+                (unsigned)currentTotalPages_(),
+                (unsigned)historyTotalPages_());
+    }
+}
+    bool FaultCenter::consumeHistoryDirty(uint64_t* out_version)
+    {
+        if (out_version) {
+            *out_version = history_version_;
+        }
+
+        const bool dirty = history_dirty_;
+        history_dirty_ = false;
+        return dirty;
+    }
     bool FaultCenter::isActive(uint16_t code) const
     {
         return active_.find(code) != active_.end();
@@ -196,10 +333,30 @@ namespace control
         if (history_page_ > 0) --history_page_;
     }
 
+    void FaultCenter::toFirstCurrentPage()
+    {
+        current_page_ = 0;
+    }
+
+    void FaultCenter::toFirstHistoryPage()
+    {
+        history_page_ = 0;
+    }
+
     uint32_t FaultCenter::encodeTime_(uint64_t ts_ms)
     {
         if (ts_ms == 0) return 0u;
         return static_cast<uint32_t>(ts_ms / 1000ULL); // 秒级32位时间戳
+    }
+    uint64_t FaultCenter::currentBeginTimeOf_(uint16_t code) const
+    {
+        std::lock_guard<std::mutex> lk(mtx_);
+
+        auto it = active_begin_ms_by_code_.find(code);
+        if (it == active_begin_ms_by_code_.end()) {
+            return 0;
+        }
+        return it->second;
     }
 
     void FaultCenter::trimHistoryIfNeeded_()
@@ -244,25 +401,17 @@ namespace control
             if (isActive(code)) visible.push_back(code);
         }
 
+        // 现存故障排序规则：
+        // 1) 只按“本次触发时间”倒序，最新触发的排第一
+        // 2) 若时间相同，再按故障码升序做稳定兜底
         std::sort(visible.begin(), visible.end(),
                   [this](uint16_t a, uint16_t b)
                   {
-                      const FaultMeta* ma = cat_->metaOf(a);
-                      const FaultMeta* mb = cat_->metaOf(b);
+                      const uint64_t ta = currentBeginTimeOf_(a);
+                      const uint64_t tb = currentBeginTimeOf_(b);
 
-                      const int pra = ma ? ma->priority_rank : 9999;
-                      const int prb = mb ? mb->priority_rank : 9999;
-                      if (pra != prb) return pra < prb;
-
-                      const uint64_t ta = lastEventTimeOf_(a);
-                      const uint64_t tb = lastEventTimeOf_(b);
-                      if (ta != tb) return ta > tb; // 最近优先
-
-                      const int soa = ma ? ma->source_order : 9999;
-                      const int sob = mb ? mb->source_order : 9999;
-                      if (soa != sob) return soa < sob;
-
-                      return a < b;
+                      if (ta != tb) return ta > tb;   // 最新触发优先
+                      return a < b;                   // 同时触发时按 code 稳定兜底
                   });
 
         return visible;
@@ -317,18 +466,17 @@ namespace control
         if (!cat_) return out;
 
         const auto visible = collectCurrentVisibleCodes_();
-        // 20260415
-        LOG_THROTTLE_MS("test_hmi_page", 2000, LOGINFO,
-    "[DEBUG_HMI] Total active visible faults: %zu | Current Page: %d",
-    visible.size(), current_page_);
+
         for (auto c : visible) {
             if (c == 0x1073 || c == 0x10AE) {
                 LOGINFO("[DEBUG_HMI] Target fault 0x%X is in the visible list!", c);
             }
         }
 
-        const uint32_t start = static_cast<uint32_t>(current_page_) * fault::FAULTS_PER_PAGE;
-        for (uint16_t i = 0; i < fault::FAULTS_PER_PAGE; ++i)
+        const uint32_t start =
+            static_cast<uint32_t>(current_page_) * kFaultPageRows;
+
+        for (uint16_t i = 0; i < kFaultPageRows; ++i)
         {
             const uint32_t idx = start + i;
             if (idx >= visible.size()) break;
@@ -336,7 +484,11 @@ namespace control
             FaultCenterCurrentRow row;
             row.seq_no = static_cast<uint16_t>(idx + 1);
             row.code = visible[idx];
-            row.on_time = encodeTime_(lastEventTimeOf_(row.code)); // 当前故障触发/最近事件时间
+
+            // 现存故障页 on_time 只看“本次激活开始时间”，
+            // 不再依赖 history_ / record_db。
+            row.on_time = encodeTime_(currentBeginTimeOf_(row.code));
+
             out.push_back(row);
         }
 
@@ -350,8 +502,8 @@ namespace control
 
         const auto visible = collectHistoryVisible_();
 
-        const uint32_t start = static_cast<uint32_t>(history_page_) * fault::FAULTS_PER_PAGE;
-        for (uint16_t i = 0; i < fault::FAULTS_PER_PAGE; ++i)
+        const uint32_t start = static_cast<uint32_t>(history_page_) * kFaultPageRows;
+        for (uint16_t i = 0; i < kFaultPageRows; ++i)
         {
             const uint32_t idx = start + i;
             if (idx >= visible.size()) break;
@@ -373,14 +525,14 @@ namespace control
     {
         const auto visible = collectCurrentVisibleCodes_();
         if (visible.empty()) return 0;
-        return static_cast<uint16_t>((visible.size() + fault::FAULTS_PER_PAGE - 1) / fault::FAULTS_PER_PAGE);
+        return static_cast<uint16_t>((visible.size() + kFaultPageRows - 1) / kFaultPageRows);
     }
 
     uint16_t FaultCenter::historyTotalPages_() const
     {
         const auto visible = collectHistoryVisible_();
         if (visible.empty()) return 0;
-        return static_cast<uint16_t>((visible.size() + fault::FAULTS_PER_PAGE - 1) / fault::FAULTS_PER_PAGE);
+        return static_cast<uint16_t>((visible.size() + kFaultPageRows - 1) / kFaultPageRows);
     }
 
     void FaultCenter::clampPages_()
@@ -485,136 +637,12 @@ namespace control
 
     void FaultCenter::flushToHmi(HMIProto& hmi) const
     {
-        LOG_THROTTLE_MS("fault_flush_hmi", 1000, LOGINFO, // 故障结构十批输出
-                        "[FAULT][HMI] cur_total=%u cur_page=%u his_total=%u his_page=%u in_history=%d",
-                        (unsigned)currentTotalPages_(),
-                        (unsigned)(currentTotalPages_() == 0 ? 0 : (current_page_ + 1)),
-                        (unsigned)historyTotalPages_(),
-                        (unsigned)(historyTotalPages_() == 0 ? 0 : (history_page_ + 1)),
-                        in_history_view_ ? 1 : 0);
-// 20260414
-        {
-            const auto visible = collectCurrentVisibleCodes_();
-            const uint16_t total_pages = currentTotalPages_();
+        (void)hmi;
 
-            for (uint16_t p = 0; p < total_pages; ++p)
-            {
-                const size_t begin = static_cast<size_t>(p) * fault::FAULTS_PER_PAGE;
-                const size_t end = std::min(begin + static_cast<size_t>(fault::FAULTS_PER_PAGE),
-                                            visible.size());
-
-                std::ostringstream oss;
-                for (size_t i = begin; i < end; ++i)
-                {
-                    if (i != begin) oss << ",";
-                    oss << "0x" << std::hex << std::uppercase << visible[i] << std::dec;
-                }
-                if (begin >= end)
-                {
-                    oss << "<empty>";
-                }
-                LOGINFO("[FAULT][HMI][ALL_PAGES] page=%u/%u codes=%s",
-                        (unsigned)(p + 1),
-                        (unsigned)total_pages,
-                        oss.str().c_str());
-            }
-        }
-
-        const auto cur_rows = buildCurrentRows_();
-        const auto his_rows = buildHistoryRows_();
-
-        const uint16_t cur_total = currentTotalPages_();
-        const uint16_t his_total = historyTotalPages_();
-
-        // const auto all_cur_codes = collectCurrentVisibleCodes_();
-        //
-        // LOG_THROTTLE_MS("fault_page_dump", 500, LOG_COMM_D,
-        //     "[FAULT][PAGE] cur_page=%u/%u all_cur_count=%zu all_cur_codes=[%s] cur_rows=[%s]",
-        //     (unsigned)(cur_total == 0 ? 0 : (current_page_ + 1)),
-        //     (unsigned)cur_total,
-        //     all_cur_codes.size(),
-        //     joinCodesU16_(all_cur_codes).c_str(),
-        //     joinCurrentRows_(cur_rows).c_str());
-
-        hmi.setIntRead(fault::ADDR_CUR_TOTAL_PAGES, cur_total);
-        hmi.setIntRead(fault::ADDR_CUR_PAGE_INDEX,
-                       cur_total == 0 ? 0 : static_cast<uint16_t>(current_page_ + 1));
-
-        for (uint16_t i = 0; i < fault::FAULTS_PER_PAGE; ++i)
-        {
-            const auto row = (i < cur_rows.size()) ? cur_rows[i] : FaultCenterCurrentRow{};
-            hmi.setIntRead(static_cast<uint16_t>(fault::ADDR_CUR_SEQ_BASE + i), row.seq_no);
-            hmi.setIntRead(static_cast<uint16_t>(fault::ADDR_CUR_CODE_BASE + i), row.code);
-            writeU32To2Regs(hmi, fault::ADDR_CUR_ON_TIME_BASE, i, row.on_time);
-        }
-
-        {
-            LOG_THROTTLE_MS(
-                "fault_hmi_current_rows_fmt", 1000, LOG_SYS_I,
-                "[FAULT][HMI][CUR] page=%u/%u "
-                "r1{seq=%u code=0x%04X on=%u on_str=%s} "
-                "r2{seq=%u code=0x%04X on=%u on_str=%s} "
-                "r3{seq=%u code=0x%04X on=%u on_str=%s} "
-                "r4{seq=%u code=0x%04X on=%u on_str=%s} "
-                "r5{seq=%u code=0x%04X on=%u on_str=%s}",
-                static_cast<unsigned>(cur_total == 0 ? 0 : current_page_ + 1),
-                static_cast<unsigned>(cur_total),
-
-                static_cast<unsigned>(cur_rows.size() > 0 ? cur_rows[0].seq_no : 0),
-                static_cast<unsigned>(cur_rows.size() > 0 ? cur_rows[0].code : 0),
-                static_cast<unsigned>(cur_rows.size() > 0 ? cur_rows[0].on_time : 0),
-                formatUnixSecToDateTime_(cur_rows.size() > 0 ? cur_rows[0].on_time : 0).c_str(),
-
-                static_cast<unsigned>(cur_rows.size() > 1 ? cur_rows[1].seq_no : 0),
-                static_cast<unsigned>(cur_rows.size() > 1 ? cur_rows[1].code : 0),
-                static_cast<unsigned>(cur_rows.size() > 1 ? cur_rows[1].on_time : 0),
-                formatUnixSecToDateTime_(cur_rows.size() > 1 ? cur_rows[1].on_time : 0).c_str(),
-
-                static_cast<unsigned>(cur_rows.size() > 2 ? cur_rows[2].seq_no : 0),
-                static_cast<unsigned>(cur_rows.size() > 2 ? cur_rows[2].code : 0),
-                static_cast<unsigned>(cur_rows.size() > 2 ? cur_rows[2].on_time : 0),
-                formatUnixSecToDateTime_(cur_rows.size() > 2 ? cur_rows[2].on_time : 0).c_str(),
-
-                static_cast<unsigned>(cur_rows.size() > 3 ? cur_rows[3].seq_no : 0),
-                static_cast<unsigned>(cur_rows.size() > 3 ? cur_rows[3].code : 0),
-                static_cast<unsigned>(cur_rows.size() > 3 ? cur_rows[3].on_time : 0),
-                formatUnixSecToDateTime_(cur_rows.size() > 3 ? cur_rows[3].on_time : 0).c_str(),
-
-                static_cast<unsigned>(cur_rows.size() > 4 ? cur_rows[4].seq_no : 0),
-                static_cast<unsigned>(cur_rows.size() > 4 ? cur_rows[4].code : 0),
-                static_cast<unsigned>(cur_rows.size() > 4 ? cur_rows[4].on_time : 0),
-                formatUnixSecToDateTime_(cur_rows.size() > 4 ? cur_rows[4].on_time : 0).c_str()
-            );
-        }
-
-
-        hmi.setIntRead(fault::ADDR_HIS_TOTAL_PAGES, his_total);
-        hmi.setIntRead(fault::ADDR_HIS_PAGE_INDEX,
-                       his_total == 0 ? 0 : static_cast<uint16_t>(history_page_ + 1));
-
-        for (uint16_t i = 0; i < fault::FAULTS_PER_PAGE; ++i)
-        {
-            const auto row = (i < his_rows.size()) ? his_rows[i] : FaultCenterHistoryRow{};
-            hmi.setIntRead(static_cast<uint16_t>(fault::ADDR_HIS_SEQ_BASE + i), row.seq_no);
-            hmi.setIntRead(static_cast<uint16_t>(fault::ADDR_HIS_CODE_BASE + i), row.code);
-            writeU32To2Regs(hmi, fault::ADDR_HIS_ON_TIME_BASE, i, row.on_time);
-            writeU32To2Regs(hmi, fault::ADDR_HIS_OFF_TIME_BASE, i, row.off_time);
-            hmi.setIntRead(static_cast<uint16_t>(fault::ADDR_HIS_STATE_BASE + i), row.state);
-        }
-
-        // 第八批：联调用节流日志，直接对应 HMI 读取 0x4125~0x4129
-        uint16_t c0 = (cur_rows.size() > 0) ? cur_rows[0].code : 0;
-        uint16_t c1 = (cur_rows.size() > 1) ? cur_rows[1].code : 0;
-        uint16_t c2 = (cur_rows.size() > 2) ? cur_rows[2].code : 0;
-        uint16_t c3 = (cur_rows.size() > 3) ? cur_rows[3].code : 0;
-        uint16_t c4 = (cur_rows.size() > 4) ? cur_rows[4].code : 0;
-
-        // LOG_THROTTLE_MS(
-        //     "fault_flush_to_hmi", 1000, LOG_SYS_I,
-        //     "[FAULT][HMI] cur_total=%u cur_page=%u codes=[0x%04X,0x%04X,0x%04X,0x%04X,0x%04X] addrs=0x4125..0x4129",
-        //     static_cast<unsigned>(cur_total),
-        //     static_cast<unsigned>(cur_total == 0 ? 0 : current_page_ + 1),
-        //     c0, c1, c2, c3, c4
-        // );
     }
+
+    // ===== 历史故障页 =====
+    // 第十二批（方案 A）：
+    // 这里不再写任何 ADDR_HIS_* 地址。
+    // 历史页由 LogicEngine::applyFaultHmi_() 中的 FaultHistoryCache 覆盖输出。
 } // namespace control

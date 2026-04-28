@@ -33,7 +33,7 @@ public:
     // ===== 轮询读取（分段）=====
     std::vector<uint8_t> buildReadCmd() override;
 
-    // ===== 解析（将分段数据合并到内部缓存，输出“当前完整视图”）=====
+    // ===== 解析：每次只输出本次响应对应的分段数据 =====
     bool parse(const std::vector<uint8_t>& rx, DeviceData& out) override;
 
     // ===== 写单寄存器（06）=====
@@ -53,8 +53,6 @@ private:
         S2_Sensors,
         S3_Alarms,
         S4_Params,
-        S5_Remote,
-        COUNT
     };
 
     struct Segment {
@@ -65,13 +63,18 @@ private:
 private:
     uint8_t addr_{1};
 
-    PollStage next_stage_{PollStage::S0_Version};
-    PollStage last_sent_stage_{PollStage::S0_Version};
+    PollStage next_stage_{PollStage::S1_RunState};
+
+    // 高频轮询运行状态/传感器/告警，低频轮询参数/遥控/版本。
+    uint8_t poll_seq_index_{0};
 
     // 内部“全量缓存”：分段更新，保证每次输出都是“尽可能完整”
+    // 注意：对外输出一律使用工程值：
+    // - temp.*_c       单位 ℃
+    // - current_a      单位 A
+    // - ac_voltage_v   单位 V
+    // - dc_voltage_v   单位 V
     DeviceData cache_;
-
-    bool div_enabled_{false}; // 是否取消缩放（0x070A）
 
 private:
     // ===== Modbus RTU LoHi =====
@@ -104,7 +107,11 @@ private:
     static Segment segmentOf(PollStage s);
     void advanceStage_();
 
-    void applySegmentToCache_(PollStage s, const std::vector<uint16_t>& regs);
+    static bool inferStageByRegCount_(std::size_t reg_count, PollStage& out_stage);
+
+    static void fillSegmentData_(PollStage s,
+                                 const std::vector<uint16_t>& regs,
+                                 DeviceData& out);
 
     // 告警字段名（用于 status map）
     static const char* alarmKeyByOffset_(uint16_t offset); // offset=0..32

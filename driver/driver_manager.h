@@ -1,5 +1,5 @@
 //
-// Created by forlinx on 2025/12/18.
+// Created by lxy on 2025/12/18.
 // Modified by lxy on 2026/01/12
 //
 
@@ -19,7 +19,12 @@
 #include "../serial/serial_event.h"
 #include "../../utils/queue/msg_queue.h"
 #include "../app/event.h"
-#include "j1939/j1939_manager.h"
+
+
+#include "gpio/di.h"
+#include "gpio/do.h"
+#include "adc/ai.h"
+#include "io/io_thread.h"
 
 class AppManager;
 class SerialThread;
@@ -42,12 +47,15 @@ public:
                     int idx,
                     const std::vector<uint8_t>& bytes);
 
+
+    void setIoSampleCallback(IoThread::SampleCallback cb);
+    bool writeDo(int channel_id, bool value);
+
     // timeout
     void onSerialLinkTimeout(int idx);
     void onSerialLinkRecover(int idx);
 
 
-    void setJ1939Manager(j1939::J1939Manager* mgr) { j1939_mgr_ = mgr; }
 private:
     AppManager& app_;
     parser::ProtocolParserThread& parser_;
@@ -63,7 +71,13 @@ private:
     MsgQueue<SerialEvent> serial_rx_queue_;
 
 
-    j1939::J1939Manager* j1939_mgr_{nullptr};
+    // ===== IO managers =====
+    std::unique_ptr<DigitalInputManager> di_mgr_;
+    std::unique_ptr<DigitalOutputManager> do_mgr_;
+    std::unique_ptr<AiDriver> ai_drv_;
+    std::unique_ptr<IoThread> io_thread_;
+    IoThread::SampleCallback io_sample_cb_;
+
 };
 
 

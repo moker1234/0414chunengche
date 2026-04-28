@@ -5,7 +5,6 @@
 
 
 HMIProto::HMIProto(uint8_t slave_id) : addr_(slave_id) {
-    // ✅ 不再使用 compat
 }
 
 void HMIProto::appendCrc(std::vector<uint8_t>& out) {
@@ -18,10 +17,10 @@ bool HMIProto::handleRequest(const std::vector<uint8_t>& req, std::vector<uint8_
     resp.clear();
 
     if (req.size() < 8) return false;
-    // if (req[1] == 0x04)
-    // {
-    //     LOG_COMM_HEX("[HMI][RX][REQ]", req.data(), req.size());
-    // }
+    if (req[1] == 0x02)
+    {
+        LOG_COMM_HEX("[HMI][RX][REQ]", req.data(), req.size());
+    }
     if (req[1] == 0x0F || req[1] == 0x05)
     {
         LOG_COMM_HEX("[HMI][RX][REQ]", req.data(), req.size());
@@ -116,17 +115,33 @@ bool HMIProto::handleReadBits(uint8_t func, uint16_t start, uint16_t qty, std::v
              // start, qty, byte_count, hex.c_str());
     }
     //0207
-    // if (func == 0x02 && start == 0x0115) {
-    //     uint64_t now = nowMs(); /* nowMs/steady_clock */
-    //     LOGD("[AC_LAT][T4_TX] now=%llu start=0x%04X qty=%u bytes=%u data=%02X %02X %02X %02X %02X",
-    //          (unsigned long long)now, start, qty, byte_count,
-    //          resp.size() > 3 ? resp[3] : 0,
-    //          resp.size() > 4 ? resp[4] : 0,
-    //          resp.size() > 5 ? resp[5] : 0,
-    //          resp.size() > 6 ? resp[6] : 0,
-    //          resp.size() > 7 ? resp[7] : 0);
-    // }
-    // LOG_COMM_HEX("[HMI][TX][RESP]", resp.data(), resp.size());
+
+    if (resp[1] == 0x02)
+    {
+        LOG_COMM_HEX("[HMI][TX][RESP]", resp.data(), resp.size());
+    }
+    if (func == 0x02 && start == 0x3065)
+    {
+        // 取出第1个字节（resp[3]），里面包含 0x3065 ~ 0x306C 共8个点位
+        uint8_t data = resp[3];
+
+        // 按Modbus低位在前(bit0=第1点)的规则解析8个bool
+        bool bit0 = (data >> 0) & 1;  // 0x3065
+        bool bit1 = (data >> 1) & 1;  // 0x3066
+        bool bit2 = (data >> 2) & 1;  // 0x3067
+        bool bit3 = (data >> 3) & 1;  // 0x3068
+        bool bit4 = (data >> 4) & 1;  // 0x3069
+        bool bit5 = (data >> 5) & 1;  // 0x306A
+        bool bit6 = (data >> 6) & 1;  // 0x306B
+        bool bit7 = (data >> 7) & 1;  // 0x306C
+
+        // 日志打印 8 路状态（true=1=闭合，false=0=断开）
+        LOG_COMM_D("[HMI][TX][RESP] 0x3065~0x306C: "
+                   "UPS=%d, PCU1=%d, PCU2=%d, BMS1=%d, "
+                   "BMS2=%d, BMS3=%d, BMS4=%d, Remote=%d",
+                   bit0, bit1, bit2, bit3,
+                   bit4, bit5, bit6, bit7);
+    }
     appendCrc(resp);
 
     return true;
@@ -165,7 +180,7 @@ bool HMIProto::handleReadRegs(uint8_t func, uint16_t start, uint16_t qty, std::v
             }
         }
 
-        // if (addr == 0x142D || addr == 0x142E || addr == 0x142F || addr == 0x1430) {
+        // if (addr == 0x4143 || addr == 0x414F || addr == 0x142F || addr == 0x1430) {
         //     printf("[HMI][READ_REGS] func=0x%02X start=0x%04X qty=%u addr=0x%04X v=%u\n",
         //            func, start, qty, addr, v);
         // }
@@ -175,7 +190,11 @@ bool HMIProto::handleReadRegs(uint8_t func, uint16_t start, uint16_t qty, std::v
 
     if (start == 0x4125)
     {
-        LOG_COMM_HEX("[HMI][TX][RESP]", resp.data(), resp.size());
+        LOG_COMM_HEX("[HMI][TX][RESP]:0x4125", resp.data(), resp.size());
+    }
+    if ( start == 0x411D)
+    {
+        LOG_COMM_HEX("[HMI][TX][RESP]:0x411D", resp.data(), resp.size());
     }
     appendCrc(resp);
     return true;

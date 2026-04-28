@@ -13,6 +13,15 @@ DriverManager::DriverManager(AppManager& app,
 {
 }
 
+void DriverManager::setIoSampleCallback(IoThread::SampleCallback cb)
+{
+    io_sample_cb_ = std::move(cb);
+
+    if (io_thread_) {
+        io_thread_->setCallback(io_sample_cb_);
+    }
+}
+
 void DriverManager::init()
 {
     // ===== CAN =====
@@ -87,11 +96,6 @@ void DriverManager::init()
                 rx.can_index = idx;
                 rx.frame = f;
                 parser_.pushCan(rx);
-
-                // 使用总的解析架构，而不走 J1939Manager 的“闭环”
-                // if (j1939_mgr_) {
-                //     j1939_mgr_->onCanFrame(idx, f);
-                // }
             });
 
             can_drivers_[i] = std::move(drv);
@@ -139,12 +143,6 @@ void DriverManager::init()
                 [this](const SerialThread::LinkTimeoutInfo& info)
                 {
                     this->onSerialLinkTimeout(info.serial_index);
-                }
-            );
-            th->setLinkRecoverCallback(
-                [this](const SerialThread::LinkTimeoutInfo& info)
-                {
-                    this->onSerialLinkRecover(info.serial_index);
                 }
             );
 
@@ -220,6 +218,47 @@ void DriverManager::init()
                       i, th_name.c_str(), p.device.c_str(), p.baudrate);
         }
     }
+    // ===== 本地 IO：DI / DO / ADC =====
+    {
+        di_mgr_ = std::make_unique<DigitalInputManager>();
+        do_mgr_ = std::make_unique<DigitalOutputManager>();
+        ai_drv_ = std::make_unique<AiDriver>();
+
+        const bool di_ok = di_mgr_->init();
+        const bool do_ok = do_mgr_->init();
+
+        if (!di_ok) {
+            LOG_SYS_W("[DRV][IO] DI manager init has failures");
+        } else {
+            LOG_SYS_I("[DRV][IO] DI manager init ok");
+        }
+
+        if (!do_ok) {
+            LOG_SYS_W("[DRV][IO] DO manager init has failures");
+        } else {
+            LOG_SYS_I("[DRV][IO] DO manager init ok");
+        }
+        // 参考 ai_test.cpp：必要时先打开 current_channel_enable，例如 0xF
+        if (!ai_drv_->setCurrentChannelEnable("0xF")) {
+            LOG_SYS_W("[DRV][IO] write current_channel_enable=0xF failed");
+        } else {
+            LOG_SYS_I("[DRV][IO] current_channel_enable <= 0xF");
+        }
+
+        io_thread_ = std::make_unique<IoThread>(*di_mgr_, *ai_drv_);
+
+        IoThread::Config cfg{};
+        cfg.di_interval_ms = 20;
+        cfg.ai_interval_ms = 50;
+        cfg.loop_sleep_ms = 5;
+        io_thread_->setConfig(cfg);
+
+        if (io_sample_cb_) {
+            io_thread_->setCallback(io_sample_cb_);
+        }
+
+        LOG_SYS_I("[DRV][IO] IoThread prepared di=20ms ai=50ms sleep=5ms");
+    }
 }
 
 
@@ -228,10 +267,12 @@ void DriverManager::start()
     for (auto& th : can_threads_) if (th) th->start();
     for (auto& th : serialThreads_) if (th) th->start();
     for (auto& th : rs232Threads_) if (th) th->start();
+    if (io_thread_) io_thread_->start();
 }
 
 void DriverManager::stop()
 {
+    if (io_thread_) io_thread_->stop();
     for (auto& th : can_threads_) if (th) th->stop();
     for (auto& th : serialThreads_) if (th) th->stop();
     for (auto& th : rs232Threads_) if (th) th->stop();
@@ -270,19 +311,26 @@ bool DriverManager::sendSerial(dev::LinkType type,
 }
 
 void DriverManager::onSerialLinkTimeout(int idx) {
-    // LOGWARN("[DRV][L1] serial link timeout idx=%d", idx);
+    (void)idx;
 
     Event e;
     e.type = Event::Type::SerialDown;
-    e.link_index = idx;
     app_.post(e);
 }
 
-void DriverManager::onSerialLinkRecover(int idx) {
-    // LOGINFO("[DRV][L1] serial link recover idx=%d", idx);
+bool DriverManager::writeDo(int channel_id, bool value)
+{
+    if (!do_mgr_) {
+        LOG_SYS_W("[DRV][DO] write fail, do_mgr is null channel=%d value=%d",
+                  channel_id, value ? 1 : 0);
+        return false;
+    }
 
-    Event e;
-    e.type = Event::Type::SerialUp;
-    e.link_index = idx;
-    app_.post(e);
+    const bool ok = do_mgr_->setChannel(channel_id, value);
+    if (!ok) {
+        LOG_SYS_W("[DRV][DO] write fail channel=%d value=%d",
+                  channel_id, value ? 1 : 0);
+    }
+
+    return ok;
 }

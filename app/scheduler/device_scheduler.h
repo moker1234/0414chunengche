@@ -44,7 +44,6 @@ struct DevicePollCtx {
     bool online{false};
 };
 // 一个“轮询任务”：Scheduler 用它来决定什么时候触发一次 sendPoll
-// ✅ 每设备轮询任务：携带 timeout_ms（以及可选的重发策略）
 struct PollTask {
     dev::LinkType type{dev::LinkType::RS485};
     int index{0};
@@ -54,26 +53,13 @@ struct PollTask {
     uint32_t period_ms{1000};
     uint64_t next_due_ms{0};
 
-    // 断连判断窗口：优先取 system.json 中 poll.disconnect_window_ms
-    // 若未配置，则由调度器按 timeout_ms / interval_ms 推导兜底值
+    // 单次请求超时：传给 Parser / RequestContext
+    uint32_t timeout_ms{300};
+
+    // 设备离线判定窗口：只用于 Scheduler aging，不传给 Parser
     uint32_t disconnect_window_ms{1000};
 
     bool enable{true};
-};
-// ===== BMS periodic TX (V2B_CMD) =====
-struct BmsTxTask {
-    int can_index{2};
-    uint32_t period_ms{100};
-    uint64_t next_due_ms{0};
-
-    uint32_t id_v2b_cmd{0x1802F3EF}; // 29bit，不含 CAN_EFF_FLAG
-
-    // LifeSignal rolling counter
-    uint8_t life{0};
-
-    // 可先只保留一个字段，后续再补更多控制位
-    uint8_t hv_onoff{0};   // 0 Reserved / 1 PowerOn / 2 PowerOff / 3 Invalid（如果你后续要发）
-    uint8_t enable{1};     // 预留默认一直发1（如协议需要）
 };
 
 static constexpr uint32_t SCHED_TICK_MS = 50;
@@ -103,12 +89,7 @@ public:
     // 线程安全：返回拷贝（输出参数）
     bool getPollCtx(const std::string& device_name, DevicePollCtx& out) const;
 
-    void setSendCan(std::function<void(int /*can_index*/, const can_frame&)> cb);
-
-    // 轮询 gate：由 Scheduler 自己的状态决定
-    void setBmsTxEnabled(bool en);
-    bool bmsTxEnabled() const;
-
+    // void setSendCan(std::function<void(int /*can_index*/, const can_frame&)> cb);
 
 private:
     void pollTick(); // 定时触发轮询任务
@@ -141,6 +122,10 @@ private:
     struct CanTask {
         int can_index{-1};
         std::string name;
+
+        // PCU 实例号：1=PCU1, 2=PCU2；0=不适用/未配置
+        uint8_t pcu_instance{0};
+
         uint32_t period_ms{200};
         uint64_t next_due_ms{0};
 
@@ -165,10 +150,7 @@ private:
     };
 
     std::vector<CanTask> can_tasks_;
-    std::function<void(int, const can_frame&)> send_can_;
+    // std::function<void(int, const can_frame&)> send_can_;
 
-    // 给 DeviceScheduler 增加一组BMS 定时发送任务的状态
-    BmsTxTask bms_tx_;
-    bool bms_tx_enable_{false};  // 交给 control/bms 命令管理器，默认关闭 scheduler 的旧 BMS TX
     std::function<void(const std::string&)> on_health_changed_;
 };

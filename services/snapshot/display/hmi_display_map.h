@@ -1,8 +1,10 @@
 #pragma once
+
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
+
 #include <nlohmann/json.hpp>
 
 // 显示映射的值类型（对“屏幕区”做四分）
@@ -28,6 +30,30 @@ struct HmiPathItem {
     // "_" 表示占位（不写）
     std::string path;
 
+    /*
+     * 新版 normal_map_logic.jsonl 支持每个 item 显式带地址：
+     *
+     * {
+     *   "地址hex": "0x4000",
+     *   "长度/int16": 1,
+     *   "变量描述": "...",
+     *   "变量类型": "UINT16",
+     *   "缩放": 1,
+     *   "path": "system.logic_view.xxx"
+     * }
+     *
+     * 第一批只负责解析保存这些字段；
+     * 第二批 NormalHmiWriter 再改为优先使用 item.addr。
+     */
+    bool has_addr{false};
+    uint16_t addr{0};
+
+    // 来自 “长度/int16”，默认 1
+    uint16_t words{1};
+
+    // 来自 “变量类型”
+    std::string var_type;
+
     // 可选字段：每个 item 覆盖 block
     std::optional<double> def;
     std::optional<double> scale;
@@ -46,11 +72,24 @@ struct HmiPathItem {
     std::optional<int> bit_index;
 
     // debug/注释
+    // 旧版来自 name；新版来自 “变量描述”
     std::string name;
 };
 
 struct HmiMapBlock {
+    /*
+     * 旧版格式：
+     *   {"type":"int_read","base":"0x4000","items":[...]}
+     *
+     * 新版格式：
+     *   {"type":"int_read","items":[{"地址hex":"0x4000",...}]}
+     *
+     * 为兼容旧 NormalHmiWriter，第一批在新版格式中也会把 base 设为
+     * 第一个显式地址。但真正正确的写屏地址，要等第二批使用 item.addr。
+     */
+    bool has_base{false};
     uint16_t base{0};
+
     HmiValType type{HmiValType::IntRead};
 
     // Bit 模式：统一 src
@@ -73,12 +112,19 @@ struct HmiDisplayMap {
 
 class HmiDisplayMapLoader {
 public:
-    bool loadJsonl(const std::string& path, HmiDisplayMap& out, std::string* err = nullptr);
+    bool loadJsonl(const std::string& path,
+                   HmiDisplayMap& out,
+                   std::string* err = nullptr);
 
-private:
     static bool parseHexU16(const std::string& s, uint16_t& out);
+private:
     static bool parseType(const std::string& s, HmiValType& out);
 
-    static void fillOpt(const nlohmann::json& j, const char* key, std::optional<double>& dst);
-    static void fillOptInt(const nlohmann::json& j, const char* key, std::optional<int>& dst);
+    static void fillOpt(const nlohmann::json& j,
+                        const char* key,
+                        std::optional<double>& dst);
+
+    static void fillOptInt(const nlohmann::json& j,
+                           const char* key,
+                           std::optional<int>& dst);
 };

@@ -151,7 +151,7 @@ bool FaultCatalog::loadJsonl(const std::string& path, std::string* err)
             meta.fault_level = it.value("fault_level", "");
             meta.classification = it.value("classification", "");
 
-            meta.record_db = parseBoolLoose_(it.contains("record_db") ? it["record_db"] : nlohmann::json{}, false);
+            meta.record_db = parseBoolLoose_(it.contains("record_db") ? it["record_db"] : nlohmann::json{}, true);
             meta.reserved  = parseBoolLoose_(it.contains("reserved") ? it["reserved"] : nlohmann::json{}, false);
 
             meta.priority_rank = parseIntLoose_(it.contains("priority_rank") ? it["priority_rank"] : nlohmann::json{}, 9999);

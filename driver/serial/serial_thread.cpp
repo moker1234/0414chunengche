@@ -1,5 +1,5 @@
-// Created by forlinx on 2025/12/20.
-// Modified by ChatGPT on 2026/01/16
+// Created by lxy on 2025/12/20.
+// Modified by lxy on 2026/01/16
 
 #include "serial_thread.h"
 

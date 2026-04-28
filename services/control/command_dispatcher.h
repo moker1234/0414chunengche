@@ -1,7 +1,7 @@
 // services/control/command_dispatcher.h
 //
 // 工业级控制：命令下发器（所有发送统一串行化）
-// Created by ChatGPT on 2026/02/24.
+// Created by lxy on 2026/02/24.
 //
 
 #ifndef ENERGYSTORAGE_COMMAND_DISPATCHER_H
@@ -32,7 +32,7 @@ namespace control {
      *
      * 工业级做法：
      * - 在 ControlLoop 单线程调用 dispatch()，Dispatcher 内部尽量少锁
-     * - 对“重复写同一 DO / 同一 HMI RW 地址”等可做合并（这里先留骨架）
+     * - 对“重复写同一 DO”可做合并（这里先保留 DO 合并缓存）
      */
     class CommandDispatcher {
     public:

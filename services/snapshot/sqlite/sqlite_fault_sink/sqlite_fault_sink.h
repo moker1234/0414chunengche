@@ -4,6 +4,7 @@
 
 #ifndef ENERGYSTORAGE_SQLITE_FAULT_SINK_H
 #define ENERGYSTORAGE_SQLITE_FAULT_SINK_H
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -39,12 +40,36 @@ public:
     void close();
 
     bool insertHistoryBegin(const FaultHistoryDbRecord& rec, int64_t& out_row_id);
+
+    // 兼容旧接口：按 code 清除“最新未清除”的那条
     bool markHistoryCleared(uint16_t code, uint64_t clear_ms);
+
+    // 新接口：按 row_id 精确清除
+    bool markHistoryClearedById(int64_t row_id, uint64_t clear_ms);
+
+    // 兼容旧接口：启动时加载最近 history
     bool loadRecentHistory(std::vector<FaultHistoryDbRecord>& out);
+
+    // 新接口：历史页缓存用
+    bool countHistoryRows(uint32_t& out_total_rows, bool only_cleared = true);
+    bool loadLatestHistory(uint32_t limit,
+                           std::vector<FaultHistoryDbRecord>& out,
+                           bool only_cleared = true);
+    bool loadHistoryPage(uint32_t page_no,
+                         uint32_t page_size,
+                         std::vector<FaultHistoryDbRecord>& out,
+                         bool only_cleared = true);
+    bool loadHistoryRange(uint32_t offset,
+                          uint32_t limit,
+                          std::vector<FaultHistoryDbRecord>& out,
+                          bool only_cleared = true);
 
 private:
     bool applyPragmas_();
     bool initSchema_();
+
+    bool bindRowsFromStmt_(sqlite3_stmt* stmt,
+                           std::vector<FaultHistoryDbRecord>& out);
 
 private:
     Config cfg_;
@@ -52,6 +77,4 @@ private:
     bool opened_{false};
 };
 
-
-
-#endif //ENERGYSTORAGE_SQLITE_FAULT_SINK_H
+#endif // ENERGYSTORAGE_SQLITE_FAULT_SINK_H
